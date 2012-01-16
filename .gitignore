@@ -1,0 +1,8 @@
+*.pyc
+*.pyd
+*.pyo
+*~
+._*
+*.egg-info
+build
+*-hosted.ini
