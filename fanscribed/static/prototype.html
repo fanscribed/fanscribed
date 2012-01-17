@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fanscribed Prototype</title>
+    <style type="text/css">
+        /*#player {
+            display: none;
+        }*/
+    </style>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+
+        var audioUrl = 'http://m.podshow.com/media/15412/episodes/308814/noagenda-308814-01-15-2012.mp3';
+        var segmentPadding = 3; // seconds
+
+        var player = function () {
+            return $('#player')[0];
+        }
+
+        var playerListener = new Object();
+        playerListener.onInit = function () {
+            this.position = 0;
+        }
+        playerListener.onUpdate = function () {
+            $('#playerIsPlaying').text(this.isPlaying);
+            $('#playerUrl').text(this.url);
+            $('#playerVolume').text(this.volume);
+            $('#playerPosition').text(this.position + ' | ' + this.position / 60000);
+            $('#playerDuration').text(this.duration + ' | ' + this.duration / 60000);
+            $('#playerBytesLoaded').text(this.bytesLoaded);
+            $('#playerBytesTotal').text(this.bytesTotal);
+        }
+
+        var play = function () {
+            player().SetVariable('method:play', '');
+        }
+        var pause = function () {
+            player().SetVariable('method:pause', '');
+        }
+        var stop = function () {
+            player().SetVariable('method:stop', '');
+        }
+        var disable = function () {
+            player().SetVariable('enabled', 'false');
+        }
+        var playSegment = function () {
+            var inputMinute = parseFloat($('#inputMinute').val());
+            console.log('inputMinute ' + inputMinute);
+            var start = (inputMinute * 60000) - (segmentPadding * 1000);
+            var end = ((inputMinute + 1) * 60000) + (segmentPadding * 1000);
+            if (start < 0) {
+                // clip at start of file.
+                start = 0;
+            };
+            console.log('start ' + start);
+            console.log('end ' + end);
+            // wait until we get to at least our starting position in the download
+            var waitForStart = function () {
+                if (parseFloat(playerListener.duration) < start) {
+                    // wait some more.
+                    window.setTimeout(waitForStart, 500);
+                } else {
+                    // wait for the end.
+                    waitForEnd();
+                };
+            }
+            var waitForEnd = function () {
+                var duration = parseFloat(playerListener.duration);
+                var bytesLoaded = parseFloat(playerListener.bytesLoaded);
+                var bytesTotal = parseFloat(playerListener.bytesTotal);
+                if (duration < end && bytesLoaded < bytesTotal) {
+                    // wait until the whole segment or the whole file is loaded, whichever comes first.
+                    window.setTimeout(waitForEnd, 500);
+                } else {
+                    if (end > duration) {
+                        // clip at end of file if end was further than duration.
+                        end = duration;
+                    };
+                    if (start > end) {
+                        // nothing to play
+                    } else {
+                        startPlaying();
+                    }
+                }
+            }
+            var startPlaying = function () {
+                console.log('starting playback');
+                player().SetVariable('method:pause', '');
+                player().SetVariable('method:setPosition', start);
+                player().SetVariable('method:play', '');
+                var monitorPlayback = function () {
+                    var position = parseFloat(playerListener.position);
+                    if (position >= end || position < start) {
+                        console.log('pausing ' + playerListener.position + ' ' + end);
+                        player().SetVariable('method:pause', '');
+                    } else {
+                        window.setTimeout(monitorPlayback, 500);
+                    };
+                }
+                monitorPlayback();
+            }
+            waitForStart();
+        }
+
+        var enableStreaming = function () {
+            if (!playerListener.volume) {
+                // not yet enabled; enable and then check volume again
+                console.log('enabling')
+                player().SetVariable('enabled', 'true');
+                window.setTimeout(enableStreaming, 100);
+            } else {
+                // enabled; set the URL.
+                prepStreaming();
+            }
+        }
+
+        var prepStreaming = function () {
+            // check against a string, since that's what the flash component sets it to
+            if (playerListener.url == 'undefined') {
+                // not yet loaded; set the URl then check again
+                console.log('setting URL to ' + audioUrl);
+                player().SetVariable('method:setUrl', audioUrl);
+                window.setTimeout(beginDownloading, 100);
+            } else {
+                // loaded; begin downloading.
+                beginDownloading();
+            }
+        }
+
+        var beginDownloading = function () {
+            console.log('downloading');
+            player().SetVariable('method:play', '');
+            player().SetVariable('method:pause', '');
+        }
+
+        $(function () {
+            enableStreaming();
+        });
+    </script>
+</head>
+<body>
+    <object id="player" type="application/x-shockwave-flash" data="/static/player_mp3_js.swf" width="1" height="1">
+        <param name="AllowScriptAccess" value="always">
+        <param name="FlashVars" value="listener=playerListener&amp;interval=500">
+    </object>
+    <div>
+        <p>Player status</p>
+        <ul>
+            <li>Playing: <span id="playerIsPlaying"></span></li>
+            <li>URL: <span id="playerUrl"></span></li>
+            <li>Volume: <span id="playerVolume"></span></li>
+            <li>Position (ms | mins): <span id="playerPosition"></span></li>
+            <li>Duration (ms | mins): <span id="playerDuration"></span></li>
+            <li>Bytes received: <span id="playerBytesLoaded"></span></li>
+            <li>Bytes total: <span id="playerBytesTotal"></span></li>
+        </ul>
+    </div>
+    <div>
+        <p>Player controls</p>
+        <ul>
+            <li><a href="javascript:play()">Play</a></li>
+            <li><a href="javascript:pause()">Pause</a></li>
+            <li><a href="javascript:stop()">Stop</a></li>
+            <li><a href="javascript:disable()">Disable</a></li>
+            <li><input id="inputMinute" type="text" size="6"> <a href="javascript:playSegment()">Play 1-Minute Segment</a></li>
+        </ul>
+    </div>
+</body>
+</html>
