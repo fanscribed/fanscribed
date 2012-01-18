@@ -7,8 +7,12 @@ README = open(os.path.join(here, 'README.txt')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
-    'pyramid',
+    'pyramid >= 1.2, < 1.3',
     'pyramid_debugtoolbar',
+    'GitPython >= 0.3.2.RC1, < 0.4',
+    'gitdb >= 0.5.4, < 0.6',
+    'smmap >= 0.8.1, < 0.9',
+    'async >= 0.6.1, < 0.7',
 ]
 
 setup(
