@@ -40,8 +40,8 @@ var view_onload = function () {
 
 
 var fill_identity = function () {
-    var name = $.cookie('identity-name');
-    var email = $.cookie('identity-email');
+    var name = $.cookie('identity_name');
+    var email = $.cookie('identity_email');
     $('#identity-name').val(name);
     $('#identity-email').val(email);
 };
@@ -50,12 +50,22 @@ var fill_identity = function () {
 var save_identity = function () {
     var name = $('#identity-name').val();
     var email = $('#identity-email').val();
-    $.cookie('identity-name', name, cookieOptions);
-    $.cookie('identity-email', email, cookieOptions);
+    $.cookie('identity_name', name, cookieOptions);
+    $.cookie('identity_email', email, cookieOptions);
     $('#identity-saved').text('Saved!');
     var clear = function () { $('#identity-saved').text(''); };
     window.setTimeout(clear, 1000);
     return false;
+};
+
+
+var has_identity = function () {
+    if (!($.cookie('identity_name')) || !($.cookie('identity_email'))) {
+        alert('Must set identity before continuing.');
+        return false;
+    } else {
+        return true;
+    };
 };
 
 
@@ -198,22 +208,26 @@ var request_and_fill_speakers = function () {
 // send duration and total bytes to server if ?init=<password> set in URL
 var send_duration = function () {
     if (!duration_sent && url_params.init) {
-        $.post(
-            // url
-            '/save_duration',
-            // data
-            {
-                duration: player_listener.duration,
-                bytes_total: player_listener.bytesTotal,
-                init_password: url_params.init
-            },
-            // success
-            function (data) {
-                alert('Initialization response: ' + data);
-            }
-        );
-        // only send it once.
-        duration_sent = true;
+        if (has_identity()) {
+            $.post(
+                // url
+                '/save_duration',
+                // data
+                {
+                    duration: player_listener.duration,
+                    bytes_total: player_listener.bytesTotal,
+                    init_password: url_params.init,
+                    identity_name: $.cookie('identity_name'),
+                    identity_email: $.cookie('identity_email')
+                },
+                // success
+                function (data) {
+                    alert('Initialization response: ' + data);
+                }
+            );
+            // only send it once.
+            duration_sent = true;
+        };
     };
 };
 

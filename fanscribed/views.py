@@ -71,6 +71,8 @@ def save_duration(request):
     else:
         duration = int(request.POST.getone('duration'))
         bytes_total = int(request.POST.getone('bytes_total'))
+        identity_name = request.POST.getone('identity_name')
+        identity_email = request.POST.getone('identity_email')
         # Update transcription info.
         repo = repo_from_request(request)
         master = repo.tree('master')
@@ -90,7 +92,9 @@ def save_duration(request):
                 with open(filename, 'wb') as f:
                     json.dump(transcription_info, f, indent=4)
                 index.add(['transcription.json'])
-                index.commit('Update with duration and bytes_total')
+                os.environ['GIT_AUTHOR_NAME'] = identity_name
+                os.environ['GIT_AUTHOR_EMAIL'] = identity_email
+                index.commit('Initialize with duration and bytes_total')
             # Respond to client.
             response = 'Committed - Duration: {0}, Bytes: {1}'.format(duration, bytes_total)
         else:
