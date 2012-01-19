@@ -1,5 +1,6 @@
 textarea {
 	height: 20em;
+	font-family: monospace;
 }
 
 #speakers-editor, #transcribe-editor {

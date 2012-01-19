@@ -45,6 +45,34 @@ def speakers_txt(request):
 
 
 @view_config(
+    request_method='POST',
+    route_name='speakers_txt',
+    context='fanscribed:resources.Root',
+)
+def post_speakers_txt(request):
+    text = request.POST.getone('text')
+    identity_name = request.POST.getone('identity_name')
+    identity_email = request.POST.getone('identity_email')
+    # Save transcription info.
+    repo = repo_from_request(request)
+    with commit_lock:
+        repo.heads['master'].checkout()
+        index = repo.index
+        entry = index.entries[('speakers.txt', 0)]
+        filename = os.path.join(repo.working_dir, 'speakers.txt')
+        with open(filename, 'wb') as f:
+            f.write(text)
+        index.add(['speakers.txt'])
+        os.environ['GIT_AUTHOR_NAME'] = identity_name
+        os.environ['GIT_AUTHOR_EMAIL'] = identity_email
+        index.commit('Via web: update list of speakers')
+    # Reload from repo and serve it up.
+    master = repo.tree('master')
+    blob = master['speakers.txt']
+    return Response(body_file=blob.data_stream, content_type='text/plain')
+
+
+@view_config(
     request_method='GET',
     route_name='transcription_json',
     context='fanscribed:resources.Root',
@@ -94,7 +122,7 @@ def save_duration(request):
                 index.add(['transcription.json'])
                 os.environ['GIT_AUTHOR_NAME'] = identity_name
                 os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-                index.commit('Initialize with duration and bytes_total')
+                index.commit('Via web: initialize with duration and bytes_total')
             # Respond to client.
             response = 'Committed - Duration: {0}, Bytes: {1}'.format(duration, bytes_total)
         else:

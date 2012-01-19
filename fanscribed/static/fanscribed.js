@@ -74,30 +74,68 @@ var has_identity = function () {
 
 
 var edit_speakers = function () {
-    $('#speakers-edit').hide();
-    $('#speakers-save').show();
-    $('#speakers-cancel').show();
-    $('#speakers-text').hide();
-    $('#speakers-editor').show();
-    $('#instructions-speakers').show();
+    $.get(
+        // url
+        '/speakers.txt',
+        // success
+        function (data) {
+            $('#speakers-editor')
+                .val(data)
+                .show()
+            ;
+            $('#speakers-edit').hide();
+            $('#speakers-save').show();
+            $('#speakers-cancel').show();
+            $('#speakers-text').hide();
+            $('#instructions-speakers').show();
+        }
+    );
     return false;
 };
 var save_speakers = function () {
-    $('#speakers-edit').show();
-    $('#speakers-save').hide();
-    $('#speakers-cancel').hide();
-    $('#speakers-text').show();
-    $('#speakers-editor').hide();
-    $('#instructions-speakers').hide();
+    if (has_identity()) {
+        $.post(
+            // url
+            '/speakers.txt',
+            // data
+            {
+                text: $('#speakers-editor').val(),
+                identity_name: $.cookie('identity_name'),
+                identity_email: $.cookie('identity_email')
+            },
+            // success
+            function (data) {
+                $('#speakers-text')
+                    .text(data)
+                    .show()
+                ;
+                $('#speakers-edit').show();
+                $('#speakers-save').hide();
+                $('#speakers-cancel').hide();
+                $('#speakers-editor').hide();
+                $('#instructions-speakers').hide();
+            }
+        );
+    };
     return false;
 };
 var cancel_speakers = function () {
-    $('#speakers-edit').show();
-    $('#speakers-save').hide();
-    $('#speakers-cancel').hide();
-    $('#speakers-text').show();
-    $('#speakers-editor').hide();
-    $('#instructions-speakers').hide();
+    $.get(
+        // url
+        '/speakers.txt',
+        // success
+        function (data) {
+            $('#speakers-text')
+                .text(data)
+                .show()
+            ;
+            $('#speakers-edit').show();
+            $('#speakers-save').hide();
+            $('#speakers-cancel').hide();
+            $('#speakers-editor').hide();
+            $('#instructions-speakers').hide();
+        }
+    );
     return false;
 };
 
