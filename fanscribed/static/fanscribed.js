@@ -2,6 +2,7 @@
 
 
 var edit_onload = function () {
+    fill_identity();
     request_and_fill_about();
     request_and_fill_speakers();
 };
@@ -10,6 +11,29 @@ var edit_onload = function () {
 var view_onload = function () {
     request_and_fill_about();
     request_and_fill_speakers();
+};
+
+
+// identity
+
+
+var fill_identity = function () {
+    var name = $.cookie('identity-name');
+    var email = $.cookie('identity-email');
+    $('#identity-name').val(name);
+    $('#identity-email').val(email);
+};
+
+
+var save_identity = function () {
+    var name = $('#identity-name').val();
+    var email = $('#identity-email').val();
+    $.cookie('identity-name', name, cookieOptions);
+    $.cookie('identity-email', email, cookieOptions);
+    $('#identity-saved').text('Saved!');
+    var clear = function () { $('#identity-saved').text(''); };
+    window.setTimeout(clear, 1000);
+    return false;
 };
 
 

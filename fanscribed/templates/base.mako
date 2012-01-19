@@ -11,7 +11,15 @@
   <link rel="stylesheet" href="${request.static_url('fanscribed:static/ie6.css')}" type="text/css" media="screen" charset="utf-8" />
   <![endif]-->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+  <script type="text/javascript" src="${request.static_url('fanscribed:static/jquery.cookie.js')}"></script>
   <script type="text/javascript" src="${request.static_url('fanscribed:static/fanscribed.js')}"></script>
+  <script type="text/javascript">
+    var cookieOptions = {
+      expires: 365,
+      path: '/',
+      domain: '${'.'.join((request.host.split('.'))[-2:])}'
+    };
+  </script>
   ${next.head_script()}
 </head>
 <body>
