@@ -13,3 +13,6 @@
   |
   <a href="${request.route_path('edit')}">Edit</a>
 </%def>
+
+<%def name="body()">
+</%def>

@@ -1,0 +1,11 @@
+textarea {
+	height: 20em;
+}
+
+#speakers-editor, #transcribe-editor {
+	width: 100%;
+}
+
+#review-editor1, #review-editor2 {
+	width: 45%;
+}

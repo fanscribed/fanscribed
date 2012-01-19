@@ -34,13 +34,11 @@
       <li>Title: <span id="about-title"></span></li>
       <li>Homepage: <a id="about-homepage" href="#"></a></li>
       <li>Audio: <a id="about-audio" href="#"></a></li>
+      <li>Initialized: <span id="about-initialized"></span></li>
     </ul>
   </div>
 
-  <div id="speakers">
-    <h1>Speakers</h1>
-    <pre id="speakers-text"></pre>
-  </div>
+  ${next.body()}
 
   <div id="player-info">
     <h1>Player</h1>

@@ -4,6 +4,7 @@
 
 var duration_sent = false;
 var should_auto_stream = false;
+var transcription = {};
 
 
 var edit_onload = function () {
@@ -31,7 +32,6 @@ var view_onload = function () {
     };
     player_enable();
     request_and_fill_about();
-    request_and_fill_speakers();
 };
 
 
@@ -66,6 +66,79 @@ var has_identity = function () {
     } else {
         return true;
     };
+};
+
+
+// =========================================================================
+// editor
+
+
+var edit_speakers = function () {
+    $('#speakers-edit').hide();
+    $('#speakers-save').show();
+    $('#speakers-cancel').show();
+    $('#speakers-text').hide();
+    $('#speakers-editor').show();
+    $('#instructions-speakers').show();
+    return false;
+};
+var save_speakers = function () {
+    $('#speakers-edit').show();
+    $('#speakers-save').hide();
+    $('#speakers-cancel').hide();
+    $('#speakers-text').show();
+    $('#speakers-editor').hide();
+    $('#instructions-speakers').hide();
+    return false;
+};
+var cancel_speakers = function () {
+    $('#speakers-edit').show();
+    $('#speakers-save').hide();
+    $('#speakers-cancel').hide();
+    $('#speakers-text').show();
+    $('#speakers-editor').hide();
+    $('#instructions-speakers').hide();
+    return false;
+};
+
+var editor_transcribe = function () {
+    $('#edit-buttons').hide();
+    $('#edit-action-buttons').show();
+    $('#instructions-transcribe').show();
+    $('#transcribe-editor').show();
+    return false;
+};
+var editor_review = function () {
+    $('#edit-buttons').hide();
+    $('#edit-action-buttons').show();
+    $('#instructions-review').show();
+    $('#review-editor1').show();
+    $('#review-editor2').show();
+    return false;
+};
+
+var editor_save = function () {
+    $('#edit-buttons').show();
+    $('#edit-action-buttons').hide();
+    $('#transcribe-editor').hide();
+    $('#review-editor1').hide();
+    $('#review-editor2').hide();
+    $('#instructions-transcribe').hide();
+    $('#instructions-review').hide();
+    return false;
+};
+var editor_cancel = function () {
+    $('#edit-buttons').show();
+    $('#edit-action-buttons').hide();
+    $('#transcribe-editor').hide();
+    $('#review-editor1').hide();
+    $('#review-editor2').hide();
+    $('#instructions-transcribe').hide();
+    $('#instructions-review').hide();
+    return false;
+};
+var editor_replay = function () {
+    return false;
 };
 
 
@@ -165,9 +238,6 @@ var player_pause = function () {
 // server
 
 
-var transcription = {};
-
-
 var request_and_fill_about = function () {
     $.getJSON(
         // url
@@ -185,6 +255,9 @@ var request_and_fill_about = function () {
             $('#about-audio')
                 .attr('href', data.audio_url)
                 .text(data.audio_url)
+            ;
+            $('#about-initialized')
+                .text(data.duration ? "Yes" : "No")
             ;
         }
     );
