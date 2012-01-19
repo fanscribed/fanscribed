@@ -1,7 +1,18 @@
+// =========================================================================
 // onload
 
 
+var should_auto_stream = false;
+
+
 var edit_onload = function () {
+    if (url_params.autostream === '0') {
+        // url requested no auto streaming.
+        should_auto_stream = false;
+    } else {
+        // default: automatically start streaming
+        should_auto_stream = true;
+    };
     player_enable();
     fill_identity();
     request_and_fill_about();
@@ -10,12 +21,20 @@ var edit_onload = function () {
 
 
 var view_onload = function () {
+    if (url_params.autostream === '1') {
+        // url requested auto streaming.
+        should_auto_stream = true;
+    } else {
+        // default: do not automatically start streaming
+        should_auto_stream = false;
+    };
     player_enable();
     request_and_fill_about();
     request_and_fill_speakers();
 };
 
 
+// =========================================================================
 // identity
 
 
@@ -39,6 +58,7 @@ var save_identity = function () {
 };
 
 
+// =========================================================================
 // player
 
 
@@ -88,6 +108,9 @@ var player_enable = function () {
 var player_setup_url = function () {
     if (player_listener.enabled && transcription.audio_url) {
         player().SetVariable('method:setUrl', transcription.audio_url);
+        if (should_auto_stream) {
+            window.setTimeout(player_begin_streaming, 100);
+        };
     } else {
         // player not enabled or haven't received audio URL.
         // keep trying.
@@ -96,6 +119,22 @@ var player_setup_url = function () {
 };
 
 
+// begin streaming (but do not play)
+var player_begin_streaming = function () {
+    player_play();
+    player_pause();
+};
+
+
+var player_play = function () {
+    player().SetVariable('method:play', '');
+};
+var player_pause = function () {
+    player().SetVariable('method:pause', '');
+};
+
+
+// =========================================================================
 // server
 
 
@@ -137,3 +176,21 @@ var request_and_fill_speakers = function () {
         }
     );
 };
+
+
+// =========================================================================
+// browser url
+// http://stackoverflow.com/a/2880929/72560
+
+
+var url_params = {};
+(function () {
+    var e,
+        a = /\+/g,  // Regex for replacing addition symbol with a space
+        r = /([^&=]+)=?([^&]*)/g,
+        d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
+        q = window.location.search.substring(1);
+
+    while (e = r.exec(q))
+       url_params[d(e[1])] = d(e[2]);
+})();
