@@ -8,7 +8,7 @@ from fanscribed.repos import repo_from_request
     request_method='GET',
     route_name='edit',
     context='fanscribed:resources.Root',
-    renderer='fanscribed:templates/edit.pt',
+    renderer='fanscribed:templates/edit.mako',
 )
 def edit(request):
     return dict(
@@ -20,7 +20,7 @@ def edit(request):
     request_method='GET',
     route_name='view',
     context='fanscribed:resources.Root',
-    renderer='fanscribed:templates/view.pt',
+    renderer='fanscribed:templates/view.mako',
 )
 def view(request):
     return dict(

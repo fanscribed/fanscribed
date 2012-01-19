@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:tal="http://xml.zope.org/namespaces/tal">
+<html>
 <head>
-  <title>Transcription - Fanscribed</title>
+  <title>${next.head_title()} - Fanscribed</title>
   <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
   <meta name="keywords" content="transcription transcribe podcast crowdsource" />
   <meta name="description" content="Croudsourced podcast transcription" />
@@ -12,15 +12,11 @@
   <![endif]-->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
   <script type="text/javascript" src="${request.static_url('fanscribed:static/fanscribed.js')}"></script>
-  <script type="text/javascript">
-    $(view_onload);
-  </script>
+  ${next.head_script()}
 </head>
 <body>
   <div id="toolbar">
-    <strong>View</strong>
-    |
-    <a href="${request.route_path('edit')}">Edit</a>
+    ${next.toolbar()}
   </div>
   <div id="about">
     <h1>About</h1>
