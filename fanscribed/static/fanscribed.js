@@ -2,6 +2,7 @@
 // onload
 
 
+var duration_sent = false;
 var should_auto_stream = false;
 
 
@@ -75,6 +76,22 @@ var player_listener = {
         this.position = 0;
     },
     onUpdate: function () {
+        this.duration_difference = parseFloat(this.duration) - parseFloat(this.old_duration);
+        this.old_duration = this.duration;
+        if (this.duration_difference !== 0 && this.finished_timeout_id) {
+            window.clearTimeout(this.finished_timeout_id);
+        };
+        this.update_player_info();
+        this.send_duration_if_finished();
+    },
+    send_duration_if_finished: function () {
+        if (this.bytesLoaded !== 'undefined' && (this.bytesLoaded == this.bytesTotal) && (this.duration_difference === 0) && (!this.finished_timeout_id)) {
+            // Wait five seconds before sending.
+            // (File may be done loading, but player still processing duration)
+            this.finished_timeout_id = window.setTimeout(send_duration, 5000);
+        }
+    },
+    update_player_info: function () {
         $('#player-enabled').text(this.enabled);
         $('#player-isPlaying').text(this.isPlaying);
         $('#player-url').text(this.url);
@@ -175,6 +192,29 @@ var request_and_fill_speakers = function () {
             ;
         }
     );
+};
+
+
+// send duration and total bytes to server if ?init=<password> set in URL
+var send_duration = function () {
+    if (!duration_sent && url_params.init) {
+        $.post(
+            // url
+            '/save_duration',
+            // data
+            {
+                duration: player_listener.duration,
+                bytes_total: player_listener.bytesTotal,
+                init_password: url_params.init
+            },
+            // success
+            function (data) {
+                alert('Initialization response: ' + data);
+            }
+        );
+        // only send it once.
+        duration_sent = true;
+    };
 };
 
 
