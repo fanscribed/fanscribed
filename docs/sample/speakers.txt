@@ -1,4 +1,0 @@
-ac	Adam Curry
-jd	John C. Dvorak
-j	Jingle
-c	Clip
