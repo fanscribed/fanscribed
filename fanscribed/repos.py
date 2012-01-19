@@ -1,8 +1,12 @@
 import os
+import threading
 
 import git
 
 from pyramid.threadlocal import get_current_registry
+
+
+commit_lock = threading.Lock()
 
 
 def repo_from_request(request):

@@ -1,8 +1,11 @@
+import json
+import os
+
 from pyramid.response import Response
 from pyramid.threadlocal import get_current_registry
 from pyramid.view import view_config
 
-from fanscribed.repos import repo_from_request
+from fanscribed.repos import commit_lock, repo_from_request
 
 
 @view_config(
@@ -68,5 +71,28 @@ def save_duration(request):
     else:
         duration = int(request.POST.getone('duration'))
         bytes_total = int(request.POST.getone('bytes_total'))
-        response = 'Duration: {0}, Bytes: {1}'.format(duration, bytes_total)
+        # Update transcription info.
+        repo = repo_from_request(request)
+        master = repo.tree('master')
+        blob = master['transcription.json']
+        transcription_info = json.load(blob.data_stream)
+        if ('duration' not in transcription_info
+            and 'bytes_total' not in transcription_info
+            ):
+            transcription_info['duration'] = int(duration)
+            transcription_info['bytes_total'] = int(bytes_total)
+            # Save transcription info.
+            with commit_lock:
+                repo.heads['master'].checkout()
+                index = repo.index
+                entry = index.entries[('transcription.json', 0)]
+                filename = os.path.join(repo.working_dir, 'transcription.json')
+                with open(filename, 'wb') as f:
+                    json.dump(transcription_info, f, indent=4)
+                index.add(['transcription.json'])
+                index.commit('Update with duration and bytes_total')
+            # Respond to client.
+            response = 'Committed - Duration: {0}, Bytes: {1}'.format(duration, bytes_total)
+        else:
+            response = 'Already initialized'.format(duration, bytes_total)
     return Response(response, content_type='text/plain')
