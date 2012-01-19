@@ -23,9 +23,11 @@
   ${next.head_script()}
 </head>
 <body>
+
   <div id="toolbar">
     ${next.toolbar()}
   </div>
+
   <div id="about">
     <h1>About</h1>
     <ul>
@@ -34,12 +36,33 @@
       <li>Audio: <a id="about-audio" href="#"></a></li>
     </ul>
   </div>
+
   <div id="speakers">
     <h1>Speakers</h1>
     <pre id="speakers-text"></pre>
   </div>
+
+  <div id="player-info">
+    <h1>Player</h1>
+    <ul>
+      <li>enabled: <span id="player-enabled"></span></li>
+      <li>isPlaying: <span id="player-isPlaying"></span></li>
+      <li>url: <span id="player-url"></span></li>
+      <li>volume: <span id="player-volume"></span></li>
+      <li>position: <span id="player-position"></span> (<span id="player-position-minutes"></span> minutes)</li>
+      <li>duration: <span id="player-duration"></span> (<span id="player-duration-minutes"></span> minutes)</li>
+      <li>bytesLoaded: <span id="player-bytesLoaded"></span></li>
+      <li>bytesTotal: <span id="player-bytesTotal"></span></li>
+    </ul>
+  </div>
+
   <div id="footer">
     <div class="footer">Fanscribed &copy; Copyright 2012, <a href="http://11craft.com/">ElevenCraft Inc.</a></div>
   </div>
+
+  <object id="player" type="application/x-shockwave-flash" data="${request.static_url('fanscribed:static/player_mp3_js.swf')}" width="1" height="1">
+    <param name="AllowScriptAccess" value="always">
+    <param name="FlashVars" value="listener=player_listener&amp;interval=500">
+  </object>
 </body>
 </html>
