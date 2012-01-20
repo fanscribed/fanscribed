@@ -44,6 +44,7 @@ var view_onload = function () {
     };
     player_enable();
     request_and_fill_about();
+    request_and_fill_speakers();
 };
 
 

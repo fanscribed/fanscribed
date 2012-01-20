@@ -1,6 +1,8 @@
 import json
 import os
 
+import git
+
 from pyramid.response import Response
 from pyramid.threadlocal import get_current_registry
 from pyramid.view import view_config
@@ -34,8 +36,21 @@ def edit(request):
     renderer='fanscribed:templates/view.mako',
 )
 def view(request):
+    repo = repos.repo_from_request(request)
+    master = repo.tree('master')
+    snippets = []
+    for obj in master:
+        if isinstance(obj, git.Blob):
+            name, ext = os.path.splitext(obj.name)
+            if ext == '.txt':
+                try:
+                    starting_point = int(name)
+                except ValueError:
+                    pass
+                else:
+                    snippets.append((starting_point, obj.data_stream.read()))
     return dict(
-        # ...
+        snippets=snippets,
     )
 
 

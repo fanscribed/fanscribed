@@ -17,4 +17,18 @@
 </%def>
 
 <%def name="body()">
+  <h1>Speakers</h1>
+
+  <pre id="speakers-text"></pre>
+
+  <h1>Transcription</h1>
+
+  % for starting_point, text in snippets:
+      <div>
+        <p><a id="s${starting_point}" href="#s${starting_point}">${starting_point / 1000} seconds</a></p>
+        % for line in text.splitlines():
+            <p>${line}</p>
+        % endfor
+      </div>
+  % endfor
 </%def>
