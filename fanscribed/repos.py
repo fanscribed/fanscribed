@@ -25,6 +25,11 @@ def _settings():
     return get_current_registry().settings
 
 
+def _snippet_ms():
+    snippet_seconds = int(_settings()['fanscribed.snippet_seconds'])
+    return snippet_seconds * 1000
+
+
 def repo_from_request(request):
     repos_path = _settings()['fanscribed.repos']
     repo_path = os.path.join(repos_path, request.host)
@@ -94,34 +99,78 @@ def remove_review_from_remaining(repo, index, starting_point):
     save_remaining_reviews(repo, index, reviews)
 
 
-def lock_random(repo, index, lock_type):
+def lock_random_snippet(repo, index):
     """Return a (starting_point, lock_secret) tuple of a newly-locked snippet,
     or (None, message) if there are none remaining or all are locked."""
     tree = repo.tree('master')
-    if lock_type == 'snippet':
-        remaining = get_remaining_snippets(tree)
-    elif lock_type == 'review':
-        remaining = get_remaining_reviews(tree)
-    remaining = set(remaining)
+    remaining = set(get_remaining_snippets(tree))
     if len(remaining) == 0:
         # All of them have been transcribed.
-        return (None, 'All {0}s have been completed.'.format(lock_type))
+        return (None, 'All snippets have been completed.')
     # Remove expired locks.
     lock_structure = get_locks(tree)
-    locks = lock_structure.setdefault(lock_type, {})
+    locks = lock_structure.setdefault('snippet', {})
     for lock_name, lock in locks.items():
         lock_timestamp = lock['timestamp']
         if _lock_is_expired(lock_timestamp):
             del locks[lock_name]
     # Find one that's unlocked, if there are any.
     locked = set(int(lock_name) for lock_name in locks)
-    unlocked = sorted(remaining - locked)
+    unlocked = remaining - locked
     if len(unlocked) == 0:
         # All remaining have valid locks.
-        return (None, 'All {0}s are locked; try again later.'.format(lock_type))
+        return (None, 'All snippets are locked; try again later.')
     else:
         # Pick a random one and lock it with a secret.
-        starting_point = random.choice(unlocked)
+        starting_point = random.choice(list(unlocked))
+        lock_secret = ''.join(random.choice(string.letters) for x in xrange(16))
+        locks[str(starting_point)] = {
+            'secret': lock_secret,
+            'timestamp': time.time(),
+        }
+        save_locks(repo, index, lock_structure)
+        return (starting_point, lock_secret)
+
+
+def lock_random_review(repo, index):
+    """Return a (starting_point, lock_secret) tuple of a newly-locked review,
+    or (None, message) if there are none remaining or all are locked."""
+    tree = repo.tree('master')
+    remaining = set(get_remaining_reviews(tree))
+    if len(remaining) == 0:
+        # All of them have been reviewed.
+        return (None, 'All reviews have been completed.')
+    # Remove expired locks.
+    lock_structure = get_locks(tree)
+    locks = lock_structure.setdefault('review', {})
+    for lock_name, lock in locks.items():
+        lock_timestamp = lock['timestamp']
+        if _lock_is_expired(lock_timestamp):
+            del locks[lock_name]
+    # Find one that's unlocked, if there are any.
+    locked = set(int(lock_name) for lock_name in locks)
+    unlocked = remaining - locked
+    # Discard all of the reviews where the snippets are still remaining.
+    if len(unlocked) > 0:
+        remaining_snippets = set(get_remaining_snippets(tree))
+        unlocked -= remaining_snippets
+    else:
+        # All remaining have valid locks.
+        return (None, 'All reviews are locked; try again later.')
+    # Also discard any reviews where the second snippet of the review still remains.
+    if len(unlocked) > 0:
+        adjacent_empty = set()
+        for starting_point in unlocked:
+            candidate = starting_point + _snippet_ms()
+            if candidate in remaining_snippets:
+                adjacent_empty.add(candidate)
+        unlocked -= adjacent_empty
+    if len(unlocked) == 0:
+        # All remaining have valid locks.
+        return (None, 'Not enough snippets have been transcribed.')
+    else:
+        # Pick a random one and lock it with a secret.
+        starting_point = random.choice(list(unlocked))
         lock_secret = ''.join(random.choice(string.letters) for x in xrange(16))
         locks[str(starting_point)] = {
             'secret': lock_secret,

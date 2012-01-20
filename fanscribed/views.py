@@ -156,7 +156,7 @@ def lock_snippet(request):
         repo = repos.repo_from_request(request)
         index = repo.index
         # find and lock available snippet
-        starting_point, lock_secret_or_message = repos.lock_random(repo, index, 'snippet')
+        starting_point, lock_secret_or_message = repos.lock_random_snippet(repo, index)
         # if found,
         if starting_point is not None:
             # commit with identity
@@ -195,7 +195,7 @@ def lock_review(request):
         repo = repos.repo_from_request(request)
         index = repo.index
         # find and lock available review
-        starting_point, lock_secret_or_message = repos.lock_random(repo, index, 'review')
+        starting_point, lock_secret_or_message = repos.lock_random_review(repo, index)
         # if found,
         if starting_point is not None:
             # commit with identity

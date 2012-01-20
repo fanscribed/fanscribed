@@ -1,4 +1,5 @@
 from pyramid.config import Configurator
+
 from fanscribed.resources import Root
 
 def main(global_config, **settings):
