@@ -10,8 +10,8 @@ import git
 from pyramid.threadlocal import get_current_registry
 
 
-# Ten minute lock timeout.
-LOCK_TIMEOUT = 10 * 60
+# Twenty minute lock timeout.
+LOCK_TIMEOUT = 20 * 60
 
 
 commit_lock = threading.Lock()
