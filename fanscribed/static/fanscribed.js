@@ -437,7 +437,10 @@ var player_listener = {
 
 // enable the mp3 player
 var player_enable = function () {
-    if (!player_listener.volume) {
+    if (!(player().SetVariable)) {
+        // On Firefox, the SetVariable function isn't available right away.
+        window.setTimeout(player_enable, 100);
+    } else if (!player_listener.volume) {
         player().SetVariable('enabled', 'true');
         // sometimes this is not immediate due to flash startup.
         // keep trying until the player is enabled.
