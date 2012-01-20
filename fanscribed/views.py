@@ -62,8 +62,12 @@ def view(request):
 def speakers_txt(request):
     repo = repos.repo_from_request(request)
     master = repo.tree('master')
-    blob = master['speakers.txt']
-    return Response(body_file=blob.data_stream, content_type='text/plain')
+    if 'speakers.txt' in master:
+        blob = master['speakers.txt']
+        return Response(body_file=blob.data_stream, content_type='text/plain')
+    else:
+        # Not yet created.
+        return Response('', content_type='text/plain')
 
 
 @view_config(
