@@ -1,10 +1,21 @@
 // =========================================================================
-// onload
+// constants
+
+
+var PADDING = 2500; // 2.5 second audio padding on either side of a snippet
+
+
+// =========================================================================
+// globals (yes, I know... run away screaming!)
 
 
 var duration_sent = false;
 var should_auto_stream = false;
 var transcription = {};
+
+
+// =========================================================================
+// onload
 
 
 var edit_onload = function () {
@@ -73,6 +84,14 @@ var has_identity = function () {
 // editor
 
 
+var lock_info = {
+    starting_point: undefined,
+    ending_point: undefined,
+    secret: undefined,
+    type: undefined
+};
+
+
 var edit_speakers = function () {
     $.get(
         // url
@@ -92,6 +111,8 @@ var edit_speakers = function () {
     );
     return false;
 };
+
+
 var save_speakers = function () {
     if (has_identity()) {
         $.post(
@@ -119,6 +140,8 @@ var save_speakers = function () {
     };
     return false;
 };
+
+
 var cancel_speakers = function () {
     $.get(
         // url
@@ -139,43 +162,187 @@ var cancel_speakers = function () {
     return false;
 };
 
+
 var editor_transcribe = function () {
-    $('#edit-buttons').hide();
-    $('#edit-action-buttons').show();
-    $('#instructions-transcribe').show();
-    $('#transcribe-editor').show();
-    return false;
-};
-var editor_review = function () {
-    $('#edit-buttons').hide();
-    $('#edit-action-buttons').show();
-    $('#instructions-review').show();
-    $('#review-editor1').show();
-    $('#review-editor2').show();
+    if (has_identity()) {
+        $.post(
+            // url
+            '/lock_snippet',
+            // data
+            {
+                identity_name: $.cookie('identity_name'),
+                identity_email: $.cookie('identity_email')
+            },
+            // success
+            function (data) {
+                if (data.lock_acquired) {
+                    lock_info.starting_point = data.starting_point;
+                    lock_info.ending_point = data.ending_point;
+                    lock_info.secret = data.lock_secret;
+                    lock_info.type = 'snippet';
+                    $('#transcribe-editor')
+                        .val(data.snippet_text)
+                        .show()
+                    ;
+                    $('#edit-buttons').hide();
+                    $('#edit-action-buttons').show();
+                    $('#instructions-transcribe').show();
+                    editor_replay();
+                } else {
+                    alert(data.message);
+                };
+            },
+            // return data type
+            'json'
+        );
+    };
     return false;
 };
 
+
+var editor_review = function () {
+    if (has_identity()) {
+        $.post(
+            // url
+            '/lock_review',
+            // data
+            {
+                identity_name: $.cookie('identity_name'),
+                identity_email: $.cookie('identity_email')
+            },
+            // success
+            function (data) {
+                if (data.lock_acquired) {
+                    lock_info.starting_point = data.starting_point;
+                    lock_info.ending_point = data.ending_point;
+                    lock_info.secret = data.lock_secret;
+                    lock_info.type = 'review';
+                    $('#review-editor1')
+                        .val(data.review_text_1)
+                        .show()
+                    ;
+                    $('#review-editor2')
+                        .val(data.review_text_2)
+                        .show()
+                    ;
+                    $('#edit-buttons').hide();
+                    $('#edit-action-buttons').show();
+                    $('#instructions-review').show();
+                    editor_replay();
+                } else {
+                    alert(data.message);
+                };
+            },
+            // return data type
+            'json'
+        );
+    };
+    return false;
+};
+
+
 var editor_save = function () {
-    $('#edit-buttons').show();
-    $('#edit-action-buttons').hide();
-    $('#transcribe-editor').hide();
-    $('#review-editor1').hide();
-    $('#review-editor2').hide();
-    $('#instructions-transcribe').hide();
-    $('#instructions-review').hide();
+    player_pause();
+    if (has_identity()) {
+        var data = {
+            lock_secret: lock_info.secret,
+            starting_point: lock_info.starting_point,
+            identity_name: $.cookie('identity_name'),
+            identity_email: $.cookie('identity_email')
+        };
+        var url;
+        // Get appropriate text based on what's being edited.
+        if (lock_info.type == 'snippet') {
+            data.snippet_text = $('#transcribe-editor').val();
+            url = '/save_snippet';
+        } else if (lock_info.type == 'review') {
+            data.review_text_1 = $('#review-editor1').val();
+            data.review_text_2 = $('#review-editor2').val();
+            url = '/save_review';
+        } else {
+            alert('Unknown lock type ' + lock_info.type);
+            return false;
+        };
+        $.post(url, data, function (data) {
+            lock_info.secret = undefined;
+            lock_info.starting_point = undefined;
+            lock_info.ending_point = undefined;
+            lock_info.type = undefined;
+            $('#edit-buttons').show();
+            $('#edit-action-buttons').hide();
+            $('#transcribe-editor').hide();
+            $('#review-editor1').hide();
+            $('#review-editor2').hide();
+            $('#instructions-transcribe').hide();
+            $('#instructions-review').hide();
+        });
+    };
     return false;
 };
+
+
 var editor_cancel = function () {
-    $('#edit-buttons').show();
-    $('#edit-action-buttons').hide();
-    $('#transcribe-editor').hide();
-    $('#review-editor1').hide();
-    $('#review-editor2').hide();
-    $('#instructions-transcribe').hide();
-    $('#instructions-review').hide();
+    player_pause();
+    if (has_identity()) {
+        var data = {
+            lock_secret: lock_info.secret,
+            starting_point: lock_info.starting_point,
+            identity_name: $.cookie('identity_name'),
+            identity_email: $.cookie('identity_email')
+        };
+        var url;
+        // Set URL based on what's being edited.
+        if (lock_info.type == 'snippet') {
+            url = '/cancel_snippet';
+        } else if (lock_info.type == 'review') {
+            url = '/cancel_review';
+        } else {
+            alert('Unknown lock type ' + lock_info.type);
+            return false;
+        };
+        $.post(url, data, function (data) {
+            lock_info.secret = undefined;
+            lock_info.starting_point = undefined;
+            lock_info.ending_point = undefined;
+            lock_info.type = undefined;
+            $('#edit-buttons').show();
+            $('#edit-action-buttons').hide();
+            $('#transcribe-editor').hide();
+            $('#review-editor1').hide();
+            $('#review-editor2').hide();
+            $('#instructions-transcribe').hide();
+            $('#instructions-review').hide();
+        });
+    };
     return false;
 };
+
+
 var editor_replay = function () {
+    var actual_start = lock_info.starting_point - PADDING;
+    var actual_end = lock_info.ending_point + PADDING;
+    if (actual_start < 0) {
+        actual_start = 0;
+    };
+    if (actual_end > transcription.duration) {
+        actual_end = transcription.duration;
+    };
+    player_pause();
+    // wait until we have streamed past the end.
+    var wait_for_end = function () {
+        if (parseFloat(player_listener.duration) < actual_end) {
+            window.setTimeout(wait_for_end, 500);
+        } else {
+            end_reached();
+        };
+    };
+    // start playing, then stop at the end, when we have enough streamed.
+    var end_reached = function () {
+        player_seek(actual_start);
+        player_play();
+        player_replay_at(actual_end, editor_replay);
+    };
+    wait_for_end();
     return false;
 };
 
@@ -267,8 +434,46 @@ var player_begin_streaming = function () {
 var player_play = function () {
     player().SetVariable('method:play', '');
 };
+
+
+// used by player_pause and player_replay_at
+var replay_timeout;
+var position_check_timeout;
+
+
 var player_pause = function () {
+    if (position_check_timeout) {
+        window.clearTimeout(position_check_timeout);
+        position_check_timeout = undefined;
+    };
+    if (replay_timeout) {
+        window.clearTimeout(replay_timeout);
+        replay_timeout = undefined;
+    };
     player().SetVariable('method:pause', '');
+};
+
+
+var player_replay_at = function (end_position, replay_function) {
+    if (position_check_timeout) {
+        window.clearTimeout(position_check_timeout);
+    };
+    var position_check = function () {
+        console.log('position_check', player_listener.position, end_position);
+        if (parseFloat(player_listener.position) >= end_position) {
+            player_pause();
+            // wait one second, then replay.
+            replay_timeout = window.setTimeout(replay_function, 1000);
+        } else {
+            position_check_timeout = window.setTimeout(position_check, 500);
+        };
+    };
+    position_check();
+};
+
+
+var player_seek = function (position) {
+    player().SetVariable('method:setPosition', position);
 };
 
 

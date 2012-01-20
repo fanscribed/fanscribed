@@ -5,7 +5,14 @@ from pyramid.response import Response
 from pyramid.threadlocal import get_current_registry
 from pyramid.view import view_config
 
-from fanscribed.repos import commit_lock, repo_from_request
+from fanscribed import repos
+
+
+def _snippet_ms():
+    registry = get_current_registry()
+    settings = registry.settings
+    snippet_seconds = int(settings['fanscribed.snippet_seconds'])
+    return snippet_seconds * 1000
 
 
 @view_config(
@@ -38,7 +45,7 @@ def view(request):
     context='fanscribed:resources.Root',
 )
 def speakers_txt(request):
-    repo = repo_from_request(request)
+    repo = repos.repo_from_request(request)
     master = repo.tree('master')
     blob = master['speakers.txt']
     return Response(body_file=blob.data_stream, content_type='text/plain')
@@ -54,11 +61,10 @@ def post_speakers_txt(request):
     identity_name = request.POST.getone('identity_name')
     identity_email = request.POST.getone('identity_email')
     # Save transcription info.
-    repo = repo_from_request(request)
-    with commit_lock:
+    repo = repos.repo_from_request(request)
+    with repos.commit_lock:
         repo.heads['master'].checkout()
         index = repo.index
-        entry = index.entries[('speakers.txt', 0)]
         filename = os.path.join(repo.working_dir, 'speakers.txt')
         with open(filename, 'wb') as f:
             f.write(text)
@@ -78,7 +84,7 @@ def post_speakers_txt(request):
     context='fanscribed:resources.Root',
 )
 def transcription_json(request):
-    repo = repo_from_request(request)
+    repo = repos.repo_from_request(request)
     master = repo.tree('master')
     blob = master['transcription.json']
     return Response(body_file=blob.data_stream, content_type='application/json')
@@ -102,7 +108,7 @@ def save_duration(request):
         identity_name = request.POST.getone('identity_name')
         identity_email = request.POST.getone('identity_email')
         # Update transcription info.
-        repo = repo_from_request(request)
+        repo = repos.repo_from_request(request)
         master = repo.tree('master')
         blob = master['transcription.json']
         transcription_info = json.load(blob.data_stream)
@@ -112,19 +118,226 @@ def save_duration(request):
             transcription_info['duration'] = int(duration)
             transcription_info['bytes_total'] = int(bytes_total)
             # Save transcription info.
-            with commit_lock:
+            with repos.commit_lock:
                 repo.heads['master'].checkout()
                 index = repo.index
-                entry = index.entries[('transcription.json', 0)]
                 filename = os.path.join(repo.working_dir, 'transcription.json')
                 with open(filename, 'wb') as f:
                     json.dump(transcription_info, f, indent=4)
                 index.add(['transcription.json'])
+                # Also save remaining snippets and reviews.
+                locks = repos.get_locks(master)
+                repos.save_locks(repo, index, locks)
+                snippets = range(0, transcription_info['duration'], _snippet_ms())
+                reviews = snippets[:-1]
+                repos.save_remaining_snippets(repo, index, snippets)
+                repos.save_remaining_reviews(repo, index, reviews)
+                # Perform commit.
                 os.environ['GIT_AUTHOR_NAME'] = identity_name
                 os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-                index.commit('Via web: initialize with duration and bytes_total')
+                index.commit('Via web: initialize based on duration of audio file')
             # Respond to client.
             response = 'Committed - Duration: {0}, Bytes: {1}'.format(duration, bytes_total)
         else:
             response = 'Already initialized'.format(duration, bytes_total)
     return Response(response, content_type='text/plain')
+
+
+@view_config(
+    request_method='POST',
+    route_name='lock_snippet',
+    context='fanscribed:resources.Root',
+)
+def lock_snippet(request):
+    # unpack identity
+    identity_name = request.POST.getone('identity_name')
+    identity_email = request.POST.getone('identity_email')
+    with repos.commit_lock:
+        repo = repos.repo_from_request(request)
+        index = repo.index
+        # find and lock available snippet
+        starting_point, lock_secret_or_message = repos.lock_random(repo, index, 'snippet')
+        # if found,
+        if starting_point is not None:
+            # commit with identity
+            os.environ['GIT_AUTHOR_NAME'] = identity_name
+            os.environ['GIT_AUTHOR_EMAIL'] = identity_email
+            index.commit('Via web: lock snippet for editing')
+            # return snippet info and text
+            snippet_text = repos.snippet_text(repo, index, starting_point)
+            body = json.dumps({
+                'lock_acquired': True,
+                'starting_point': starting_point,
+                'ending_point': starting_point + _snippet_ms(),
+                'lock_secret': lock_secret_or_message,
+                'snippet_text': snippet_text,
+            })
+            return Response(body, content_type='application/json')
+        else:
+            # return message
+            body = json.dumps({
+                'lock_acquired': False,
+                'message': lock_secret_or_message,
+            })
+            return Response(body, content_type='application/json')
+
+
+@view_config(
+    request_method='POST',
+    route_name='lock_review',
+    context='fanscribed:resources.Root',
+)
+def lock_review(request):
+    # unpack identity
+    identity_name = request.POST.getone('identity_name')
+    identity_email = request.POST.getone('identity_email')
+    with repos.commit_lock:
+        repo = repos.repo_from_request(request)
+        index = repo.index
+        # find and lock available review
+        starting_point, lock_secret_or_message = repos.lock_random(repo, index, 'review')
+        # if found,
+        if starting_point is not None:
+            # commit with identity
+            os.environ['GIT_AUTHOR_NAME'] = identity_name
+            os.environ['GIT_AUTHOR_EMAIL'] = identity_email
+            index.commit('Via web: lock review for editing')
+            # return review info and snippet texts
+            review_text_1 = repos.snippet_text(repo, index, starting_point)
+            review_text_2 = repos.snippet_text(repo, index, starting_point + _snippet_ms())
+            body = json.dumps({
+                'lock_acquired': True,
+                'starting_point': starting_point,
+                'ending_point': starting_point + (_snippet_ms() * 2),
+                'lock_secret': lock_secret_or_message,
+                'review_text_1': review_text_1,
+                'review_text_2': review_text_2,
+            })
+            return Response(body, content_type='application/json')
+        else:
+            # return message
+            body = json.dumps({
+                'lock_acquired': False,
+                'message': lock_secret_or_message,
+            })
+            return Response(body, content_type='application/json')
+
+
+@view_config(
+    request_method='POST',
+    route_name='save_snippet',
+    context='fanscribed:resources.Root',
+)
+def save_snippet(request):
+    # unpack lock secret, starting point, identity, text
+    lock_secret = request.POST.getone('lock_secret')
+    starting_point = int(request.POST.getone('starting_point'))
+    identity_name = request.POST.getone('identity_name')
+    identity_email = request.POST.getone('identity_email')
+    snippet_text = request.POST.getone('snippet_text')
+    with repos.commit_lock:
+        # find and validate the lock
+        repo = repos.repo_from_request(request)
+        index = repo.index
+        if not repos.lock_is_valid(repo, index, 'snippet', starting_point, lock_secret):
+            raise ValueError('Invalid lock')
+        # save the snippet text
+        repos.save_snippet_text(repo, index, starting_point, snippet_text)
+        # remove the lock
+        repos.remove_lock(repo, index, 'snippet', starting_point)
+        # remove the snippet from remaining snippets
+        repos.remove_snippet_from_remaining(repo, index, starting_point)
+        # commit with identity
+        os.environ['GIT_AUTHOR_NAME'] = identity_name
+        os.environ['GIT_AUTHOR_EMAIL'] = identity_email
+        index.commit('Via web: save snippet')
+    # return empty indicating success
+    return Response('', content_type='text/plain')
+
+
+@view_config(
+    request_method='POST',
+    route_name='save_review',
+    context='fanscribed:resources.Root',
+)
+def save_review(request):
+    # unpack lock secret, starting point, identity, text
+    lock_secret = request.POST.getone('lock_secret')
+    starting_point = int(request.POST.getone('starting_point'))
+    identity_name = request.POST.getone('identity_name')
+    identity_email = request.POST.getone('identity_email')
+    review_text_1 = request.POST.getone('review_text_1')
+    review_text_2 = request.POST.getone('review_text_2')
+    with repos.commit_lock:
+        # find and validate the lock
+        repo = repos.repo_from_request(request)
+        index = repo.index
+        if not repos.lock_is_valid(repo, index, 'review', starting_point, lock_secret):
+            raise ValueError('Invalid lock')
+        # save review texts
+        repos.save_snippet_text(repo, index, starting_point, review_text_1)
+        repos.save_snippet_text(repo, index, starting_point + _snippet_ms(), review_text_2)
+        # remove the lock
+        repos.remove_lock(repo, index, 'review', starting_point)
+        # remove the review from remaining reviews
+        repos.remove_review_from_remaining(repo, index, starting_point)
+        # commit with identity
+        os.environ['GIT_AUTHOR_NAME'] = identity_name
+        os.environ['GIT_AUTHOR_EMAIL'] = identity_email
+        index.commit('Via web: save review')
+    # return empty indicating success
+    return Response('', content_type='text/plain')
+
+
+@view_config(
+    request_method='POST',
+    route_name='cancel_snippet',
+    context='fanscribed:resources.Root',
+)
+def cancel_snippet(request):
+    # unpack lock secret, starting point, identity
+    lock_secret = request.POST.getone('lock_secret')
+    starting_point = int(request.POST.getone('starting_point'))
+    identity_name = request.POST.getone('identity_name')
+    identity_email = request.POST.getone('identity_email')
+    with repos.commit_lock:
+        # find and validate the lock
+        repo = repos.repo_from_request(request)
+        index = repo.index
+        if not repos.lock_is_valid(repo, index, 'snippet', starting_point, lock_secret):
+            raise ValueError('Invalid lock')
+        # remove the lock
+        repos.remove_lock(repo, index, 'snippet', starting_point)
+        # commit with identity
+        os.environ['GIT_AUTHOR_NAME'] = identity_name
+        os.environ['GIT_AUTHOR_EMAIL'] = identity_email
+        index.commit('Via web: cancel snippet')
+    # return empty indicating success
+    return Response('', content_type='text/plain')
+
+
+@view_config(
+    request_method='POST',
+    route_name='cancel_review',
+    context='fanscribed:resources.Root',
+)
+def cancel_review(request):
+    # unpack lock secret, starting point, identity
+    lock_secret = request.POST.getone('lock_secret')
+    starting_point = int(request.POST.getone('starting_point'))
+    identity_name = request.POST.getone('identity_name')
+    identity_email = request.POST.getone('identity_email')
+    with repos.commit_lock:
+        # find and validate the lock
+        repo = repos.repo_from_request(request)
+        index = repo.index
+        if not repos.lock_is_valid(repo, index, 'review', starting_point, lock_secret):
+            raise ValueError('Invalid lock')
+        # remove the lock
+        repos.remove_lock(repo, index, 'review', starting_point)
+        # commit with identity
+        os.environ['GIT_AUTHOR_NAME'] = identity_name
+        os.environ['GIT_AUTHOR_EMAIL'] = identity_email
+        index.commit('Via web: cancel review')
+    # return empty indicating success
+    return Response('', content_type='text/plain')
