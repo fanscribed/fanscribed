@@ -2,6 +2,8 @@
 
 <%def name="head_title()">Transcription</%def>
 
+<%def name="player_update_interval()">500</%def>
+
 <%def name="head_script()">
   <script type="text/javascript">
     $(view_onload);

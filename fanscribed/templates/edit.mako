@@ -2,6 +2,8 @@
 
 <%def name="head_title()">Edit Transcription</%def>
 
+<%def name="player_update_interval()">200</%def>
+
 <%def name="head_script()">
   <script type="text/javascript">
     $(edit_onload);
@@ -56,7 +58,7 @@
       <p>Listen to the audio snippet and transcribe it using the following format.</p>
       <pre>abbr; transcription of speaker</pre>
       <p>The snippet is locked for you for ten minutes, or until you save or cancel.</p>
-      <p>Special keys: ` (backtick) play/pause, ~ (tilde) replay</p>
+      <p>Special keys: \ (backslash) play/pause, ~ (tilde) replay, ` (backtick) back 5 seconds</p>
     </div>
 
     <div id="instructions-review" style="display: none;">
@@ -64,7 +66,7 @@
       <pre>abbr; transcription of speaker</pre>
       <p>In particular, if a transcription is duplicated or split between the end of the first and the beginning of the second, move the text to one snippet or the other to rectify. <em>Do not worry about words missing from the beginning of the first snippet or the end of the second,</em> as that is likely a side-effect of someone else reviewing that snippet adjacent to one you cannot see.</p>
       <p>The snippets are locked for you for ten minutes, or until you save or cancel.</p>
-      <p>Special keys: ` (backtick) play/pause, ~ (tilde) replay</p>
+      <p>Special keys: \ (backslash) play/pause, ~ (tilde) replay, ` (backtick) back 5 seconds</p>
     </div>
 
     <textarea class="player-shortcuts" id="transcribe-editor" style="display: none;"></textarea>
@@ -76,6 +78,7 @@
       <input id="editor-cancel" type="button" value="Cancel" onclick="editor_cancel();" />
       <input id="editor-replay" type="button" value="Replay" onclick="editor_replay();" />
       <input id="editor-pause" type="button" value="Pause/Play" onclick="editor_pause_play();" />
+      <input id="editor-rewind" type="button" value="Rewind 5s" onclick="editor_rewind();" />
     </p>
   </div>
 </%def>

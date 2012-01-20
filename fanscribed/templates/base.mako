@@ -60,7 +60,7 @@
 
   <object id="player" type="application/x-shockwave-flash" data="${request.static_url('fanscribed:static/player_mp3_js.swf')}" width="1" height="1">
     <param name="AllowScriptAccess" value="always">
-    <param name="FlashVars" value="listener=player_listener&amp;interval=500">
+    <param name="FlashVars" value="listener=player_listener&amp;interval=${next.player_update_interval()}">
   </object>
 </body>
 </html>

@@ -354,6 +354,34 @@ var editor_pause_play = function () {
     if (player_listener.isPlaying == 'true') {
         player_pause(false);
     } else {
+        // seek backward 500 ms to prevent skipping over audio
+        var actual_start = lock_info.starting_point - PADDING;
+        if (actual_start < 0) {
+            actual_start = 0;
+        };
+        var new_position = player_listener.position - 500;
+        if (new_position < actual_start) {
+            // don't go past beginning of snippet.
+            new_position = actual_start;
+        };
+        player_seek(new_position);
+        player_play();
+    };
+};
+
+
+var editor_rewind = function () {
+    var actual_start = lock_info.starting_point - PADDING;
+    if (actual_start < 0) {
+        actual_start = 0;
+    };
+    var new_position = player_listener.position - 5000;
+    if (new_position < actual_start) {
+        // don't go past beginning of snippet.
+        new_position = actual_start;
+    };
+    player_seek(new_position);
+    if (player_listener.isPlaying != 'true') {
         player_play();
     };
 };
@@ -425,10 +453,13 @@ var player_shortcuts_enable = function () {
     $('.player-shortcuts').keypress(function (event) {
         if (event.which == 96) { // `
             event.preventDefault();
-            editor_pause_play();
+            editor_rewind();
         } else if (event.which == 126) { // ~
             event.preventDefault();
             editor_replay();
+        } else if (event.which == 92) { // \
+            event.preventDefault();
+            editor_pause_play();
         };
     });
 };
