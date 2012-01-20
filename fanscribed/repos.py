@@ -21,6 +21,10 @@ def _lock_is_expired(timestamp):
     return (timestamp + LOCK_TIMEOUT) < time.time()
 
 
+def _lock_secret():
+    return ''.join(random.choice(string.letters) for x in xrange(16))
+
+
 def _settings():
     return get_current_registry().settings
 
@@ -99,7 +103,7 @@ def remove_review_from_remaining(repo, index, starting_point):
     save_remaining_reviews(repo, index, reviews)
 
 
-def lock_random_snippet(repo, index):
+def lock_available_snippet(repo, index):
     """Return a (starting_point, lock_secret) tuple of a newly-locked snippet,
     or (None, message) if there are none remaining or all are locked."""
     tree = repo.tree('master')
@@ -121,9 +125,9 @@ def lock_random_snippet(repo, index):
         # All remaining have valid locks.
         return (None, 'All snippets are locked; try again later.')
     else:
-        # Pick a random one and lock it with a secret.
-        starting_point = random.choice(list(unlocked))
-        lock_secret = ''.join(random.choice(string.letters) for x in xrange(16))
+        # Pick the next one and lock it with a secret.
+        starting_point = sorted(unlocked)[0]
+        lock_secret = _lock_secret()
         locks[str(starting_point)] = {
             'secret': lock_secret,
             'timestamp': time.time(),
@@ -132,7 +136,7 @@ def lock_random_snippet(repo, index):
         return (starting_point, lock_secret)
 
 
-def lock_random_review(repo, index):
+def lock_available_review(repo, index):
     """Return a (starting_point, lock_secret) tuple of a newly-locked review,
     or (None, message) if there are none remaining or all are locked."""
     tree = repo.tree('master')
@@ -169,9 +173,9 @@ def lock_random_review(repo, index):
         # All remaining have valid locks.
         return (None, 'Not enough snippets have been transcribed.')
     else:
-        # Pick a random one and lock it with a secret.
-        starting_point = random.choice(list(unlocked))
-        lock_secret = ''.join(random.choice(string.letters) for x in xrange(16))
+        # Pick the first available one and lock it with a secret.
+        starting_point = sorted(unlocked)[0]
+        lock_secret = _lock_secret()
         locks[str(starting_point)] = {
             'secret': lock_secret,
             'timestamp': time.time(),
