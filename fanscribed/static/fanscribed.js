@@ -27,6 +27,7 @@ var edit_onload = function () {
         should_auto_stream = true;
     };
     player_enable();
+    player_shortcuts_enable();
     fill_identity();
     request_and_fill_about();
     request_and_fill_speakers();
@@ -183,6 +184,7 @@ var editor_transcribe = function () {
                     $('#transcribe-editor')
                         .val(data.snippet_text)
                         .show()
+                        .focus()
                     ;
                     $('#edit-buttons').hide();
                     $('#edit-action-buttons').show();
@@ -220,6 +222,7 @@ var editor_review = function () {
                     $('#review-editor1')
                         .val(data.review_text_1)
                         .show()
+                        .focus()
                     ;
                     $('#review-editor2')
                         .val(data.review_text_2)
@@ -242,7 +245,7 @@ var editor_review = function () {
 
 
 var editor_save = function () {
-    player_pause();
+    player_pause(true);
     if (has_identity()) {
         var data = {
             lock_secret: lock_info.secret,
@@ -282,7 +285,7 @@ var editor_save = function () {
 
 
 var editor_cancel = function () {
-    player_pause();
+    player_pause(true);
     if (has_identity()) {
         var data = {
             lock_secret: lock_info.secret,
@@ -327,7 +330,7 @@ var editor_replay = function () {
     if (actual_end > transcription.duration) {
         actual_end = transcription.duration;
     };
-    player_pause();
+    player_pause(true);
     // wait until we have streamed past the end.
     var wait_for_end = function () {
         if (parseFloat(player_listener.duration) < actual_end) {
@@ -344,6 +347,15 @@ var editor_replay = function () {
     };
     wait_for_end();
     return false;
+};
+
+
+var editor_pause_play = function () {
+    if (player_listener.isPlaying == 'true') {
+        player_pause(false);
+    } else {
+        player_play();
+    };
 };
 
 
@@ -409,6 +421,19 @@ var player_enable = function () {
 };
 
 
+var player_shortcuts_enable = function () {
+    $('.player-shortcuts').keypress(function (event) {
+        if (event.which == 96) { // `
+            event.preventDefault();
+            editor_pause_play();
+        } else if (event.which == 126) { // ~
+            event.preventDefault();
+            editor_replay();
+        };
+    });
+};
+
+
 // setup the mp3 player with the audio url
 var player_setup_url = function () {
     if (player_listener.enabled && transcription.audio_url) {
@@ -427,7 +452,7 @@ var player_setup_url = function () {
 // begin streaming (but do not play)
 var player_begin_streaming = function () {
     player_play();
-    player_pause();
+    player_pause(true);
 };
 
 
@@ -441,12 +466,12 @@ var replay_timeout;
 var position_check_timeout;
 
 
-var player_pause = function () {
-    if (position_check_timeout) {
+var player_pause = function (clear_timeouts) {
+    if (position_check_timeout && clear_timeouts) {
         window.clearTimeout(position_check_timeout);
         position_check_timeout = undefined;
     };
-    if (replay_timeout) {
+    if (replay_timeout && clear_timeouts) {
         window.clearTimeout(replay_timeout);
         replay_timeout = undefined;
     };
@@ -460,7 +485,7 @@ var player_replay_at = function (end_position, replay_function) {
     };
     var position_check = function () {
         if (parseFloat(player_listener.position) >= end_position) {
-            player_pause();
+            player_pause(true);
             // wait one second, then replay.
             replay_timeout = window.setTimeout(replay_function, 1000);
         } else {

@@ -56,6 +56,7 @@
       <p>Listen to the audio snippet and transcribe it using the following format.</p>
       <pre>abbr; transcription of speaker</pre>
       <p>The snippet is locked for you for ten minutes, or until you save or cancel.</p>
+      <p>Special keys: ` (backtick) play/pause, ~ (tilde) replay</p>
     </div>
 
     <div id="instructions-review" style="display: none;">
@@ -63,16 +64,18 @@
       <pre>abbr; transcription of speaker</pre>
       <p>In particular, if a transcription is duplicated or split between the end of the first and the beginning of the second, move the text to one snippet or the other to rectify. <em>Do not worry about words missing from the beginning of the first snippet or the end of the second,</em> as that is likely a side-effect of someone else reviewing that snippet adjacent to one you cannot see.</p>
       <p>The snippets are locked for you for ten minutes, or until you save or cancel.</p>
+      <p>Special keys: ` (backtick) play/pause, ~ (tilde) replay</p>
     </div>
 
-    <textarea id="transcribe-editor" style="display: none;"></textarea>
-    <textarea id="review-editor1" style="display: none;"></textarea>
-    <textarea id="review-editor2" style="display: none;"></textarea>
+    <textarea class="player-shortcuts" id="transcribe-editor" style="display: none;"></textarea>
+    <textarea class="player-shortcuts" id="review-editor1" style="display: none;"></textarea>
+    <textarea class="player-shortcuts" id="review-editor2" style="display: none;"></textarea>
 
     <p id="edit-action-buttons" style="display: none;">
       <input id="editor-save" type="button" value="Save" onclick="editor_save();" />
       <input id="editor-cancel" type="button" value="Cancel" onclick="editor_cancel();" />
       <input id="editor-replay" type="button" value="Replay" onclick="editor_replay();" />
+      <input id="editor-pause" type="button" value="Pause/Play" onclick="editor_pause_play();" />
     </p>
   </div>
 </%def>
