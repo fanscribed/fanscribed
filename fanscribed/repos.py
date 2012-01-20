@@ -167,7 +167,7 @@ def lock_available_review(repo, index):
         for starting_point in unlocked:
             candidate = starting_point + _snippet_ms()
             if candidate in remaining_snippets:
-                adjacent_empty.add(candidate)
+                adjacent_empty.add(starting_point)
         unlocked -= adjacent_empty
     if len(unlocked) == 0:
         # All remaining have valid locks.
