@@ -459,7 +459,6 @@ var player_replay_at = function (end_position, replay_function) {
         window.clearTimeout(position_check_timeout);
     };
     var position_check = function () {
-        console.log('position_check', player_listener.position, end_position);
         if (parseFloat(player_listener.position) >= end_position) {
             player_pause();
             // wait one second, then replay.
