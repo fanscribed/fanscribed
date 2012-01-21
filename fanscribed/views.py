@@ -62,12 +62,8 @@ def view(request):
 def speakers_txt(request):
     repo = repos.repo_from_request(request)
     master = repo.tree('master')
-    if 'speakers.txt' in master:
-        blob = master['speakers.txt']
-        return Response(body_file=blob.data_stream, content_type='text/plain')
-    else:
-        # Not yet created.
-        return Response('', content_type='text/plain')
+    text = repos.speakers_text(master)
+    return Response(text, content_type='text/plain')
 
 
 @view_config(
@@ -93,8 +89,8 @@ def post_speakers_txt(request):
         index.commit('Via web: update list of speakers')
     # Reload from repo and serve it up.
     master = repo.tree('master')
-    blob = master['speakers.txt']
-    return Response(body_file=blob.data_stream, content_type='text/plain')
+    text = repos.speakers_text(master)
+    return Response(text, content_type='text/plain')
 
 
 @view_config(

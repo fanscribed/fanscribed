@@ -48,6 +48,15 @@ def duration(tree):
     return transcription_info['duration']
 
 
+def speakers_text(tree):
+    if 'speakers.txt' in tree:
+        blob = tree['speakers.txt']
+        return blob.data_stream.read()
+    else:
+        # Not yet created.
+        return ''
+
+
 def get_locks(tree):
     if 'locks.json' in tree:
         blob = tree['locks.json']
