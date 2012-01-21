@@ -23,11 +23,15 @@
 
   <h1>Transcription</h1>
 
-  % for starting_point, text in snippets:
+  % for starting_point, lines in snippets:
       <div>
         <p><a id="s${starting_point}" href="#s${starting_point}">${starting_point / 1000} seconds</a></p>
-        % for line in text.splitlines():
-            <p>${line}</p>
+        % for left, right in lines:
+            % if left:
+                <p>${left}: ${right}</p>
+            % else:
+                <p>${line}</p>
+            % endif
         % endfor
       </div>
   % endfor

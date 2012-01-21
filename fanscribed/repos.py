@@ -57,6 +57,23 @@ def speakers_text(tree):
         return ''
 
 
+def speakers_map(tree):
+    text = speakers_text(tree)
+    d = {}
+    for line in text.splitlines():
+        if ';' in line:
+            left, right = line.split(';', 1)
+        elif ':' in line:
+            left, right = line.split(':', 1)
+        else:
+            # No ; or : so skip
+            continue
+        left = left.strip().lower()
+        right = right.strip()
+        d[left] = right
+    return d
+
+
 def get_locks(tree):
     if 'locks.json' in tree:
         blob = tree['locks.json']

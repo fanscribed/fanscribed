@@ -38,7 +38,7 @@ def edit(request):
 def view(request):
     repo = repos.repo_from_request(request)
     master = repo.tree('master')
-    snippets = []
+    raw_snippets = []
     for obj in master:
         if isinstance(obj, git.Blob):
             name, ext = os.path.splitext(obj.name)
@@ -48,7 +48,27 @@ def view(request):
                 except ValueError:
                     pass
                 else:
-                    snippets.append((starting_point, obj.data_stream.read()))
+                    raw_snippets.append((starting_point, obj.data_stream.read()))
+    # Tease apart lines into left and right sides, replacing abbreviations with full expansion.
+    snippets = []
+    speakers_map = repos.speakers_map(master)
+    for starting_point, text in raw_snippets:
+        lines = []
+        for line in text.splitlines():
+            if ';' in line:
+                left, right = line.split(';', 1)
+            elif ':' in line:
+                left, right = line.split(':', 1)
+            else:
+                left = ''
+                right = line
+            left = left.strip().lower()
+            right = right.strip()
+            if left in speakers_map:
+                # Replace abbreviation with full expansion.
+                left = speakers_map[left]
+            lines.append((left, right))
+        snippets.append((starting_point, lines))
     return dict(
         snippets=snippets,
     )
