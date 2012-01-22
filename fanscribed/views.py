@@ -43,7 +43,8 @@ def edit(request):
 def view(request):
     repo = repos.repo_from_request(request)
     master = repo.tree('master')
-    raw_snippets = []
+    transcription_info = repos.transcription_info(master)
+    raw_snippets = {}
     for obj in master:
         if isinstance(obj, git.Blob):
             name, ext = os.path.splitext(obj.name)
@@ -53,33 +54,39 @@ def view(request):
                 except ValueError:
                     pass
                 else:
-                    raw_snippets.append((starting_point, obj.data_stream.read()))
-    # Tease apart lines into speaker and spoken, replacing abbreviations with full expansion.
+                    raw_snippets[starting_point] = obj.data_stream.read()
+    # Go through all snippets, whether they've been transcribed or not.
     snippets = []
     speakers_map = repos.speakers_map(master)
-    for starting_point, text in raw_snippets:
-        lines = []
-        for line in text.splitlines():
-            if ';' in line:
-                speaker, spoken = line.split(';', 1)
-            elif ':' in line:
-                speaker, spoken = line.split(':', 1)
-            else:
-                speaker = ''
-                spoken = line
-            speaker = speaker.strip()
-            spoken = spoken.strip()
-            if not spoken:
-                # Ignore blank lines
-                continue
-            if speaker.lower() in speakers_map:
-                # Replace abbreviation with full expansion.
-                speaker = speakers_map[speaker]
-            lines.append((speaker, spoken))
-        snippets.append((starting_point, lines))
+    for starting_point in range(0, transcription_info['duration'], _snippet_ms()):
+        text = raw_snippets.get(starting_point, '').strip()
+        if text:
+            # Tease apart lines into speaker and spoken, replacing abbreviations with full expansion.
+            lines = []
+            for line in text.splitlines():
+                if ';' in line:
+                    speaker, spoken = line.split(';', 1)
+                elif ':' in line:
+                    speaker, spoken = line.split(':', 1)
+                else:
+                    speaker = ''
+                    spoken = line
+                speaker = speaker.strip()
+                spoken = spoken.strip()
+                if not spoken:
+                    # Ignore blank lines
+                    continue
+                if speaker.lower() in speakers_map:
+                    # Replace abbreviation with full expansion.
+                    speaker = speakers_map[speaker]
+                lines.append((speaker, spoken))
+            snippets.append((starting_point, lines))
+        else:
+            # Snippet not yet transcribed.
+            snippets.append((starting_point, None))
     transcription_info = repos.transcription_info(master)
     return dict(
-        snippets=snippets,
+        snippets=sorted(snippets),
         speakers=repos.speakers_text(master),
         transcription_info=transcription_info,
         transcription_info_json=json.dumps(transcription_info),

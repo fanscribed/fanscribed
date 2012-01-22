@@ -32,19 +32,23 @@
       anchor = '{0:d}m{1:02d}s'.format(starting_minutes, starting_seconds)
       anchor_label = '{0:d}:{1:02d}'.format(starting_minutes, starting_seconds)
       %>
-      <p><a id="${anchor}" href="#${anchor}">${anchor_label}</a></p>
-      <dl class="transcript">
-        % for speaker, spoken in lines:
-            % if speaker and last_speaker != speaker:
-                <dt>${speaker}:</dt>
-                <dd>${spoken}</dd>
-            % else:
-                <dd>${spoken}</dd>
-            % endif
-            <%
-                last_speaker = speaker
-            %>
-        % endfor
-      </dl>
+      % if lines:
+          <p class="timestamp"><a id="${anchor}" href="#${anchor}">${anchor_label}</a></p>
+          <dl class="transcript">
+            % for speaker, spoken in lines:
+                % if speaker and last_speaker != speaker:
+                    <dt>${speaker}:</dt>
+                    <dd>${spoken}</dd>
+                % else:
+                    <dd>${spoken}</dd>
+                % endif
+                <%
+                    last_speaker = speaker
+                %>
+            % endfor
+          </dl>
+      % else:
+          <p class="timestamp"><a id="${anchor}" href="#${anchor}">${anchor_label}</a> - Help transcribe this segment using the <a href="${request.route_path('edit')}">Edit page</a></p>
+      % endif
   % endfor
 </%def>
