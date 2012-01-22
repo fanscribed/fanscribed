@@ -19,7 +19,7 @@
 <%def name="body()">
   <h1>Speakers</h1>
 
-  <pre id="speakers-text"></pre>
+  <pre id="speakers-text">${speakers}</pre>
 
   <h1>Transcription</h1>
 

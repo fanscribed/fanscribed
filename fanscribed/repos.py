@@ -42,10 +42,9 @@ def repo_from_request(request):
     return git.Repo(repo_path)
 
 
-def duration(tree):
+def transcription_info(tree):
     blob = tree['transcription.json']
-    transcription_info = json.load(blob.data_stream)
-    return transcription_info['duration']
+    return json.load(blob.data_stream)
 
 
 def speakers_text(tree):

@@ -34,7 +34,7 @@
       <p>Be sure to <strong>save right away</strong> to prevent conflicts between concurrent changes. Unlike the transcription editor below, the list of speakers is <strong>not locked</strong>.</p>
     </div>
 
-    <pre id="speakers-text"></pre>
+    <pre id="speakers-text">${speakers}</pre>
     <textarea id="speakers-editor" style="display: none;"></textarea>
 
     <p>

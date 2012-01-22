@@ -29,8 +29,6 @@ var edit_onload = function () {
     player_enable();
     player_shortcuts_enable();
     fill_identity();
-    request_and_fill_about();
-    request_and_fill_speakers();
 };
 
 
@@ -43,8 +41,6 @@ var view_onload = function () {
         should_auto_stream = false;
     };
     player_enable();
-    request_and_fill_about();
-    request_and_fill_speakers();
 };
 
 
@@ -63,8 +59,8 @@ var fill_identity = function () {
 var save_identity = function () {
     var name = $('#identity-name').val();
     var email = $('#identity-email').val();
-    $.cookie('identity_name', name, cookieOptions);
-    $.cookie('identity_email', email, cookieOptions);
+    $.cookie('identity_name', name, cookie_options);
+    $.cookie('identity_email', email, cookie_options);
     $('#identity-saved').text('Saved!');
     var clear = function () { $('#identity-saved').text(''); };
     window.setTimeout(clear, 1000);

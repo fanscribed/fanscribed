@@ -24,8 +24,13 @@ def _snippet_ms():
     renderer='fanscribed:templates/edit.mako',
 )
 def edit(request):
+    repo = repos.repo_from_request(request)
+    master = repo.tree('master')
+    transcription_info = repos.transcription_info(master)
     return dict(
-        # ...
+        speakers=repos.speakers_text(master),
+        transcription_info=transcription_info,
+        transcription_info_json=json.dumps(transcription_info),
     )
 
 
@@ -69,8 +74,12 @@ def view(request):
                 left = speakers_map[left]
             lines.append((left, right))
         snippets.append((starting_point, lines))
+    transcription_info = repos.transcription_info(master)
     return dict(
         snippets=snippets,
+        speakers=repos.speakers_text(master),
+        transcription_info=transcription_info,
+        transcription_info_json=json.dumps(transcription_info),
     )
 
 
@@ -121,8 +130,8 @@ def post_speakers_txt(request):
 def transcription_json(request):
     repo = repos.repo_from_request(request)
     master = repo.tree('master')
-    blob = master['transcription.json']
-    return Response(body_file=blob.data_stream, content_type='application/json')
+    info = repos.transcription_info()
+    return Response(body=info, content_type='application/json')
 
 
 @view_config(

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>${next.head_title()} - Fanscribed</title>
+  <title>${next.head_title()} - ${transcription_info['title']} - Fanscribed</title>
   <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
   <meta name="keywords" content="transcription transcribe podcast crowdsource" />
   <meta name="description" content="Croudsourced podcast transcription" />
@@ -14,11 +14,12 @@
   <script type="text/javascript" src="${request.static_url('fanscribed:static/jquery.cookie.js')}"></script>
   <script type="text/javascript" src="${request.static_url('fanscribed:static/fanscribed.js')}"></script>
   <script type="text/javascript">
-    var cookieOptions = {
+    var cookie_options = {
       expires: 365,
       path: '/',
       domain: '${'.'.join((request.host.split('.'))[-2:])}'
     };
+    var transcription = ${transcription_info_json | n};
   </script>
   ${next.head_script()}
 </head>
@@ -31,10 +32,10 @@
   <div id="about">
     <h1>About</h1>
     <ul>
-      <li>Title: <span id="about-title"></span></li>
-      <li>Homepage: <a id="about-homepage" href="#"></a></li>
-      <li>Audio: <a id="about-audio" href="#"></a></li>
-      <li>Initialized: <span id="about-initialized"></span></li>
+      <li>Title: <span id="about-title">${transcription_info['title']}</span></li>
+      <li>Homepage: <a id="about-homepage" href="${transcription_info['homepage_url']}">${transcription_info['homepage_url']}</a></li>
+      <li>Audio: <a id="about-audio" href="${transcription_info['audio_url']}">${transcription_info['audio_url']}</a></li>
+      <li>Initialized: <span id="about-initialized">${'true' if 'duration' in transcription_info else 'false'}</span></li>
     </ul>
   </div>
 
