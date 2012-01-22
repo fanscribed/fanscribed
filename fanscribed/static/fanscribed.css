@@ -10,3 +10,12 @@ textarea {
 #review-editor1, #review-editor2 {
 	width: 45%;
 }
+
+dl.transcript dt {
+	font-weight: bold;
+	margin-top: 1em;
+}
+
+dl.transcript dd {
+	margin-top: .25em;
+}

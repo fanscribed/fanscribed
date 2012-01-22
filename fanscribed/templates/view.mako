@@ -24,15 +24,22 @@
   <h1>Transcription</h1>
 
   % for starting_point, lines in snippets:
-      <div>
-        <p><a id="s${starting_point}" href="#s${starting_point}">${starting_point / 1000} seconds</a></p>
-        % for left, right in lines:
-            % if left:
-                <p>${left}: ${right}</p>
+      <%
+      last_speaker = None
+      %>
+      <p><a id="s${starting_point}" href="#s${starting_point}">${starting_point / 1000} seconds</a></p>
+      <dl class="transcript">
+        % for speaker, spoken in lines:
+            % if speaker and last_speaker != speaker:
+                <dt>${speaker}:</dt>
+                <dd>${spoken}</dd>
             % else:
-                <p>${line}</p>
+                <dd>${spoken}</dd>
             % endif
+            <%
+                last_speaker = speaker
+            %>
         % endfor
-      </div>
+      </dl>
   % endfor
 </%def>
