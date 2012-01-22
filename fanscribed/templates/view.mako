@@ -1,6 +1,6 @@
 <%inherit file="base.mako" />
 
-<%def name="head_title()">Transcription</%def>
+<%def name="head_title()">Transcript</%def>
 
 <%def name="player_update_interval()">500</%def>
 
@@ -21,13 +21,18 @@
 
   <pre id="speakers-text">${speakers}</pre>
 
-  <h1>Transcription</h1>
+  <h1>Transcript</h1>
 
   % for starting_point, lines in snippets:
       <%
       last_speaker = None
+      starting_seconds = starting_point / 1000
+      starting_minutes = starting_seconds / 60
+      starting_seconds = starting_seconds % 60
+      anchor = '{0:d}m{1:02d}s'.format(starting_minutes, starting_seconds)
+      anchor_label = '{0:d}:{1:02d}'.format(starting_minutes, starting_seconds)
       %>
-      <p><a id="s${starting_point}" href="#s${starting_point}">${starting_point / 1000} seconds</a></p>
+      <p><a id="${anchor}" href="#${anchor}">${anchor_label}</a></p>
       <dl class="transcript">
         % for speaker, spoken in lines:
             % if speaker and last_speaker != speaker:
