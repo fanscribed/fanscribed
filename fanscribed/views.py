@@ -54,25 +54,28 @@ def view(request):
                     pass
                 else:
                     raw_snippets.append((starting_point, obj.data_stream.read()))
-    # Tease apart lines into left and right sides, replacing abbreviations with full expansion.
+    # Tease apart lines into speaker and spoken, replacing abbreviations with full expansion.
     snippets = []
     speakers_map = repos.speakers_map(master)
     for starting_point, text in raw_snippets:
         lines = []
         for line in text.splitlines():
             if ';' in line:
-                left, right = line.split(';', 1)
+                speaker, spoken = line.split(';', 1)
             elif ':' in line:
-                left, right = line.split(':', 1)
+                speaker, spoken = line.split(':', 1)
             else:
-                left = ''
-                right = line
-            left = left.strip().lower()
-            right = right.strip()
-            if left in speakers_map:
+                speaker = ''
+                spoken = line
+            speaker = speaker.strip()
+            spoken = spoken.strip()
+            if not spoken:
+                # Ignore blank lines
+                continue
+            if speaker.lower() in speakers_map:
                 # Replace abbreviation with full expansion.
-                left = speakers_map[left]
-            lines.append((left, right))
+                speaker = speakers_map[speaker]
+            lines.append((speaker, spoken))
         snippets.append((starting_point, lines))
     transcription_info = repos.transcription_info(master)
     return dict(
