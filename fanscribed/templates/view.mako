@@ -33,7 +33,7 @@
       anchor_label = '{0:d}:{1:02d}'.format(starting_minutes, starting_seconds)
       %>
       % if lines:
-          <p class="timestamp"><a id="${anchor}" href="#${anchor}">${anchor_label}</a></p>
+          <p class="timestamp"><a id="${anchor}" href="#${anchor}">${anchor_label} (permalink)</a> - <a href="javascript:player_play_from(${starting_point})">Begin playback here</a></p>
           <dl class="transcript">
             % for speaker, spoken in lines:
                 % if speaker and last_speaker != speaker:
@@ -48,7 +48,7 @@
             % endfor
           </dl>
       % else:
-          <p class="timestamp"><a id="${anchor}" href="#${anchor}">${anchor_label}</a> - Help transcribe this segment using the <a href="${request.route_path('edit')}">Edit page</a></p>
+          <p class="timestamp"><a id="${anchor}" href="#${anchor}">${anchor_label} (permalink)</a> - <a href="javascript:player_play_from(${starting_point})">Begin playback here</a> - Help transcribe this segment using the <a href="${request.route_path('edit')}">Edit page</a></p>
       % endif
   % endfor
 </%def>

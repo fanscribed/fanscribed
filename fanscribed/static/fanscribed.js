@@ -327,10 +327,14 @@ var editor_replay = function () {
     if (actual_end > transcription.duration) {
         actual_end = transcription.duration;
     };
-    player_pause(true);
+    // begin streaming if not already started
+    if (player_listener.position == 'undefined') {
+        player_begin_streaming();
+    };
     // wait until we have streamed past the end.
+    player_pause(true);
     var wait_for_end = function () {
-        if (parseFloat(player_listener.duration) < actual_end) {
+        if (player_listener.duration === 'undefined' || parseFloat(player_listener.duration) < actual_end) {
             window.setTimeout(wait_for_end, 500);
         } else {
             end_reached();
@@ -489,6 +493,29 @@ var player_begin_streaming = function () {
 
 var player_play = function () {
     player().SetVariable('method:play', '');
+};
+
+
+var player_play_from = function (starting_point) {
+    // begin streaming if not already started
+    if (player_listener.position == 'undefined') {
+        player_begin_streaming();
+    };
+    // wait until we have streamed past the start.
+    var wait_for_start = function () {
+        if (player_listener.duration === 'undefined' || parseFloat(player_listener.duration) < starting_point) {
+            window.setTimeout(wait_for_start, 500);
+        } else {
+            start_reached();
+        };
+    };
+    // start playing, then stop at the end, when we have enough streamed.
+    var start_reached = function () {
+        player_seek(starting_point);
+        player_play();
+    };
+    wait_for_start();
+    return false;
 };
 
 
