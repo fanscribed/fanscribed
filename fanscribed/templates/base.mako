@@ -5,14 +5,14 @@
   <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
   <meta name="keywords" content="transcription transcribe podcast crowdsource" />
   <meta name="description" content="Croudsourced podcast transcription" />
-  <link rel="shortcut icon" href="${request.static_url('fanscribed:static/favicon.ico')}" />
-  <link rel="stylesheet" href="${request.static_url('fanscribed:static/fanscribed.css')}" type="text/css" media="screen" charset="utf-8" />
+  <link rel="shortcut icon" href="${request.static_url('fanscribed:static/favicon.ico')}?2012012401" />
+  <link rel="stylesheet" href="${request.static_url('fanscribed:static/fanscribed.css')}?2012012401" type="text/css" media="screen" charset="utf-8" />
   <!--[if lte IE 6]>
-  <link rel="stylesheet" href="${request.static_url('fanscribed:static/ie6.css')}" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="${request.static_url('fanscribed:static/ie6.css')}?2012012401" type="text/css" media="screen" charset="utf-8" />
   <![endif]-->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
-  <script type="text/javascript" src="${request.static_url('fanscribed:static/jquery.cookie.js')}"></script>
-  <script type="text/javascript" src="${request.static_url('fanscribed:static/fanscribed.js')}"></script>
+  <script type="text/javascript" src="${request.static_url('fanscribed:static/jquery.cookie.js')}?2012012401"></script>
+  <script type="text/javascript" src="${request.static_url('fanscribed:static/fanscribed.js')}?2012012401"></script>
   <script type="text/javascript">
     var cookie_options = {
       expires: 365,
