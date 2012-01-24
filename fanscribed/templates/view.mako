@@ -13,7 +13,7 @@
 <%def name="toolbar()">
   <strong>View</strong>
   |
-  <a href="${request.route_path('edit')}">Edit</a>
+  <a href="${request.route_path('edit')}">Transcribe</a>
 </%def>
 
 <%def name="body()">
@@ -48,7 +48,7 @@
             % endfor
           </dl>
       % else:
-          <p class="timestamp"><a id="${anchor}" href="#${anchor}">${anchor_label} (permalink)</a> - <a href="javascript:player_play_from(${starting_point})">Begin playback here</a> - Help transcribe this segment using the <a href="${request.route_path('edit')}">Edit page</a></p>
+          <p class="timestamp"><a id="${anchor}" href="#${anchor}">${anchor_label} (permalink)</a> - <a href="javascript:player_play_from(${starting_point})">Begin playback here</a> - <a href="${request.route_path('edit')}">Help transcribe</a></p>
       % endif
   % endfor
 </%def>

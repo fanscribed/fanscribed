@@ -14,7 +14,7 @@
   <p>
     <a href="${request.route_path('view')}">View</a>
     |
-    <strong>Edit</strong>
+    <strong>Transcribe</strong>
   </p>
 
   <ul>
