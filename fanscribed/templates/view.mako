@@ -17,10 +17,6 @@
 </%def>
 
 <%def name="body()">
-  <h1>Speakers</h1>
-
-  <pre id="speakers-text">${speakers}</pre>
-
   <h1>Transcript</h1>
 
   % for starting_point, lines in snippets:

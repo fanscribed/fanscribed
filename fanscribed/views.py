@@ -111,7 +111,6 @@ def view(request):
     return dict(
         _standard_response(master),
         snippets=sorted(snippets),
-        speakers=repos.speakers_text(master),
     )
 
 
