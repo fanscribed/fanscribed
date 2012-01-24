@@ -50,7 +50,7 @@ def transcription_info(tree):
 def speakers_text(tree):
     if 'speakers.txt' in tree:
         blob = tree['speakers.txt']
-        return blob.data_stream.read()
+        return blob.data_stream.read().decode('utf8')
     else:
         # Not yet created.
         return ''
@@ -235,10 +235,10 @@ def snippet_text(repo, index, starting_point):
     filename = '{0:016d}.txt'.format(starting_point)
     if filename in tree:
         blob = tree[filename]
-        return blob.data_stream.read()
+        return blob.data_stream.read().decode('utf8')
     else:
         # new snippet
-        return ''
+        return u''
 
 
 def save_snippet_text(repo, index, starting_point, text):
@@ -247,5 +247,5 @@ def save_snippet_text(repo, index, starting_point, text):
         '{0:016d}.txt'.format(starting_point),
     )
     with open(filename, 'wb') as f:
-        f.write(text)
+        f.write(text.encode('utf8'))
     index.add([filename])

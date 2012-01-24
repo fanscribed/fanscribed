@@ -84,7 +84,7 @@ def view(request):
                 except ValueError:
                     pass
                 else:
-                    raw_snippets[starting_point] = obj.data_stream.read()
+                    raw_snippets[starting_point] = obj.data_stream.read().decode('utf8')
     # Go through all snippets, whether they've been transcribed or not.
     snippets = []
     speakers_map = repos.speakers_map(master)
@@ -148,7 +148,7 @@ def post_speakers_txt(request):
         index = repo.index
         filename = os.path.join(repo.working_dir, 'speakers.txt')
         with open(filename, 'wb') as f:
-            f.write(text)
+            f.write(text.encode('utf8'))
         index.add(['speakers.txt'])
         os.environ['GIT_AUTHOR_NAME'] = identity_name
         os.environ['GIT_AUTHOR_EMAIL'] = identity_email
