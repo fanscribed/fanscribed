@@ -29,22 +29,36 @@
     ${next.toolbar()}
   </div>
 
-  <div id="about">
-    <h1>About</h1>
+  <div id="title">
+    <h1 id="about-title">${transcription_info['title']}</h1>
+  </div>
+
+  <div id="progress">
     <ul>
-      <li>Title: <span id="about-title">${transcription_info['title']}</span></li>
-      <li>Homepage: <a id="about-homepage" href="${transcription_info['homepage_url']}">${transcription_info['homepage_url']}</a></li>
-      <li>Audio: <a id="about-audio" href="${transcription_info['audio_url']}">${transcription_info['audio_url']}</a></li>
       <li style="${'display: none;' if 'duration' in transcription_info else ''}">Initialized: <span id="about-initialized">${'true' if 'duration' in transcription_info else 'false'}</span></li>
       <li>Snippets transcribed: <span id="snippets-progress-percent">${snippets_progress['percent']}</span>% (<span id="snippets-progress-completed">${snippets_progress['completed']}</span> out of <span id="snippets-progress-total">${snippets_progress['total']}</span>)</li>
       <li>Reviews completed: <span id="reviews-progress-percent">${reviews_progress['percent']}</span>% (<span id="reviews-progress-completed">${reviews_progress['completed']}</span> out of <span id="reviews-progress-total">${reviews_progress['total']}</span>)</li>
     </ul>
   </div>
 
+  <div id="links">
+    <%
+    links = transcription_info.get('links', [])
+    %>
+    % if links:
+        <h2>Links</h2>
+        <ul>
+          % for link_info in transcription_info.get('links', []):
+              <li><a href="${link_info['url']}">${link_info['title']}</a></li>
+          % endfor
+        </ul>
+    % endif
+  </div>
+
   ${next.body()}
 
   <div id="player-info">
-    <h1>Player</h1>
+    <h2>Player</h2>
     <ul>
       <li>enabled: <span id="player-enabled"></span></li>
       <li>isPlaying: <span id="player-isPlaying"></span></li>

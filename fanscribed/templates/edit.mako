@@ -26,7 +26,7 @@
 
 <%def name="body()">
   <div id="speakers">
-    <h1>Speakers</h1>
+    <h2>Speaker Abbreviations</h2>
 
     <div id="instructions-speakers" style="display: none;">
       <p>Add speaker abbreviations one per line, in this format:</p>
@@ -45,7 +45,7 @@
   </div>
 
   <div>
-    <h1>Editor</h1>
+    <h2>Transcription Editor</h2>
 
     <p>Editing: <span id="editing">Nothing</span></p>
 

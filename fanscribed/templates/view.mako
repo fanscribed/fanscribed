@@ -17,7 +17,7 @@
 </%def>
 
 <%def name="body()">
-  <h1>Transcript</h1>
+  <h2>Transcript</h2>
 
   % for starting_point, lines in snippets:
       <%
