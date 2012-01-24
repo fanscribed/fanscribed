@@ -17,6 +17,32 @@ def _snippet_ms():
     return snippet_seconds * 1000
 
 
+def _standard_response(tree):
+    transcription_info = repos.transcription_info(tree)
+    snippets_total = transcription_info['duration'] / _snippet_ms()
+    snippets_remaining = len(repos.get_remaining_snippets(tree))
+    snippets_completed = snippets_total - snippets_remaining
+    snippets_percent = snippets_completed * 100 / snippets_total
+    reviews_total = snippets_total - 1
+    reviews_remaining = len(repos.get_remaining_reviews(tree))
+    reviews_completed = reviews_total - reviews_remaining
+    reviews_percent = reviews_completed * 100 / reviews_total
+    return dict(
+        transcription_info=transcription_info,
+        transcription_info_json=json.dumps(transcription_info),
+        snippets_progress=dict(
+            total=snippets_total,
+            completed=snippets_completed,
+            percent=snippets_percent,
+        ),
+        reviews_progress=dict(
+            total=reviews_total,
+            completed=reviews_completed,
+            percent=reviews_percent,
+        ),
+    )
+
+
 @view_config(
     request_method='GET',
     route_name='edit',
@@ -26,11 +52,9 @@ def _snippet_ms():
 def edit(request):
     repo = repos.repo_from_request(request)
     master = repo.tree('master')
-    transcription_info = repos.transcription_info(master)
     return dict(
+        _standard_response(master),
         speakers=repos.speakers_text(master),
-        transcription_info=transcription_info,
-        transcription_info_json=json.dumps(transcription_info),
     )
 
 
@@ -84,12 +108,10 @@ def view(request):
         else:
             # Snippet not yet transcribed.
             snippets.append((starting_point, None))
-    transcription_info = repos.transcription_info(master)
     return dict(
+        _standard_response(master),
         snippets=sorted(snippets),
         speakers=repos.speakers_text(master),
-        transcription_info=transcription_info,
-        transcription_info_json=json.dumps(transcription_info),
     )
 
 
