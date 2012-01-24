@@ -23,7 +23,7 @@
   </script>
   ${next.head_script()}
 </head>
-<body>
+<body class="${next.body_class()}">
 
   <div id="toolbar">
     ${next.toolbar()}
@@ -33,42 +33,41 @@
     <h1 id="about-title">${transcription_info['title']}</h1>
   </div>
 
-  <div id="progress">
-    <ul>
-      <li style="${'display: none;' if 'duration' in transcription_info else ''}">Initialized: <span id="about-initialized">${'true' if 'duration' in transcription_info else 'false'}</span></li>
-      <li>Snippets transcribed: <span id="snippets-progress-percent">${snippets_progress['percent']}</span>% (<span id="snippets-progress-completed">${snippets_progress['completed']}</span> out of <span id="snippets-progress-total">${snippets_progress['total']}</span>)</li>
-      <li>Reviews completed: <span id="reviews-progress-percent">${reviews_progress['percent']}</span>% (<span id="reviews-progress-completed">${reviews_progress['completed']}</span> out of <span id="reviews-progress-total">${reviews_progress['total']}</span>)</li>
-    </ul>
+  <div id="sidebar">
+    <!--[if IE]>
+    <p style="font-size:x-large;color:red;font-weight:bold;">Sorry, audio playback and transcription editing do not yet work with Internet Explorer.  Please use <a href="http://chrome.google.com/">Chrome</a>, <a href="http://getfirefox.com/">Firefox</a>, or <a href="http://apple.com/safari/">Safari</a> to hear audio or to help transcribe.</p>
+    <![endif]-->
+
+    ${next.sidebar_top()}
+
+    <div id="progress">
+      <h2>Progress</h2>
+      <ul>
+        <li style="${'display: none;' if 'duration' in transcription_info else ''}">Initialized: <span id="about-initialized">${'true' if 'duration' in transcription_info else 'false'}</span></li>
+        <li>Snippets transcribed: <span id="snippets-progress-percent">${snippets_progress['percent']}</span>% (<span id="snippets-progress-completed">${snippets_progress['completed']}</span> out of <span id="snippets-progress-total">${snippets_progress['total']}</span>)</li>
+        <li>Reviews completed: <span id="reviews-progress-percent">${reviews_progress['percent']}</span>% (<span id="reviews-progress-completed">${reviews_progress['completed']}</span> out of <span id="reviews-progress-total">${reviews_progress['total']}</span>)</li>
+      </ul>
+    </div>
+
+    ${next.sidebar()}
+
+    <div id="player-info">
+      <h2>Player</h2>
+      <ul>
+        <li style="display:none;">enabled: <span id="player-enabled"></span></li>
+        <li>playing: <span id="player-isPlaying"></span></li>
+        <li style="display:none;">url: <span id="player-url"></span></li>
+        <li style="display:none;">volume: <span id="player-volume"></span></li>
+        <li>position: <span id="player-position"></span></li>
+        <li>duration: <span id="player-duration"></span></li>
+        <li>bytes loaded: <span id="player-bytesLoaded"></span></li>
+        <li>bytes total: <span id="player-bytesTotal"></span></li>
+      </ul>
+    </div>
   </div>
 
-  <div id="links">
-    <%
-    links = transcription_info.get('links', [])
-    %>
-    % if links:
-        <h2>Links</h2>
-        <ul>
-          % for link_info in transcription_info.get('links', []):
-              <li><a href="${link_info['url']}">${link_info['title']}</a></li>
-          % endfor
-        </ul>
-    % endif
-  </div>
-
-  ${next.body()}
-
-  <div id="player-info">
-    <h2>Player</h2>
-    <ul>
-      <li>enabled: <span id="player-enabled"></span></li>
-      <li>isPlaying: <span id="player-isPlaying"></span></li>
-      <li>url: <span id="player-url"></span></li>
-      <li>volume: <span id="player-volume"></span></li>
-      <li>position: <span id="player-position"></span> (<span id="player-position-minutes"></span> minutes)</li>
-      <li>duration: <span id="player-duration"></span> (<span id="player-duration-minutes"></span> minutes)</li>
-      <li>bytesLoaded: <span id="player-bytesLoaded"></span></li>
-      <li>bytesTotal: <span id="player-bytesTotal"></span></li>
-    </ul>
+  <div id="content">
+    ${next.body()}
   </div>
 
   <div id="footer">

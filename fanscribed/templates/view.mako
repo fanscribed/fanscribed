@@ -2,6 +2,8 @@
 
 <%def name="head_title()">Transcript</%def>
 
+<%def name="body_class()">view</%def>
+
 <%def name="player_update_interval()">500</%def>
 
 <%def name="head_script()">
@@ -14,6 +16,25 @@
   <strong>View</strong>
   |
   <a href="${request.route_path('edit')}">Transcribe</a>
+</%def>
+
+<%def name="sidebar_top()">
+    <div id="links">
+      <%
+      links = transcription_info.get('links', [])
+      %>
+      % if links:
+          <h2>Links</h2>
+          <ul>
+            % for link_info in transcription_info.get('links', []):
+                <li><a href="${link_info['url']}">${link_info['title']}</a></li>
+            % endfor
+          </ul>
+      % endif
+    </div>
+</%def>
+
+<%def name="sidebar()">
 </%def>
 
 <%def name="body()">

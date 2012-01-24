@@ -429,12 +429,10 @@ var player_listener = {
         $('#player-isPlaying').text(this.isPlaying);
         $('#player-url').text(this.url);
         $('#player-volume').text(this.volume);
-        $('#player-position').text(this.position);
-        $('#player-position-minutes').text(this.position / 60000);
-        $('#player-duration').text(this.duration);
-        $('#player-duration-minutes').text(this.duration / 60000);
-        $('#player-bytesLoaded').text(this.bytesLoaded);
-        $('#player-bytesTotal').text(this.bytesTotal);
+        $('#player-position').text(this.position === 'undefined' ? '--' : ms_to_label(parseFloat(this.position)));
+        $('#player-duration').text(this.duration === 'undefined' ? '--' : ms_to_label(parseFloat(this.duration)));
+        $('#player-bytesLoaded').text(this.bytesLoaded === 'undefined' ? '--' : parseFloat(this.bytesLoaded));
+        $('#player-bytesTotal').text(this.bytesTotal === 'undefined' ? '--' : parseFloat(this.bytesTotal));
     }
 };
 
@@ -669,6 +667,6 @@ var zeroFill = function(number, width)
 var ms_to_label = function (ms) {
     var seconds = ms / 1000;
     var minutes = Math.floor(seconds / 60);
-    seconds = seconds % 60;
+    seconds = Math.floor(seconds % 60);
     return (minutes + 'm' + zeroFill(seconds, 2) + 's');
 };

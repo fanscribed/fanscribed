@@ -1,6 +1,14 @@
+body {
+	position: relative;
+}
+
 textarea {
-	height: 20em;
-	font-family: monospace;
+	height: 25em;
+	font-family: sans-serif;
+}
+
+#speakers-editor {
+	height: 15em;
 }
 
 #speakers-editor, #transcribe-editor {
@@ -8,7 +16,7 @@ textarea {
 }
 
 #review-editor1, #review-editor2 {
-	width: 45%;
+	width: 48%;
 }
 
 dl.transcript dt {
@@ -18,4 +26,46 @@ dl.transcript dt {
 
 dl.transcript dd {
 	margin-top: .25em;
+}
+
+div#toolbar {
+	font-size: small;
+}
+
+div#title {
+	border-top: 2px solid grey;
+	border-bottom: 2px solid grey;
+	background-color: lightgrey;
+}
+
+div#title h1 {
+	margin-top: .25em;
+	margin-bottom: .25em;
+	font-size: large;
+}
+
+div#sidebar {
+	font-size: small;
+	width: 32%;
+	border-left: 2px solid grey;
+	padding-left: .5em;
+}
+
+.view div#sidebar {
+	position: fixed;
+	left: 68%;
+}
+
+.edit div#sidebar {
+	float: right;
+}
+
+div#content {
+	width: 66%;
+}
+
+div#footer {
+	clear: both;
+	font-size: small;
+	border-top: 2px solid black;
 }
