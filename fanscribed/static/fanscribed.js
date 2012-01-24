@@ -278,6 +278,7 @@ var editor_save = function () {
             $('#instructions-transcribe').hide();
             $('#instructions-review').hide();
             $('#editing').text('Nothing');
+            request_and_fill_progress();
         });
     };
     return false;
@@ -316,6 +317,7 @@ var editor_cancel = function () {
             $('#instructions-transcribe').hide();
             $('#instructions-review').hide();
             $('#editing').text('Nothing');
+            request_and_fill_progress();
         });
     };
     return false;
@@ -600,6 +602,23 @@ var request_and_fill_speakers = function () {
             $('#speakers-text')
                 .text(data)
             ;
+        }
+    );
+};
+
+
+var request_and_fill_progress = function () {
+    $.getJSON(
+        // url
+        '/progress',
+        // success
+        function (data) {
+            $('#snippets-progress-percent').text(data.snippets_progress.percent);
+            $('#snippets-progress-completed').text(data.snippets_progress.completed);
+            $('#snippets-progress-total').text(data.snippets_progress.total);
+            $('#reviews-progress-percent').text(data.reviews_progress.percent);
+            $('#reviews-progress-completed').text(data.reviews_progress.completed);
+            $('#reviews-progress-total').text(data.reviews_progress.total);
         }
     );
 };

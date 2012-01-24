@@ -17,8 +17,7 @@ def _snippet_ms():
     return snippet_seconds * 1000
 
 
-def _standard_response(tree):
-    transcription_info = repos.transcription_info(tree)
+def _progress_dicts(tree, transcription_info):
     snippets_total = transcription_info['duration'] / _snippet_ms()
     snippets_remaining = len(repos.get_remaining_snippets(tree))
     snippets_completed = snippets_total - snippets_remaining
@@ -28,8 +27,6 @@ def _standard_response(tree):
     reviews_completed = reviews_total - reviews_remaining
     reviews_percent = reviews_completed * 100 / reviews_total
     return dict(
-        transcription_info=transcription_info,
-        transcription_info_json=json.dumps(transcription_info),
         snippets_progress=dict(
             total=snippets_total,
             completed=snippets_completed,
@@ -40,6 +37,15 @@ def _standard_response(tree):
             completed=reviews_completed,
             percent=reviews_percent,
         ),
+    )
+
+
+def _standard_response(tree):
+    transcription_info = repos.transcription_info(tree)
+    return dict(
+        _progress_dicts(tree, transcription_info),
+        transcription_info=transcription_info,
+        transcription_info_json=json.dumps(transcription_info),
     )
 
 
@@ -161,8 +167,20 @@ def post_speakers_txt(request):
 def transcription_json(request):
     repo = repos.repo_from_request(request)
     master = repo.tree('master')
-    info = repos.transcription_info()
-    return Response(body=info, content_type='application/json')
+    info = repos.transcription_info(master)
+    return Response(body=json.dumps(info), content_type='application/json')
+
+
+@view_config(
+    request_method='GET',
+    route_name='progress',
+    context='fanscribed:resources.Root',
+)
+def progress(request):
+    repo = repos.repo_from_request(request)
+    master = repo.tree('master')
+    info = repos.transcription_info(master)
+    return Response(body=json.dumps(_progress_dicts(master, info)), content_type='application/json')
 
 
 @view_config(
