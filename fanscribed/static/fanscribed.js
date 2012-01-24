@@ -186,6 +186,7 @@ var editor_transcribe = function () {
                     $('#edit-buttons').hide();
                     $('#edit-action-buttons').show();
                     $('#instructions-transcribe').show();
+                    $('#editing').text('Transcript from ' + ms_to_label(data.starting_point) + ' to ' + ms_to_label(data.ending_point));
                     editor_replay();
                 } else {
                     alert(data.message);
@@ -228,6 +229,7 @@ var editor_review = function () {
                     $('#edit-buttons').hide();
                     $('#edit-action-buttons').show();
                     $('#instructions-review').show();
+                    $('#editing').text('Review from ' + ms_to_label(data.starting_point) + ' to ' + ms_to_label(data.ending_point));
                     editor_replay();
                 } else {
                     alert(data.message);
@@ -275,6 +277,7 @@ var editor_save = function () {
             $('#review-editor2').hide();
             $('#instructions-transcribe').hide();
             $('#instructions-review').hide();
+            $('#editing').text('Nothing');
         });
     };
     return false;
@@ -312,6 +315,7 @@ var editor_cancel = function () {
             $('#review-editor2').hide();
             $('#instructions-transcribe').hide();
             $('#instructions-review').hide();
+            $('#editing').text('Nothing');
         });
     };
     return false;
@@ -646,3 +650,25 @@ var url_params = {};
     while (e = r.exec(q))
        url_params[d(e[1])] = d(e[2]);
 })();
+
+
+// =========================================================================
+// helpers
+
+// http://stackoverflow.com/questions/1267283/how-can-i-create-a-zerofilled-value-using-javascript
+var zeroFill = function(number, width)
+{
+  width -= number.toString().length;
+  if ( width > 0 )
+  {
+    return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+  }
+  return number;
+}
+
+var ms_to_label = function (ms) {
+    var seconds = ms / 1000;
+    var minutes = Math.floor(seconds / 60);
+    seconds = seconds % 60;
+    return (minutes + 'm' + zeroFill(seconds, 2) + 's');
+};
