@@ -56,7 +56,7 @@
   </div>
 
   <div id="footer">
-    <div class="footer">Fanscribed &copy; Copyright 2012, <a href="http://11craft.com/">ElevenCraft Inc.</a></div>
+    <div class="footer">Powered by <a href="http://fanscribed.com/">Fanscribed</a>, &copy; 2012 by <a href="http://11craft.com/">ElevenCraft</a>. Site content is subject to copyrights held by its creators.</div>
   </div>
 
   <object id="player" type="application/x-shockwave-flash" data="${request.static_url('fanscribed:static/player_mp3_js.swf')}" width="1" height="1">
