@@ -8,6 +8,8 @@ def main(global_config, **settings):
     config = Configurator(root_factory=Root, settings=settings)
 
     # Routes
+    config.add_route('robots_txt', '/robots.txt')
+
     config.add_route('view', '/')
     config.add_route('edit', '/edit')
     config.add_route('progress', '/progress')

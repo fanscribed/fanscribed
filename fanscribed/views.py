@@ -10,6 +10,15 @@ from pyramid.view import view_config
 from fanscribed import repos
 
 
+ROBOTS_TXT = """\
+User-agent: *
+Disallow: /edit
+Disallow: /progress
+Disallow: /speakers.txt
+Disallow: /transcription.json
+"""
+
+
 def _snippet_ms():
     registry = get_current_registry()
     settings = registry.settings
@@ -47,6 +56,15 @@ def _standard_response(tree):
         transcription_info=transcription_info,
         transcription_info_json=json.dumps(transcription_info),
     )
+
+
+@view_config(
+    request_method='GET',
+    route_name='robots_txt',
+    context='fanscribed:resources.Root',
+)
+def robots_txt(request):
+    return Response(ROBOTS_TXT, content_type='text/plain')
 
 
 @view_config(
