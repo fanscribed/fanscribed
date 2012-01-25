@@ -499,11 +499,11 @@ var inline_editor_save = function () {
             // render new transcript
             var $oldTranscript = $current_inline_editor_div.find('.transcript');
             var $newTranscript = $('<dl class="transcript"></dl>');
-            var last_speaker = '';
+            var last_speaker = '--';
             $.each(data, function (index, value) {
                 var speaker = value[0];
                 var spoken = value[1];
-                if (speaker != last_speaker) {
+                if (speaker && speaker != last_speaker) {
                     $newTranscript.append($('<dt/>').text(speaker + ':'));
                 };
                 $newTranscript.append($('<dd/>').text(spoken));
