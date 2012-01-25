@@ -324,6 +324,10 @@ var editor_cancel = function () {
 };
 
 
+// set by editor_replay, and cancelled by player_pause
+var wait_for_end_timeout;
+
+
 var editor_replay = function () {
     var actual_start = lock_info.starting_point - PADDING;
     var actual_end = lock_info.ending_point + PADDING;
@@ -341,7 +345,7 @@ var editor_replay = function () {
     player_pause(true);
     var wait_for_end = function () {
         if (player_listener.duration === 'undefined' || parseFloat(player_listener.duration) < actual_end) {
-            window.setTimeout(wait_for_end, 500);
+            wait_for_end_timeout = window.setTimeout(wait_for_end, 500);
         } else {
             end_reached();
         };
@@ -500,6 +504,10 @@ var player_play = function () {
 };
 
 
+// set by player_play_from, and cancelled by player_pause
+var wait_for_start_timeout;
+
+
 var player_play_from = function (starting_point) {
     // begin streaming if not already started
     if (player_listener.position == 'undefined') {
@@ -508,7 +516,7 @@ var player_play_from = function (starting_point) {
     // wait until we have streamed past the start.
     var wait_for_start = function () {
         if (player_listener.duration === 'undefined' || parseFloat(player_listener.duration) < starting_point) {
-            window.setTimeout(wait_for_start, 500);
+            wait_for_start_timeout = window.setTimeout(wait_for_start, 500);
         } else {
             start_reached();
         };
@@ -523,7 +531,7 @@ var player_play_from = function (starting_point) {
 };
 
 
-// used by player_pause and player_replay_at
+// set by player_replay_at, cancelled by player_pause
 var replay_timeout;
 var position_check_timeout;
 
@@ -536,6 +544,14 @@ var player_pause = function (clear_timeouts) {
     if (replay_timeout && clear_timeouts) {
         window.clearTimeout(replay_timeout);
         replay_timeout = undefined;
+    };
+    if (wait_for_start_timeout && clear_timeouts) {
+        window.clearTimeout(wait_for_start_timeout);
+        wait_for_start_timeout = undefined;
+    };
+    if (wait_for_end_timeout && clear_timeouts) {
+        window.clearTimeout(wait_for_end_timeout);
+        wait_for_end_timeout = undefined;
     };
     player().SetVariable('method:pause', '');
 };
