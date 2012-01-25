@@ -8,6 +8,7 @@
 
 <%def name="head_script()">
   <script type="text/javascript">
+    edit_init();
     $(edit_onload);
   </script>
 </%def>

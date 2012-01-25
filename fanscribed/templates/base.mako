@@ -10,7 +10,13 @@
   <!--[if lte IE 6]>
   <link rel="stylesheet" href="${request.static_url('fanscribed:static/ie6.css')}?2012012401" type="text/css" media="screen" charset="utf-8" />
   <![endif]-->
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="${request.static_url('fanscribed:static/soundmanager2-nodebug-jsmin.js')}?2012012401"></script>
+  <script type="text/javascript">
+    soundManager.url = '${request.static_url('fanscribed:static/')}';
+    soundManager.flashVersion = 9;
+    soundManager.useFlashBlock = false;
+  </script>
   <script type="text/javascript" src="${request.static_url('fanscribed:static/jquery.cookie.js')}?2012012401"></script>
   <script type="text/javascript" src="${request.static_url('fanscribed:static/fanscribed.js')}?2012012401"></script>
   <script type="text/javascript">
@@ -73,10 +79,5 @@
   <div id="footer">
     <div class="footer">Powered by <a href="http://fanscribed.com/">Fanscribed</a>, &copy; 2012 by <a href="http://11craft.com/">ElevenCraft</a>. Site content is subject to copyrights held by its creators.</div>
   </div>
-
-  <object id="player" type="application/x-shockwave-flash" data="${request.static_url('fanscribed:static/player_mp3_js.swf')}" width="1" height="1">
-    <param name="AllowScriptAccess" value="always">
-    <param name="FlashVars" value="listener=player_listener&amp;interval=${next.player_update_interval()}">
-  </object>
 </body>
 </html>

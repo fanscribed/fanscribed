@@ -8,6 +8,7 @@
 
 <%def name="head_script()">
   <script type="text/javascript">
+    view_init();
     $(view_onload);
   </script>
 </%def>

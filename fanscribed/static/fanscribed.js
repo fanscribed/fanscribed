@@ -18,7 +18,8 @@ var transcription = {};
 // onload
 
 
-var edit_onload = function () {
+// while loading
+var edit_init = function () {
     if (url_params.autostream === '0') {
         // url requested no auto streaming.
         should_auto_stream = false;
@@ -26,13 +27,18 @@ var edit_onload = function () {
         // default: automatically start streaming
         should_auto_stream = true;
     };
-    player_enable();
+};
+
+
+// after loading
+var edit_onload = function () {
     player_shortcuts_enable();
     fill_identity();
 };
 
 
-var view_onload = function () {
+// while loading
+var view_init = function () {
     if (url_params.autostream === '1') {
         // url requested auto streaming.
         should_auto_stream = true;
@@ -40,7 +46,12 @@ var view_onload = function () {
         // default: do not automatically start streaming
         should_auto_stream = false;
     };
-    player_enable();
+};
+
+
+// after loading
+var view_onload = function () {
+    // nothing currently
 };
 
 
@@ -334,13 +345,13 @@ var editor_replay = function () {
         actual_end = transcription.duration;
     };
     // begin streaming if not already started
-    if (player_listener.position == 'undefined') {
+    if (player_listener.position === undefined) {
         player_begin_streaming();
     };
     // wait until we have streamed past the end.
     player_pause(true);
     var wait_for_end = function () {
-        if (player_listener.duration === 'undefined' || parseFloat(player_listener.duration) < actual_end) {
+        if ((player_listener.duration === undefined) || (player_listener.duration < actual_end)) {
             window.setTimeout(wait_for_end, 500);
         } else {
             end_reached();
@@ -358,7 +369,7 @@ var editor_replay = function () {
 
 
 var editor_pause_play = function () {
-    if (player_listener.isPlaying == 'true') {
+    if (player_listener.isPlaying) {
         player_pause(false);
     } else {
         // seek backward 500 ms to prevent skipping over audio
@@ -388,7 +399,7 @@ var editor_rewind = function () {
         new_position = actual_start;
     };
     player_seek(new_position);
-    if (player_listener.isPlaying != 'true') {
+    if (!player_listener.isPlaying) {
         player_play();
     };
 };
@@ -398,20 +409,33 @@ var editor_rewind = function () {
 // player
 
 
-// return the mp3 player flash object
-var player = function () {
-    return $('#player')[0];
-};
+// TODO: Clean this up after getting soundmanager2 working.
 
+var sound;
 
 // updated at intervals by the player
 var player_listener = {
     enabled: false, // set to true by player_startup
-    onInit: function () {
-        this.position = 0;
+    isPlaying: false,
+    sound_created: false, // set to true by player_setup_url
+    sound: undefined, // the SMSound instance that's created
+    on_whileloading: function () {
+        player_listener.duration = sound.duration;
+        player_listener.bytesLoaded = sound.bytesLoaded;
+        player_listener.bytesTotal = sound.bytesTotal;
+        player_listener.onUpdate();
+    },
+    on_whileplaying: function () {
+        player_listener.position = sound.position;
+        player_listener.isPlaying = !sound.paused;
+        player_listener.onUpdate();
+    },
+    on_onpause: function () {
+        player_listener.isPlaying = !sound.paused;
+        player_listener.onUpdate();
     },
     onUpdate: function () {
-        this.duration_difference = parseFloat(this.duration) - parseFloat(this.old_duration);
+        this.duration_difference = this.duration - this.old_duration;
         this.old_duration = this.duration;
         if (this.duration_difference !== 0 && this.finished_timeout_id) {
             window.clearTimeout(this.finished_timeout_id);
@@ -420,41 +444,26 @@ var player_listener = {
         this.send_duration_if_finished();
     },
     send_duration_if_finished: function () {
-        if (this.bytesLoaded !== 'undefined' && (this.bytesLoaded == this.bytesTotal) && (this.duration_difference === 0) && (!this.finished_timeout_id)) {
+        if ((this.bytesLoaded > 0) && (this.bytesLoaded == this.bytesTotal) && (this.duration_difference === 0) && (!this.finished_timeout_id)) {
             // Wait five seconds before sending.
             // (File may be done loading, but player still processing duration)
             this.finished_timeout_id = window.setTimeout(send_duration, 5000);
         }
     },
     update_player_info: function () {
-        $('#player-enabled').text(this.enabled);
         $('#player-isPlaying').text(this.isPlaying);
-        $('#player-url').text(this.url);
-        $('#player-volume').text(this.volume);
-        $('#player-position').text(this.position === 'undefined' ? '--' : ms_to_label(parseFloat(this.position)));
-        $('#player-duration').text(this.duration === 'undefined' ? '--' : ms_to_label(parseFloat(this.duration)));
-        $('#player-bytesLoaded').text(this.bytesLoaded === 'undefined' ? '--' : parseFloat(this.bytesLoaded));
-        $('#player-bytesTotal').text(this.bytesTotal === 'undefined' ? '--' : parseFloat(this.bytesTotal));
+        $('#player-position').text(this.position === undefined ? '--' : ms_to_label(this.position));
+        $('#player-duration').text(this.duration === undefined ? '--' : ms_to_label(this.duration));
+        $('#player-bytesLoaded').text(this.bytesLoaded === undefined ? '--' : this.bytesLoaded);
+        $('#player-bytesTotal').text(this.bytesTotal === undefined ? '--' : this.bytesTotal);
     }
 };
 
 
-// enable the mp3 player
-var player_enable = function () {
-    if (!(player().SetVariable)) {
-        // On Firefox, the SetVariable function isn't available right away.
-        window.setTimeout(player_enable, 100);
-    } else if (!player_listener.volume) {
-        player().SetVariable('enabled', 'true');
-        // sometimes this is not immediate due to flash startup.
-        // keep trying until the player is enabled.
-        window.setTimeout(player_enable, 100);
-    } else {
-        // player was enabled and is updating the listener.
-        player_listener.enabled = true;
-        player_setup_url();
-    }
-};
+soundManager.onready(function () {
+    player_listener.enabled = true;
+    player_setup_url();
+});
 
 
 var player_shortcuts_enable = function () {
@@ -476,10 +485,23 @@ var player_shortcuts_enable = function () {
 // setup the mp3 player with the audio url
 var player_setup_url = function () {
     if (player_listener.enabled && transcription.audio_url) {
-        player().SetVariable('method:setUrl', transcription.audio_url);
-        if (should_auto_stream) {
-            window.setTimeout(player_begin_streaming, 100);
-        };
+        sound = soundManager.createSound({
+            id: 'podcastAudio',
+            url: transcription.audio_url,
+            autoLoad: should_auto_stream,
+            autoPlay: false,
+            flashPollingInterval: 200,
+            multiShot: false,
+            onload: function () {
+                player_listener.sound_created = true;
+            },
+            whileloading: player_listener.on_whileloading,
+            whileplaying: player_listener.on_whileplaying,
+            onplay: player_listener.on_onplay,
+            onresume: player_listener.on_onplay,
+            onpause: player_listener.on_onpause,
+            volume: 100
+        });
     } else {
         // player not enabled or haven't received audio URL.
         // keep trying.
@@ -490,27 +512,28 @@ var player_setup_url = function () {
 
 // begin streaming (but do not play)
 var player_begin_streaming = function () {
-    player_play();
-    player_pause(true);
+    sound.load();
 };
 
 
 var player_play = function () {
-    player().SetVariable('method:play', '');
+    if (sound.paused) {
+        sound.togglePause();
+    };
 };
 
 
 var player_play_from = function (starting_point) {
     // begin streaming if not already started
-    if (player_listener.position == 'undefined') {
+    if (sound.readyState == 0 /* uninitialized */ || sound.readyState == 2 /* failed/error */) {
         player_begin_streaming();
     };
     // wait until we have streamed past the start.
     var wait_for_start = function () {
-        if (player_listener.duration === 'undefined' || parseFloat(player_listener.duration) < starting_point) {
-            window.setTimeout(wait_for_start, 500);
-        } else {
+        if (player_listener.duration > starting_point) {
             start_reached();
+        } else {
+            window.setTimeout(wait_for_start, 200);
         };
     };
     // start playing, then stop at the end, when we have enough streamed.
@@ -537,7 +560,7 @@ var player_pause = function (clear_timeouts) {
         window.clearTimeout(replay_timeout);
         replay_timeout = undefined;
     };
-    player().SetVariable('method:pause', '');
+    sound.pause();
 };
 
 
@@ -546,7 +569,7 @@ var player_replay_at = function (end_position, replay_function) {
         window.clearTimeout(position_check_timeout);
     };
     var position_check = function () {
-        if (parseFloat(player_listener.position) >= end_position) {
+        if (sound.position >= end_position) {
             player_pause(true);
             // wait one second, then replay.
             replay_timeout = window.setTimeout(replay_function, 1000);
@@ -559,7 +582,7 @@ var player_replay_at = function (end_position, replay_function) {
 
 
 var player_seek = function (position) {
-    player().SetVariable('method:setPosition', position);
+    sound.setPosition(position);
 };
 
 
