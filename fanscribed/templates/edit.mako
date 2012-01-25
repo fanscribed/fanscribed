@@ -23,30 +23,12 @@
     <h2>Quick Start</h2>
     <p>Set your identity below. Click "Transcribe" or "Review" on the left. Follow the instructions that appear. If you don't hear audio right away, see "Player" below &mdash; it's probably still buffering.</p>
   </div>
-
-  <div id="speakers">
-    <h2>Speaker Abbreviations</h2>
-
-    <div>
-      <input id="speakers-edit" type="button" value="Edit" onclick="edit_speakers();" />
-      <input id="speakers-save" style="display: none;" type="button" value="Save" onclick="save_speakers();" />
-      <input id="speakers-cancel" style="display: none;" type="button" value="Cancel" onclick="cancel_speakers();" />
-    </div>
-
-    <pre id="speakers-text">${speakers}</pre>
-    <textarea id="speakers-editor" style="display: none;"></textarea>
-
-    <div id="instructions-speakers" style="display: none;">
-      <p>Add speaker abbreviations one per line, in this format:</p>
-      <pre>abbr; Full Name</pre>
-      <p>Be sure to <strong>save right away</strong> to prevent conflicts between concurrent changes. Unlike the transcription editor below, the list of speakers is <strong>not locked</strong>.</p>
-    </div>
-  </div>
 </%def>
 
 <%def name="sidebar()">
   <div id="identity">
     <h2>Identity</h2>
+    <div>For giving you credit for your work.</div>
     <ul>
       <li>Name: <input id="identity-name" type="text" /></li>
       <li>Email: <input id="identity-email" type="text" /></li>
@@ -56,7 +38,12 @@
 </%def>
 
 <%def name="body()">
-  <div>
+
+  <p class="no-identity">
+    Please see the <em>Quick Start</em> to the right to continue.
+  </p>  
+
+  <div class="needs-identity">
     <h2>Editing: <span id="editing">Nothing</span></h2>
 
     <div id="edit-buttons">
@@ -75,9 +62,9 @@
       <div>Special keys: \ (backslash) play/pause, ~ (tilde) replay, ` (backtick) back 5 seconds</div>
     </div>
 
-    <textarea class="player-shortcuts" id="transcribe-editor" style="display: none;"></textarea>
-    <textarea class="player-shortcuts" id="review-editor1" style="display: none;"></textarea>
-    <textarea class="player-shortcuts" id="review-editor2" style="display: none;"></textarea>
+    <textarea id="transcribe-editor" style="display: none;"></textarea>
+    <textarea id="review-editor1" style="display: none;"></textarea>
+    <textarea id="review-editor2" style="display: none;"></textarea>
 
     <div id="instructions-transcribe" style="display: none;">
       <h3>Transcription Instructions</h3>

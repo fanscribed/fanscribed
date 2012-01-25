@@ -53,6 +53,7 @@ def _standard_response(tree):
     transcription_info = repos.transcription_info(tree)
     return dict(
         _progress_dicts(tree, transcription_info),
+        speakers=repos.speakers_text(tree),
         transcription_info=transcription_info,
         transcription_info_json=json.dumps(transcription_info),
     )
@@ -78,7 +79,6 @@ def edit(request):
     master = repo.tree('master')
     return dict(
         _standard_response(master),
-        speakers=repos.speakers_text(master),
     )
 
 
@@ -108,30 +108,26 @@ def view(request):
     speakers_map = repos.speakers_map(master)
     for starting_point in range(0, transcription_info['duration'], _snippet_ms()):
         text = raw_snippets.get(starting_point, '').strip()
-        if text:
-            # Tease apart lines into speaker and spoken, replacing abbreviations with full expansion.
-            lines = []
-            for line in text.splitlines():
-                if ';' in line:
-                    speaker, spoken = line.split(';', 1)
-                elif ':' in line:
-                    speaker, spoken = line.split(':', 1)
-                else:
-                    speaker = ''
-                    spoken = line
-                speaker = speaker.strip()
-                spoken = spoken.strip()
-                if not spoken:
-                    # Ignore blank lines
-                    continue
-                if speaker.lower() in speakers_map:
-                    # Replace abbreviation with full expansion.
-                    speaker = speakers_map[speaker]
-                lines.append((speaker, spoken))
-            snippets.append((starting_point, lines))
-        else:
-            # Snippet not yet transcribed.
-            snippets.append((starting_point, None))
+        # Tease apart lines into speaker and spoken, replacing abbreviations with full expansion.
+        lines = []
+        for line in text.splitlines():
+            if ';' in line:
+                speaker, spoken = line.split(';', 1)
+            elif ':' in line:
+                speaker, spoken = line.split(':', 1)
+            else:
+                speaker = ''
+                spoken = line
+            speaker = speaker.strip()
+            spoken = spoken.strip()
+            if not spoken:
+                # Ignore blank lines
+                continue
+            if speaker.lower() in speakers_map:
+                # Replace abbreviation with full expansion.
+                speaker = speakers_map[speaker]
+            lines.append((speaker, spoken))
+        snippets.append((starting_point, lines))
     return dict(
         _standard_response(master),
         snippets=sorted(snippets),
@@ -263,11 +259,15 @@ def lock_snippet(request):
     # unpack identity
     identity_name = request.POST.getone('identity_name')
     identity_email = request.POST.getone('identity_email')
+    # get snippet if specified
+    desired_starting_point = request.POST.get('starting_point', None)
+    if desired_starting_point is not None:
+        desired_starting_point = int(desired_starting_point)
     with repos.commit_lock:
         repo = repos.repo_from_request(request)
         index = repo.index
         # find and lock available snippet
-        starting_point, lock_secret_or_message = repos.lock_available_snippet(repo, index)
+        starting_point, lock_secret_or_message = repos.lock_available_snippet(repo, index, desired_starting_point)
         # if found,
         if starting_point is not None:
             # commit with identity
@@ -362,8 +362,32 @@ def save_snippet(request):
         os.environ['GIT_AUTHOR_NAME'] = identity_name
         os.environ['GIT_AUTHOR_EMAIL'] = identity_email
         index.commit('Via web: save snippet')
-    # return empty indicating success
-    return Response('', content_type='text/plain')
+    # return structure of snippet including resolved speaker names
+    # for potential rendering
+    master = repo.tree('master')
+    speakers_map = repos.speakers_map(master)
+    text = snippet_text.strip()
+    lines = []
+    if text:
+        # Tease apart lines into speaker and spoken, replacing abbreviations with full expansion.
+        for line in text.splitlines():
+            if ';' in line:
+                speaker, spoken = line.split(';', 1)
+            elif ':' in line:
+                speaker, spoken = line.split(':', 1)
+            else:
+                speaker = ''
+                spoken = line
+            speaker = speaker.strip()
+            spoken = spoken.strip()
+            if not spoken:
+                # Ignore blank lines
+                continue
+            if speaker.lower() in speakers_map:
+                # Replace abbreviation with full expansion.
+                speaker = speakers_map[speaker]
+            lines.append((speaker, spoken))
+    return Response(json.dumps(lines), content_type='application/json')
 
 
 @view_config(

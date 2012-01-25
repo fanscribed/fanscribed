@@ -26,9 +26,7 @@ var edit_onload = function () {
         // default: automatically start streaming
         should_auto_stream = true;
     };
-    player_enable();
-    player_shortcuts_enable();
-    fill_identity();
+    common_onload();
 };
 
 
@@ -40,7 +38,15 @@ var view_onload = function () {
         // default: do not automatically start streaming
         should_auto_stream = false;
     };
+    common_onload();
+};
+
+
+var common_onload = function () {
+    fill_identity();
+    check_identity();
     player_enable();
+    player_shortcuts_enable();
 };
 
 
@@ -64,13 +70,30 @@ var save_identity = function () {
     $('#identity-saved').text('Saved!');
     var clear = function () { $('#identity-saved').text(''); };
     window.setTimeout(clear, 1000);
+    check_identity();
     return false;
 };
 
 
-var has_identity = function () {
+// update UI elements based on whether identity found.
+var check_identity = function () {
+    if (has_identity(false)) {
+        // enable UI needing identity
+        $('.needs-identity').show();
+        $('.no-identity').hide();
+    } else {
+        // disable UI needing identity
+        $('.needs-identity').hide();
+        $('.no-identity').show();
+    };
+};
+
+
+var has_identity = function (showAlert) {
     if (!($.cookie('identity_name')) || !($.cookie('identity_email'))) {
-        alert('Must set identity before continuing.');
+        if (showAlert) {
+            alert('Must set identity before continuing.');
+        };
         return false;
     } else {
         return true;
@@ -112,7 +135,7 @@ var edit_speakers = function () {
 
 
 var save_speakers = function () {
-    if (has_identity()) {
+    if (has_identity(true)) {
         $.post(
             // url
             '/speakers.txt',
@@ -162,7 +185,7 @@ var cancel_speakers = function () {
 
 
 var editor_transcribe = function () {
-    if (has_identity()) {
+    if (has_identity(true)) {
         $.post(
             // url
             '/lock_snippet',
@@ -201,7 +224,7 @@ var editor_transcribe = function () {
 
 
 var editor_review = function () {
-    if (has_identity()) {
+    if (has_identity(true)) {
         $.post(
             // url
             '/lock_review',
@@ -245,7 +268,7 @@ var editor_review = function () {
 
 var editor_save = function () {
     player_pause(true);
-    if (has_identity()) {
+    if (has_identity(true)) {
         var data = {
             lock_secret: lock_info.secret,
             starting_point: lock_info.starting_point,
@@ -287,7 +310,7 @@ var editor_save = function () {
 
 var editor_cancel = function () {
     player_pause(true);
-    if (has_identity()) {
+    if (has_identity(true)) {
         var data = {
             lock_secret: lock_info.secret,
             starting_point: lock_info.starting_point,
@@ -329,34 +352,38 @@ var wait_for_end_timeout;
 
 
 var editor_replay = function () {
-    var actual_start = lock_info.starting_point - PADDING;
-    var actual_end = lock_info.ending_point + PADDING;
-    if (actual_start < 0) {
-        actual_start = 0;
-    };
-    if (actual_end > transcription.duration) {
-        actual_end = transcription.duration;
-    };
-    // begin streaming if not already started
-    if (player_listener.position == 'undefined') {
-        player_begin_streaming();
-    };
-    // wait until we have streamed past the end.
-    player_pause(true);
-    var wait_for_end = function () {
-        if (player_listener.duration === 'undefined' || parseFloat(player_listener.duration) < actual_end) {
-            wait_for_end_timeout = window.setTimeout(wait_for_end, 500);
-        } else {
-            end_reached();
+    // only perform replay if we've locked a snippet
+    // otherwise it doesn't make sense
+    if (lock_info.starting_point !== undefined) {
+        var actual_start = lock_info.starting_point - PADDING;
+        var actual_end = lock_info.ending_point + PADDING;
+        if (actual_start < 0) {
+            actual_start = 0;
         };
+        if (actual_end > transcription.duration) {
+            actual_end = transcription.duration;
+        };
+        // begin streaming if not already started
+        if (player_listener.position == 'undefined') {
+            player_begin_streaming();
+        };
+        // wait until we have streamed past the end.
+        player_pause(true);
+        var wait_for_end = function () {
+            if (player_listener.duration === 'undefined' || parseFloat(player_listener.duration) < actual_end) {
+                wait_for_end_timeout = window.setTimeout(wait_for_end, 500);
+            } else {
+                end_reached();
+            };
+        };
+        // start playing, then stop at the end, when we have enough streamed.
+        var end_reached = function () {
+            player_seek(actual_start);
+            player_play();
+            player_replay_at(actual_end, editor_replay);
+        };
+        wait_for_end();
     };
-    // start playing, then stop at the end, when we have enough streamed.
-    var end_reached = function () {
-        player_seek(actual_start);
-        player_play();
-        player_replay_at(actual_end, editor_replay);
-    };
-    wait_for_end();
     return false;
 };
 
@@ -395,6 +422,130 @@ var editor_rewind = function () {
     if (player_listener.isPlaying != 'true') {
         player_play();
     };
+};
+
+
+// =========================================================================
+// inline editor
+
+
+var $current_inline_editor_div;
+
+
+var inline_editor = function (anchor, starting_point) {
+    if (has_identity(true) && !lock_info.starting_point) {
+        $.post(
+            // url
+            '/lock_snippet',
+            // data
+            {
+                identity_name: $.cookie('identity_name'),
+                identity_email: $.cookie('identity_email'),
+                starting_point: starting_point
+            },
+            // success
+            function (data) {
+                if (data.lock_acquired) {
+                    lock_info.starting_point = data.starting_point;
+                    lock_info.ending_point = data.ending_point;
+                    lock_info.secret = data.lock_secret;
+                    lock_info.type = 'snippet';
+                    $current_inline_editor_div = $('div#' + anchor);
+                    $current_inline_editor_div.find('.transcript').hide();
+                    var $container = $current_inline_editor_div
+                        .find('.inline-editor-container')
+                        .show()
+                    ;
+                    $('#inline-editor-template')
+                        .clone()
+                        .val(data.snippet_text)
+                        .appendTo($container)
+                        .show()
+                        .focus()
+                        .find('.inline-editor')
+                        .val(data.snippet_text)
+                    ;
+                    $('.inline-edit-link').hide();
+                    $('#speakers').show();
+                    editor_replay();
+                } else {
+                    alert(data.message);
+                };
+            },
+            // return data type
+            'json'
+        );
+    };
+    return false;
+};
+
+
+var inline_editor_save = function () {
+    player_pause(true);
+    if (has_identity(true)) {
+        var data = {
+            lock_secret: lock_info.secret,
+            starting_point: lock_info.starting_point,
+            snippet_text: $current_inline_editor_div.find('.inline-editor').val(),
+            identity_name: $.cookie('identity_name'),
+            identity_email: $.cookie('identity_email')
+        };
+        var url = '/save_snippet';
+        $.post(url, data, function (data) {
+            lock_info.secret = undefined;
+            lock_info.starting_point = undefined;
+            lock_info.ending_point = undefined;
+            lock_info.type = undefined;
+            // render new transcript
+            var $oldTranscript = $current_inline_editor_div.find('.transcript');
+            var $newTranscript = $('<dl class="transcript"></dl>');
+            var last_speaker = '';
+            $.each(data, function (index, value) {
+                var speaker = value[0];
+                var spoken = value[1];
+                if (speaker != last_speaker) {
+                    $newTranscript.append($('<dt/>').text(speaker + ':'));
+                };
+                $newTranscript.append($('<dd/>').text(spoken));
+                last_speaker = speaker;
+            });
+            $oldTranscript.replaceWith($newTranscript);
+            // cleanup
+            $current_inline_editor_div.find('.inline-editor-container').empty().hide();
+            request_and_fill_progress();
+            $current_inline_editor_div = undefined;
+            $('.inline-edit-link').show();
+            $('#speakers').hide();
+        });
+    };
+    return false;
+};
+
+
+var inline_editor_cancel = function () {
+    player_pause(true);
+    if (has_identity(true)) {
+        var data = {
+            lock_secret: lock_info.secret,
+            starting_point: lock_info.starting_point,
+            identity_name: $.cookie('identity_name'),
+            identity_email: $.cookie('identity_email')
+        };
+        var url = '/cancel_snippet';
+        $.post(url, data, function (data) {
+            lock_info.secret = undefined;
+            lock_info.starting_point = undefined;
+            lock_info.ending_point = undefined;
+            lock_info.type = undefined;
+            $current_inline_editor_div.find('.inline-editor-container').empty().hide();
+            $current_inline_editor_div.find('.transcript').show();
+            request_and_fill_progress();
+            $current_inline_editor_div = undefined;
+            $('.inline-edit-link').show();
+            $('#speakers').hide();
+        });
+    };
+    return false;
 };
 
 
@@ -462,7 +613,7 @@ var player_enable = function () {
 
 
 var player_shortcuts_enable = function () {
-    $('.player-shortcuts').keypress(function (event) {
+    $('body').keypress(function (event) {
         if (event.which == 96) { // `
             event.preventDefault();
             editor_rewind();
@@ -643,7 +794,7 @@ var request_and_fill_progress = function () {
 // send duration and total bytes to server if ?init=<password> set in URL
 var send_duration = function () {
     if (!duration_sent && url_params.init) {
-        if (has_identity()) {
+        if (has_identity(true)) {
             $.post(
                 // url
                 '/save_duration',

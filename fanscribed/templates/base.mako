@@ -6,13 +6,13 @@
   <meta name="keywords" content="transcription transcribe podcast crowdsource" />
   <meta name="description" content="Croudsourced podcast transcription" />
   <link rel="shortcut icon" href="${request.static_url('fanscribed:static/favicon.ico')}?2012012401" />
-  <link rel="stylesheet" href="${request.static_url('fanscribed:static/fanscribed.css')}?2012012401" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="${request.static_url('fanscribed:static/fanscribed.css')}?2012012501" type="text/css" media="screen" charset="utf-8" />
   <!--[if lte IE 6]>
   <link rel="stylesheet" href="${request.static_url('fanscribed:static/ie6.css')}?2012012401" type="text/css" media="screen" charset="utf-8" />
   <![endif]-->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
   <script type="text/javascript" src="${request.static_url('fanscribed:static/jquery.cookie.js')}?2012012401"></script>
-  <script type="text/javascript" src="${request.static_url('fanscribed:static/fanscribed.js')}?2012012402"></script>
+  <script type="text/javascript" src="${request.static_url('fanscribed:static/fanscribed.js')}?2012012501"></script>
   <script type="text/javascript">
     var cookie_options = {
       expires: 365,
@@ -39,6 +39,25 @@
     <![endif]-->
 
     ${next.sidebar_top()}
+
+    <div id="speakers">
+      <h2>Speaker Abbreviations</h2>
+
+      <div>
+        <input id="speakers-edit" type="button" value="Edit" onclick="edit_speakers();" />
+        <input id="speakers-save" style="display: none;" type="button" value="Save" onclick="save_speakers();" />
+        <input id="speakers-cancel" style="display: none;" type="button" value="Cancel" onclick="cancel_speakers();" />
+      </div>
+
+      <pre id="speakers-text">${speakers}</pre>
+      <textarea id="speakers-editor" style="display: none;"></textarea>
+
+      <div id="instructions-speakers" style="display: none;">
+        <p>Add speaker abbreviations one per line, in this format:</p>
+        <pre>abbr; Full Name</pre>
+        <p>Be sure to <strong>save right away</strong> to prevent conflicts between concurrent changes. Unlike the transcription editor below, the list of speakers is <strong>not locked</strong>.</p>
+      </div>
+    </div>
 
     <div id="progress">
       <h2>Progress</h2>

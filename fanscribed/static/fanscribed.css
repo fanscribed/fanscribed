@@ -11,7 +11,7 @@ textarea {
 	height: 15em;
 }
 
-#speakers-editor, #transcribe-editor {
+#speakers-editor, #transcribe-editor, .inline-editor {
 	width: 100%;
 }
 
@@ -46,7 +46,7 @@ div#title h1 {
 
 div#sidebar {
 	font-size: small;
-	width: 32%;
+	width: 30%;
 	border-left: 2px solid grey;
 	padding-left: .5em;
 }
@@ -60,8 +60,27 @@ div#sidebar {
 	float: right;
 }
 
+.view div#speakers {
+	/* Hide by default until in edit mode. */
+	display: none;
+}
+
+.needs-identity {
+	/* Hide by default until identity found. */
+	display: none;
+}
+
+.no-identity {
+	/* Hide by default unless no identity found. */
+	display: none;
+}
+
 div#content {
 	width: 66%;
+}
+
+.timestamp span.label {
+	background-color: lightgrey;
 }
 
 div#footer {

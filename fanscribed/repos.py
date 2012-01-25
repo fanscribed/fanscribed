@@ -128,7 +128,7 @@ def remove_review_from_remaining(repo, index, starting_point):
     save_remaining_reviews(repo, index, reviews)
 
 
-def lock_available_snippet(repo, index):
+def lock_available_snippet(repo, index, desired_starting_point):
     """Return a (starting_point, lock_secret) tuple of a newly-locked snippet,
     or (None, message) if there are none remaining or all are locked."""
     tree = repo.tree('master')
@@ -143,22 +143,30 @@ def lock_available_snippet(repo, index):
         lock_timestamp = lock['timestamp']
         if _lock_is_expired(lock_timestamp):
             del locks[lock_name]
-    # Find one that's unlocked, if there are any.
-    locked = set(int(lock_name) for lock_name in locks)
-    unlocked = remaining - locked
-    if len(unlocked) == 0:
-        # All remaining have valid locks.
-        return (None, 'All snippets are locked; try again later.')
+    if desired_starting_point is None:
+        # Find one that's unlocked, if there are any.
+        locked = set(int(lock_name) for lock_name in locks)
+        unlocked = remaining - locked
+        if len(unlocked) == 0:
+            # All remaining have valid locks.
+            return (None, 'All snippets are locked; try again later.')
+        else:
+            # Pick the next one and lock it with a secret.
+            starting_point = sorted(unlocked)[0]
     else:
-        # Pick the next one and lock it with a secret.
-        starting_point = sorted(unlocked)[0]
-        lock_secret = _lock_secret()
-        locks[str(starting_point)] = {
-            'secret': lock_secret,
-            'timestamp': time.time(),
-        }
-        save_locks(repo, index, lock_structure)
-        return (starting_point, lock_secret)
+        # See if the desired starting point is locked already.
+        if str(desired_starting_point) in locks:
+            return (None, 'The requested snippet is locked; try again later.')
+        else:
+            starting_point = desired_starting_point
+    # The starting point is not locked... lock it!
+    lock_secret = _lock_secret()
+    locks[str(starting_point)] = {
+        'secret': lock_secret,
+        'timestamp': time.time(),
+    }
+    save_locks(repo, index, lock_structure)
+    return (starting_point, lock_secret)
 
 
 def lock_available_review(repo, index):
