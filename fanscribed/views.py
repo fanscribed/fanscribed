@@ -113,8 +113,6 @@ def view(request):
         for line in text.splitlines():
             if ';' in line:
                 speaker, spoken = line.split(';', 1)
-            elif ':' in line:
-                speaker, spoken = line.split(':', 1)
             else:
                 speaker = ''
                 spoken = line
@@ -373,8 +371,6 @@ def save_snippet(request):
         for line in text.splitlines():
             if ';' in line:
                 speaker, spoken = line.split(';', 1)
-            elif ':' in line:
-                speaker, spoken = line.split(':', 1)
             else:
                 speaker = ''
                 spoken = line

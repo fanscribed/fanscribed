@@ -62,10 +62,8 @@ def speakers_map(tree):
     for line in text.splitlines():
         if ';' in line:
             left, right = line.split(';', 1)
-        elif ':' in line:
-            left, right = line.split(':', 1)
         else:
-            # No ; or : so skip
+            # No ; found, so skip
             continue
         left = left.strip().lower()
         right = right.strip()
