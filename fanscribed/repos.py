@@ -164,6 +164,7 @@ def lock_available_snippet(repo, index):
 def lock_available_review(repo, index):
     """Return a (starting_point, lock_secret) tuple of a newly-locked review,
     or (None, message) if there are none remaining or all are locked."""
+    snippet_ms = _snippet_ms()
     tree = repo.tree('master')
     remaining = set(get_remaining_reviews(tree))
     if len(remaining) == 0:
@@ -172,6 +173,7 @@ def lock_available_review(repo, index):
     # Remove expired locks.
     lock_structure = get_locks(tree)
     locks = lock_structure.setdefault('review', {})
+    snippet_locks = lock_structure.setdefault('snippet', {})
     for lock_name, lock in locks.items():
         lock_timestamp = lock['timestamp']
         if _lock_is_expired(lock_timestamp):
@@ -190,7 +192,7 @@ def lock_available_review(repo, index):
     if len(unlocked) > 0:
         adjacent_empty = set()
         for starting_point in unlocked:
-            candidate = starting_point + _snippet_ms()
+            candidate = starting_point + snippet_ms
             if candidate in remaining_snippets:
                 adjacent_empty.add(starting_point)
         unlocked -= adjacent_empty
@@ -201,10 +203,22 @@ def lock_available_review(repo, index):
         # Pick the first available one and lock it with a secret.
         starting_point = sorted(unlocked)[0]
         lock_secret = _lock_secret()
+        timestamp = time.time()
         locks[str(starting_point)] = {
             'secret': lock_secret,
-            'timestamp': time.time(),
+            'timestamp': timestamp,
         }
+        # Also lock the associated snippets, so no-one can edit a
+        # snippet that is under review.
+        snippet_locks[str(starting_point)] = {
+            'secret': _lock_secret(),
+            'timestamp': timestamp,
+        }
+        snippet_locks[str(starting_point + snippet_ms)] = {
+            'secret': _lock_secret(),
+            'timestamp': timestamp,
+        }
+        # Save.
         save_locks(repo, index, lock_structure)
         return (starting_point, lock_secret)
 
@@ -227,6 +241,14 @@ def remove_lock(repo, index, lock_type, starting_point):
     lock_name = str(starting_point)
     if lock_name in locks:
         del locks[lock_name]
+        if lock_type == 'review':
+            # Also unlock associated snippets.
+            snippet_locks = lock_structure.get('snippet', {})
+            lock2_name = str(starting_point + _snippet_ms())
+            if lock_name in snippet_locks:
+                del snippet_locks[lock_name]
+            if lock2_name in snippet_locks:
+                del snippet_locks[lock2_name]
         save_locks(repo, index, lock_structure)
 
 
