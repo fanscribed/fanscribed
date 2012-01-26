@@ -488,7 +488,8 @@ var inline_editor_save = function () {
             starting_point: lock_info.starting_point,
             snippet_text: $current_inline_editor_div.find('.inline-editor').val(),
             identity_name: $.cookie('identity_name'),
-            identity_email: $.cookie('identity_email')
+            identity_email: $.cookie('identity_email'),
+            inline: 1
         };
         var url = '/save_snippet';
         $.post(url, data, function (data) {

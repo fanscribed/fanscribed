@@ -164,7 +164,7 @@ def post_speakers_txt(request):
         index.add(['speakers.txt'])
         os.environ['GIT_AUTHOR_NAME'] = identity_name
         os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-        index.commit('Via web: update list of speakers')
+        index.commit('speakers: save')
     # Reload from repo and serve it up.
     master = repo.tree('master')
     text = repos.speakers_text(master)
@@ -240,7 +240,7 @@ def save_duration(request):
                 # Perform commit.
                 os.environ['GIT_AUTHOR_NAME'] = identity_name
                 os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-                index.commit('Via web: initialize based on duration of audio file')
+                index.commit('initialize')
             # Respond to client.
             response = 'Committed - Duration: {0}, Bytes: {1}'.format(duration, bytes_total)
         else:
@@ -271,7 +271,7 @@ def lock_snippet(request):
             # commit with identity
             os.environ['GIT_AUTHOR_NAME'] = identity_name
             os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-            index.commit('Via web: lock snippet for editing')
+            index.commit('snippet: lock')
             # return snippet info and text
             snippet_text = repos.snippet_text(repo, index, starting_point)
             body = json.dumps({
@@ -310,7 +310,7 @@ def lock_review(request):
             # commit with identity
             os.environ['GIT_AUTHOR_NAME'] = identity_name
             os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-            index.commit('Via web: lock review for editing')
+            index.commit('review: lock')
             # return review info and snippet texts
             review_text_1 = repos.snippet_text(repo, index, starting_point)
             review_text_2 = repos.snippet_text(repo, index, starting_point + _snippet_ms())
@@ -344,6 +344,7 @@ def save_snippet(request):
     identity_name = request.POST.getone('identity_name')
     identity_email = request.POST.getone('identity_email')
     snippet_text = request.POST.getone('snippet_text')
+    inline = request.POST.get('inline') == '1'
     with repos.commit_lock:
         # find and validate the lock
         repo = repos.repo_from_request(request)
@@ -359,7 +360,12 @@ def save_snippet(request):
         # commit with identity
         os.environ['GIT_AUTHOR_NAME'] = identity_name
         os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-        index.commit('Via web: save snippet')
+        commit_message = 'snippet: save'
+        if inline:
+            commit_message += ' (inline)'
+        else:
+            commit_message += ' (transcription)'
+        index.commit(commit_message)
     # return structure of snippet including resolved speaker names
     # for potential rendering
     master = repo.tree('master')
@@ -415,7 +421,7 @@ def save_review(request):
         # commit with identity
         os.environ['GIT_AUTHOR_NAME'] = identity_name
         os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-        index.commit('Via web: save review')
+        index.commit('review: save')
     # return empty indicating success
     return Response('', content_type='text/plain')
 
@@ -442,7 +448,7 @@ def cancel_snippet(request):
         # commit with identity
         os.environ['GIT_AUTHOR_NAME'] = identity_name
         os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-        index.commit('Via web: cancel snippet')
+        index.commit('snippet: cancel')
     # return empty indicating success
     return Response('', content_type='text/plain')
 
@@ -469,6 +475,6 @@ def cancel_review(request):
         # commit with identity
         os.environ['GIT_AUTHOR_NAME'] = identity_name
         os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-        index.commit('Via web: cancel review')
+        index.commit('review: cancel')
     # return empty indicating success
     return Response('', content_type='text/plain')
