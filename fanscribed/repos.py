@@ -131,7 +131,7 @@ def lock_available_snippet(repo, index, desired_starting_point):
     or (None, message) if there are none remaining or all are locked."""
     tree = repo.tree('master')
     remaining = set(get_remaining_snippets(tree))
-    if len(remaining) == 0:
+    if len(remaining) == 0 and desired_starting_point is None:
         # All of them have been transcribed.
         return (None, 'All snippets have been completed.')
     # Remove expired locks.
