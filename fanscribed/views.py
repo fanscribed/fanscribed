@@ -27,14 +27,24 @@ def _snippet_ms():
 
 
 def _progress_dicts(tree, transcription_info):
-    snippets_total = transcription_info['duration'] / _snippet_ms()
-    snippets_remaining = len(repos.get_remaining_snippets(tree))
-    snippets_completed = snippets_total - snippets_remaining
-    snippets_percent = snippets_completed * 100 / snippets_total
-    reviews_total = snippets_total - 1
-    reviews_remaining = len(repos.get_remaining_reviews(tree))
-    reviews_completed = reviews_total - reviews_remaining
-    reviews_percent = reviews_completed * 100 / reviews_total
+    if 'duration' in transcription_info:
+        snippets_total = transcription_info['duration'] / _snippet_ms()
+        snippets_remaining = len(repos.get_remaining_snippets(tree))
+        snippets_completed = snippets_total - snippets_remaining
+        snippets_percent = snippets_completed * 100 / snippets_total
+        reviews_total = snippets_total - 1
+        reviews_remaining = len(repos.get_remaining_reviews(tree))
+        reviews_completed = reviews_total - reviews_remaining
+        reviews_percent = reviews_completed * 100 / reviews_total
+    else:
+        snippets_total = 0
+        snippets_remaining = 0
+        snippets_completed = 0
+        snippets_percent = 0
+        reviews_total = 0
+        reviews_remaining = 0
+        reviews_completed = 0
+        reviews_percent = 0
     return dict(
         snippets_progress=dict(
             total=snippets_total,
