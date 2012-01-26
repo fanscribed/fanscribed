@@ -46,6 +46,11 @@ def _progress_dicts(tree, transcription_info):
             completed=reviews_completed,
             percent=reviews_percent,
         ),
+        # Support for embedding in mediawiki
+        mediawiki=dict(
+            snippets_percent=snippets_percent,
+            reviews_percent=reviews_percent,
+        ),
     )
 
 
