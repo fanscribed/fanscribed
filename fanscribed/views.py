@@ -363,8 +363,6 @@ def save_snippet(request):
         commit_message = 'snippet: save'
         if inline:
             commit_message += ' (inline)'
-        else:
-            commit_message += ' (transcription)'
         index.commit(commit_message)
     # return structure of snippet including resolved speaker names
     # for potential rendering
