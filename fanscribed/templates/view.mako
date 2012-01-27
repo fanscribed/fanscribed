@@ -59,9 +59,15 @@
 
   <div id="snippet-info-template" class="snippet-info" style="display:none;">
     <div class="contributors">
-      Contributors:
+      Contributors (by date):
       <ul class="contributor-list" />
     </div>
+  </div>
+
+  <div id="all-contributors">
+    <div><a id="show-all-contributors" href="#all-contributors" onclick="show_all_contributors()">List all contributors</a></div>
+    <h3 style="display:none;">All contributors (by name)</h3>
+    <ul></ul>
   </div>
 
   % for starting_point, lines in snippets:

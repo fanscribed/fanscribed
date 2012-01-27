@@ -819,7 +819,7 @@ var send_duration = function () {
 
 
 // =========================================================================
-// snippet info
+// contribution info & other metadata
 
 
 var show_snippet_info = function (anchor, starting_point) {
@@ -839,6 +839,30 @@ var show_snippet_info = function (anchor, starting_point) {
                 .show()
             ;
             var $contributor_list = $snippet_info.find('ul.contributor-list');
+            if (data.contributor_list.length > 0) {
+                $.each(data.contributor_list, function (index, value) {
+                    $('<li/>')
+                        .appendTo($contributor_list)
+                        .text(value.author_name)
+                    ;
+                });
+            } else {
+                $('<li>(No contributors found)</li>').appendTo($contributor_list);
+            };
+        }
+    );
+};
+
+
+var show_all_contributors = function () {
+    $.getJSON(
+        // url
+        '/all_contributors',
+        // success
+        function (data) {
+            $('#all-contributors h3').show();
+            $('#show-all-contributors').text('Update list of all contributors');
+            var $contributor_list = $('#all-contributors ul').empty();
             if (data.contributor_list.length > 0) {
                 $.each(data.contributor_list, function (index, value) {
                     $('<li/>')
