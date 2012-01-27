@@ -28,7 +28,11 @@ def _snippet_ms():
 
 def _progress_dicts(tree, transcription_info):
     if 'duration' in transcription_info:
-        snippets_total = transcription_info['duration'] / _snippet_ms()
+        duration = transcription_info['duration']
+        snippet_ms = _snippet_ms()
+        snippets_total = duration / snippet_ms
+        if duration % snippet_ms:
+            snippets_total += 1
         snippets_remaining = len(repos.get_remaining_snippets(tree))
         snippets_completed = snippets_total - snippets_remaining
         snippets_percent = snippets_completed * 100 / snippets_total
