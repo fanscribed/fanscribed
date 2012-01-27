@@ -1,0 +1,8 @@
+[app:main]
+use = config:development.ini
+fanscribed.repos = ../repos
+fanscribed.init_password = example
+fanscribed.snippet_seconds = 30
+
+[server:main]
+use = config:development.ini

@@ -6,3 +6,5 @@
 *.egg-info
 build
 *-hosted.ini
+*-local.ini
+*.mp3
