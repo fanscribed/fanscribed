@@ -57,6 +57,13 @@
     </div>
   </div>
 
+  <div id="snippet-info-template" class="snippet-info" style="display:none;">
+    <div class="contributors">
+      Contributors:
+      <ul class="contributor-list" />
+    </div>
+  </div>
+
   % for starting_point, lines in snippets:
       <%
       last_speaker = None
@@ -67,7 +74,8 @@
       anchor_label = '{0:d}:{1:02d}'.format(starting_minutes, starting_seconds)
       %>
       <div class="snippet" id="${anchor}">
-        <p class="timestamp"><span class="label">${anchor_label}</span> - <a href="#${anchor}">#</a> - <a href="#${anchor}" onclick="player_play_from(${starting_point})">Play</a><span class="needs-identity"><span class="inline-edit-link"> - <a href="#${anchor}" onclick="inline_editor('${anchor}', ${starting_point})">Edit</a></span></span></p>
+        <p class="timestamp"><span class="label">${anchor_label}</span> - <a href="#${anchor}">#</a> - <a href="#${anchor}" onclick="player_play_from(${starting_point})">Play</a> - <a href="#${anchor}" onclick="show_snippet_info('${anchor}', ${starting_point})">Info</a><span class="needs-identity"><span class="inline-edit-link"> - <a href="#${anchor}" onclick="inline_editor('${anchor}', ${starting_point})">Edit</a></span></span></p>
+        <div class="snippet-info-container"></div>
         <dl class="transcript">
           % for speaker, spoken in lines:
               % if speaker and last_speaker != speaker:

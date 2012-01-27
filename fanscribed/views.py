@@ -215,6 +215,27 @@ def progress(request):
 
 
 @view_config(
+    request_method='GET',
+    route_name='snippet_info',
+    context='fanscribed:resources.Root',
+)
+def snippet_info(request):
+    starting_point = int(request.GET.getone('starting_point'))
+    filename = '{0:016d}.txt'.format(starting_point)
+    repo = repos.repo_from_request(request)
+    contributor_list = []
+    for commit in repo.iter_commits('master', paths=filename):
+        contributor = dict(author_name=commit.author.name)
+        if contributor not in contributor_list:
+            contributor_list.append(contributor)
+    contributor_list.reverse()
+    info = dict(
+        contributor_list=contributor_list,
+    )
+    return Response(body=json.dumps(info), content_type='application/json')
+
+
+@view_config(
     request_method='POST',
     route_name='save_duration',
     context='fanscribed:resources.Root',

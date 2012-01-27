@@ -458,7 +458,6 @@ var inline_editor = function (anchor, starting_point) {
                     ;
                     $('#inline-editor-template')
                         .clone()
-                        .val(data.snippet_text)
                         .appendTo($container)
                         .show()
                         .focus()
@@ -816,6 +815,42 @@ var send_duration = function () {
             duration_sent = true;
         };
     };
+};
+
+
+// =========================================================================
+// snippet info
+
+
+var show_snippet_info = function (anchor, starting_point) {
+    $.getJSON(
+        // url
+        '/snippet_info',
+        // data
+        {
+            starting_point: starting_point
+        },
+        // success
+        function (data) {
+            var $container = $('div#' + anchor).find('div.snippet-info-container');
+            var $snippet_info = $('#snippet-info-template')
+                .clone()
+                .appendTo($container.empty())
+                .show()
+            ;
+            var $contributor_list = $snippet_info.find('ul.contributor-list');
+            if (data.contributor_list.length > 0) {
+                $.each(data.contributor_list, function (index, value) {
+                    $('<li/>')
+                        .appendTo($contributor_list)
+                        .text(value.author_name)
+                    ;
+                });
+            } else {
+                $('<li>(No contributors found)</li>').appendTo($contributor_list);
+            };
+        }
+    );
 };
 
 
