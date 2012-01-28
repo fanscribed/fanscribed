@@ -70,9 +70,14 @@
     <ul></ul>
   </div>
 
+  <%
+  last_abbreviation = ''
+  %>
   % for starting_point, lines in snippets:
       <%
-      last_abbreviation = ''
+      # Reset last_abbreviation if an empty snippet is found.
+      if not lines:
+          last_abbreviation = ''
       starting_seconds = starting_point / 1000
       starting_minutes = starting_seconds / 60
       starting_seconds = starting_seconds % 60
