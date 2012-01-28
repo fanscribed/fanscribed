@@ -499,15 +499,29 @@ var inline_editor_save = function () {
             // render new transcript
             var $oldTranscript = $current_inline_editor_div.find('.transcript');
             var $newTranscript = $('<dl class="transcript"></dl>');
-            var last_speaker = '--';
+            var last_abbreviation = '';
             $.each(data, function (index, value) {
-                var speaker = value[0];
-                var spoken = value[1];
-                if (speaker && speaker != last_speaker) {
-                    $newTranscript.append($('<dt/>').text(speaker + ':'));
+                var abbreviation = value[0];
+                var speaker = value[1];
+                var spoken = value[2];
+                if (abbreviation && abbreviation != last_abbreviation) {
+                    last_abbreviation = abbreviation;
+                    $newTranscript
+                        .append(
+                            $('<dt>:</dt>')
+                                .prepend(
+                                    $('<span class="name"/>')
+                                        .text(speaker)
+                                )
+                                .addClass('speaker-' + abbreviation)
+                        )
+                    ;
                 };
-                $newTranscript.append($('<dd/>').text(spoken));
-                last_speaker = speaker;
+                $newTranscript.append(
+                    $('<dd/>')
+                        .addClass('speaker-' + last_abbreviation)
+                        .text(spoken)
+                );
             });
             $oldTranscript.replaceWith($newTranscript);
             // cleanup

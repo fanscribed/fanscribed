@@ -1,5 +1,9 @@
+# -*- coding: utf-8 -*-
+
 import json
 import os
+import re
+import unicodedata
 
 import git
 
@@ -17,13 +21,6 @@ Disallow: /progress
 Disallow: /speakers.txt
 Disallow: /transcription.json
 """
-
-
-def _snippet_ms():
-    registry = get_current_registry()
-    settings = registry.settings
-    snippet_seconds = int(settings['fanscribed.snippet_seconds'])
-    return snippet_seconds * 1000
 
 
 def _progress_dicts(tree, transcription_info):
@@ -66,6 +63,69 @@ def _progress_dicts(tree, transcription_info):
             reviews_percent=reviews_percent,
         ),
     )
+
+
+# https://github.com/zacharyvoase/slugify/blob/master/src/slugify.py
+def _slugify(text):
+    """
+    Slugify a unicode string.
+
+    Example:
+
+        >>> slugify(u"Héllø Wörld")
+        u"hello-world"
+    """
+    return re.sub(
+        r'[-\s]+',
+        '-',
+        unicode(
+            re.sub(
+                r'[^\w\s-]',
+                '',
+                unicodedata
+                    .normalize('NFKD', text)
+                    .encode('ascii', 'ignore')
+            )
+            .strip()
+            .lower()
+        )
+    )
+
+
+def _snippet_ms():
+    registry = get_current_registry()
+    settings = registry.settings
+    snippet_seconds = int(settings['fanscribed.snippet_seconds'])
+    return snippet_seconds * 1000
+
+
+def _split_lines_and_expand_abbreviations(text, speakers_map):
+    lines = []
+    if not isinstance(text, unicode):
+        text = text.decode('utf8')
+    text = text.strip()
+    if text:
+        # Tease apart lines into speaker and spoken, replacing abbreviations with full expansion.
+        for line in text.splitlines():
+            speaker = u''
+            if u';' in line:
+                abbreviation, spoken = line.split(u';', 1)
+            else:
+                abbreviation = u''
+                spoken = line
+            spoken = spoken.strip()
+            if not spoken:
+                # Ignore blank lines
+                continue
+            abbreviation = _slugify(abbreviation)
+            if abbreviation in speakers_map:
+                # Find full expansion for speaker's abbreviation.
+                speaker = speakers_map[abbreviation]
+            else:
+                # No expansion found.
+                speaker = abbreviation
+            lines.append((abbreviation, speaker, spoken))
+    return lines
 
 
 def _standard_response(tree):
@@ -127,23 +187,7 @@ def view(request):
     speakers_map = repos.speakers_map(master)
     for starting_point in range(0, transcription_info['duration'], _snippet_ms()):
         text = raw_snippets.get(starting_point, '').strip()
-        # Tease apart lines into speaker and spoken, replacing abbreviations with full expansion.
-        lines = []
-        for line in text.splitlines():
-            if ';' in line:
-                speaker, spoken = line.split(';', 1)
-            else:
-                speaker = ''
-                spoken = line
-            speaker = speaker.strip()
-            spoken = spoken.strip()
-            if not spoken:
-                # Ignore blank lines
-                continue
-            if speaker.lower() in speakers_map:
-                # Replace abbreviation with full expansion.
-                speaker = speakers_map[speaker]
-            lines.append((speaker, spoken))
+        lines = _split_lines_and_expand_abbreviations(text, speakers_map)
         snippets.append((starting_point, lines))
     return dict(
         _standard_response(master),
@@ -437,24 +481,7 @@ def save_snippet(request):
     master = repo.tree('master')
     speakers_map = repos.speakers_map(master)
     text = snippet_text.strip()
-    lines = []
-    if text:
-        # Tease apart lines into speaker and spoken, replacing abbreviations with full expansion.
-        for line in text.splitlines():
-            if ';' in line:
-                speaker, spoken = line.split(';', 1)
-            else:
-                speaker = ''
-                spoken = line
-            speaker = speaker.strip()
-            spoken = spoken.strip()
-            if not spoken:
-                # Ignore blank lines
-                continue
-            if speaker.lower() in speakers_map:
-                # Replace abbreviation with full expansion.
-                speaker = speakers_map[speaker]
-            lines.append((speaker, spoken))
+    lines = _split_lines_and_expand_abbreviations(text, speakers_map)
     return Response(json.dumps(lines), content_type='application/json')
 
 

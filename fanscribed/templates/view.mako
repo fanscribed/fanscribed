@@ -72,7 +72,7 @@
 
   % for starting_point, lines in snippets:
       <%
-      last_speaker = None
+      last_abbreviation = ''
       starting_seconds = starting_point / 1000
       starting_minutes = starting_seconds / 60
       starting_seconds = starting_seconds % 60
@@ -88,16 +88,14 @@
         </ul>
         <div class="snippet-info-container"></div>
         <dl class="transcript">
-          % for speaker, spoken in lines:
-              % if speaker and last_speaker != speaker:
-                  <dt>${speaker}:</dt>
-                  <dd>${spoken}</dd>
-              % else:
-                  <dd>${spoken}</dd>
+          % for abbreviation, speaker, spoken in lines:
+              % if abbreviation and last_abbreviation != speaker:
+                  <dt class="speaker-${abbreviation}"><span class="name">${speaker}</span>:</dt>
+                  <%
+                      last_abbreviation = abbreviation
+                  %>
               % endif
-              <%
-                  last_speaker = speaker
-              %>
+              <dd class="speaker-${last_abbreviation}">${spoken}</dd>
           % endfor
         </dl>
         <div class="inline-editor-container" style="display:none;"></div>
