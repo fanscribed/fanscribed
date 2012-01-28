@@ -80,7 +80,12 @@
       anchor_label = '{0:d}:{1:02d}'.format(starting_minutes, starting_seconds)
       %>
       <div class="snippet" id="${anchor}">
-        <p class="timestamp"><span class="label">${anchor_label}</span> - <a href="#${anchor}">#</a> - <a href="#${anchor}" onclick="player_play_from(${starting_point})">Play</a> - <a href="#${anchor}" onclick="show_snippet_info('${anchor}', ${starting_point})">Info</a><span class="needs-identity"><span class="inline-edit-link"> - <a href="#${anchor}" onclick="inline_editor('${anchor}', ${starting_point})">Edit</a></span></span></p>
+        <ul class="timestamp">
+          <li class="label"><a href="#${anchor}">${anchor_label}</a></li>
+          <li class="play"><a href="#${anchor}" onclick="player_play_from(${starting_point})">Play</a></li>
+          <li class="info"><a href="#${anchor}" onclick="show_snippet_info('${anchor}', ${starting_point})">Info</a></li>
+          <li class="edit needs-identity"><a href="#${anchor}" onclick="inline_editor('${anchor}', ${starting_point})">Edit</a></li>
+        </ul>
         <div class="snippet-info-container"></div>
         <dl class="transcript">
           % for speaker, spoken in lines:
