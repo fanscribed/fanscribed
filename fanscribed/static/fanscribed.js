@@ -794,10 +794,20 @@ var request_and_fill_progress = function () {
         '/progress',
         // success
         function (data) {
-            $('#snippets-progress-percent').text(data.snippets_progress.percent);
+            $('#snippets-progress-percent')
+                .find('span')
+                    .css('width', data.snippets_progress.percent + '%')
+                    .find('strong')
+                        .text(data.snippets_progress.percent + '%')
+            ;
             $('#snippets-progress-completed').text(data.snippets_progress.completed);
             $('#snippets-progress-total').text(data.snippets_progress.total);
-            $('#reviews-progress-percent').text(data.reviews_progress.percent);
+            $('#reviews-progress-percent')
+                .find('span')
+                    .css('width', data.reviews_progress.percent + '%')
+                    .find('strong')
+                        .text(data.reviews_progress.percent + '%')
+            ;
             $('#reviews-progress-completed').text(data.reviews_progress.completed);
             $('#reviews-progress-total').text(data.reviews_progress.total);
         }

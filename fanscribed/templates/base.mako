@@ -64,8 +64,16 @@
       <h2>Progress</h2>
       <ul>
         <li style="${'display: none;' if 'duration' in transcription_info else ''}">Initialized: <span id="about-initialized">${'true' if 'duration' in transcription_info else 'false'}</span></li>
-        <li>Snippets transcribed: <span id="snippets-progress-percent">${snippets_progress['percent']}</span>% (<span id="snippets-progress-completed">${snippets_progress['completed']}</span> out of <span id="snippets-progress-total">${snippets_progress['total']}</span>)</li>
-        <li>Reviews completed: <span id="reviews-progress-percent">${reviews_progress['percent']}</span>% (<span id="reviews-progress-completed">${reviews_progress['completed']}</span> out of <span id="reviews-progress-total">${reviews_progress['total']}</span>)</li>
+        <li>
+          Snippets transcribed: 
+          <span id="snippets-progress-percent"><span style="width:${snippets_progress['percent']}%"><strong>${snippets_progress['percent']}%</strong></span></span> 
+          (<span id="snippets-progress-completed">${snippets_progress['completed']}</span> out of <span id="snippets-progress-total">${snippets_progress['total']}</span>)
+        </li>
+        <li>
+          Reviews completed: 
+          <span id="reviews-progress-percent"><span style="width:${reviews_progress['percent']}%"><strong>${reviews_progress['percent']}%</strong></span></span>
+          (<span id="reviews-progress-completed">${reviews_progress['completed']}</span> out of <span id="reviews-progress-total">${reviews_progress['total']}</span>)
+        </li>
       </ul>
     </div>
 
