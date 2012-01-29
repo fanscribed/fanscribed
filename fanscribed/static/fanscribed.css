@@ -1,11 +1,23 @@
-body {
-	position: relative;
-}
+/*
+in-progress css for Fanscribed
+by Nigel Ewan */
 
-textarea {
-	height: 25em;
-	font-family: monospace;
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video{border:0;font-size:100%;font:inherit;vertical-align:baseline;margin:0;padding:0}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:none}table{border-collapse:collapse;border-spacing:0}
+
+body{font:12px/16px "Lucida Grande","Helvetica Neue",Arial,Helvetica,sans-serif;margin:0 auto;color:#000;background:#fefefe;width:80em;padding:0 2em;}
+
+a{text-decoration:none;color:inherit;border-bottom:1px solid rgba(0,0,0,.4);}
+a:hover{border-bottom:0;opacity:.5;}
+
+h1,h2,h3{font-weight:600;}
+
+
+textarea,pre {
+	font-family: Consolas,Monaco,Courier,monospace;
 }
+input{font-family:inherit;}
+
+textarea{min-height:10em;}
 
 #speakers-editor {
 	height: 15em;
@@ -15,49 +27,51 @@ textarea {
 	width: 100%;
 }
 
+pre{background:#eee;color:#444;display:inline-block;}
+#sidebar pre{background:#EEEEC8;outline:2px solid #EEEEC8;}
+
+textarea,input{background:#eee;color:#444;-webkit-border-radius:.5em;-moz-border-radius:.5em;border:solid 2px #ccc;}
+input[type="button"]{border:0;background:#666;color:#fff;font-weight:600;text-transform:lowercase;}
+
 #review-editor1, #review-editor2 {
-	width: 48%;
+font-size:12px;
+	width:49%;resize:vertical;min-height:30em;
 }
-
-dl.transcript dt {
-	font-weight: bold;
-	margin-top: 1em;
-}
-
-dl.transcript dd {
-	margin-top: .25em;
-}
+#review-editor1{margin-right:1%;}
 
 div#toolbar {
 	font-size: small;
 }
 
 div#title {
-	border-top: 2px solid grey;
-	border-bottom: 2px solid grey;
-	background-color: lightgrey;
-}
+padding:1em 0 1em;}
 
 div#title h1 {
-	margin-top: .25em;
-	margin-bottom: .25em;
-	font-size: large;
+font-size:18px;font-weight:600;line-height:32px;
 }
 
 div#sidebar {
-	font-size: small;
-	width: 30%;
-	border-left: 2px solid grey;
-	padding-left: .5em;
+	width: 15em;
+	background:#ffc;padding:1em;
+	-webkit-border-radius:2px;
+	-moz-border-radius:2px;
+	-webkit-box-shadow:rgba(0,0,0,.25) 0 2px 1px;
+	-moz-box-shadow:rgba(0,0,0,.25) 0 2px 1px;
+}
+#sidebar *{	font-size: 10px;}
+
+#sidebar>div+div{
+margin-top:1.5em;
 }
 
 .view div#sidebar {
 	position: fixed;
-	left: 68%;
+	margin-left:65em;
 }
 
 .edit div#sidebar {
 	float: right;
+	margin-bottom:2em;
 }
 
 .view div#speakers {
@@ -76,15 +90,45 @@ div#sidebar {
 }
 
 div#content {
-	width: 66%;
+	width: 60em;
 }
 
-.timestamp span.label {
-	background-color: lightgrey;
-}
+/* remove the colon after speaker's name */
+dt{font-weight:600;visibility:hidden;opacity:.8;}
+dt>span.name{visibility:visible;}
+
+dd+dt{margin-top:16px;}
+
+dd{margin-left:2em;}
+
+dt:even{color:red;}
+dt:odd{color:green;}
+
+.snippet{min-height:4em;border-top:1px dashed #888;padding:1em 0;}
+.timestamp {float:right;line-height:1em;margin-top:-2.3em;display:inline-block;background:#eee;padding:.5em .7em;-webkit-border-radius:.5em;-moz-border-radius:.5em;font-size:10px;text-transform:lowercase;}
+.timestamp a{border:0;}
+.timestamp li{display:inline;}
+.timestamp li:after{content:" \00B7 ";}
+.timestamp li:last-child:after{content:"";}
+
+.timestamp .label a{font-weight:600;}
 
 div#footer {
 	clear: both;
-	font-size: small;
-	border-top: 2px solid black;
+	font-size: 10px;
+margin-top:2em;
 }
+
+#sidebar #progress li{margin-bottom:1em;}
+
+span#snippets-progress-percent,
+span#reviews-progress-percent
+{display:block;width:100%;background:#DFDFB3;position:relative;height:2em;-webkit-border-radius:4px;-moz-border-radius:4px;padding:2px;margin-left:-2px;}
+span#snippets-progress-percent>span,
+span#reviews-progress-percent>span{display:block;position:relative;left:0;height:inherit;background:#666659;-webkit-border-radius:2px;-moz-border-radius:2px;min-width:2.5em;-webkit-box-shadow:rgba(0,0,0,.3) 0 0 2px;-moz-box-shadow:rgba(0,0,0,.3) 0 0 2px;}
+
+span#snippets-progress-percent>span[style="width:100%"],
+span#reviews-progress-percent>span[style="width:100%"] {background:#668C59;}
+
+span#snippets-progress-percent>span>strong,
+span#reviews-progress-percent>span>strong{color:#fff;text-shadow:rgba(0,0,0,.4) 0 2px 1px;font-weight:600;position:absolute; right:.5em;line-height:2em;}

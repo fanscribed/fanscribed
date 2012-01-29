@@ -6,7 +6,7 @@
   <meta name="keywords" content="transcription transcribe podcast crowdsource" />
   <meta name="description" content="Croudsourced podcast transcription" />
   <link rel="shortcut icon" href="${request.static_url('fanscribed:static/favicon.ico')}?2012012401" />
-  <link rel="stylesheet" href="${request.static_url('fanscribed:static/fanscribed.css')}?2012012501" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="${request.static_url('fanscribed:static/fanscribed.css')}?2012012901" type="text/css" media="screen" charset="utf-8" />
   <!--[if lte IE 6]>
   <link rel="stylesheet" href="${request.static_url('fanscribed:static/ie6.css')}?2012012401" type="text/css" media="screen" charset="utf-8" />
   <![endif]-->
