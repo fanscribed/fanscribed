@@ -55,7 +55,7 @@
       <div>
         <input id="editor-save" type="button" value="Save" onclick="editor_save();" />
         <input id="editor-cancel" type="button" value="Cancel" onclick="editor_cancel();" />
-        <input id="editor-replay" type="button" value="Replay" onclick="editor_replay();" />
+        <input id="editor-replay" type="button" value="Replay" onclick="editor_replay(true);" />
         <input id="editor-pause" type="button" value="Pause/Play" onclick="editor_pause_play();" />
         <input id="editor-rewind" type="button" value="Rewind 5s" onclick="editor_rewind();" />
         </div>

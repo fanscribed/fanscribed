@@ -10,7 +10,7 @@ var PADDING = 2500; // 2.5 second audio padding on either side of a snippet
 
 
 var duration_sent = false;
-var should_auto_stream = false;
+var mode; // 'view' or 'transcribe'
 var transcription = {};
 
 
@@ -19,34 +19,32 @@ var transcription = {};
 
 
 var edit_onload = function () {
-    if (url_params.autostream === '0') {
-        // url requested no auto streaming.
-        should_auto_stream = false;
-    } else {
-        // default: automatically start streaming
-        should_auto_stream = true;
-    };
+    mode = 'transcribe';
     common_onload();
 };
 
 
 var view_onload = function () {
-    if (url_params.autostream === '1') {
-        // url requested auto streaming.
-        should_auto_stream = true;
-    } else {
-        // default: do not automatically start streaming
-        should_auto_stream = false;
-    };
+    mode = 'view';
     common_onload();
 };
 
 
 var common_onload = function () {
+    common_event_handlers();
+    set_default_player_preferences();
+    fill_player_preferences();
     fill_identity();
     check_identity();
     player_enable();
     player_shortcuts_enable();
+};
+
+
+var common_event_handlers = function () {
+    $('#player-auto-stream-view').change(player_auto_stream_view_changed);
+    $('#player-auto-stream-transcribe').change(player_auto_stream_transcribe_changed);
+    $('#player-auto-play-edit').change(player_auto_play_edit_changed);
 };
 
 
@@ -351,10 +349,10 @@ var editor_cancel = function () {
 var wait_for_end_timeout;
 
 
-var editor_replay = function () {
+var editor_replay = function (ignore_cookie) {
     // only perform replay if we've locked a snippet
     // otherwise it doesn't make sense
-    if (lock_info.starting_point !== undefined) {
+    if (lock_info.starting_point !== undefined && (ignore_cookie || $.cookie('auto_play_edit'))) {
         var actual_start = lock_info.starting_point - PADDING;
         var actual_end = lock_info.ending_point + PADDING;
         if (actual_start < 0) {
@@ -633,7 +631,7 @@ var player_shortcuts_enable = function () {
             editor_rewind();
         } else if (event.which == 126) { // ~
             event.preventDefault();
-            editor_replay();
+            editor_replay(true);
         } else if (event.which == 92) { // \
             event.preventDefault();
             editor_pause_play();
@@ -646,7 +644,11 @@ var player_shortcuts_enable = function () {
 var player_setup_url = function () {
     if (player_listener.enabled && transcription.audio_url) {
         player().SetVariable('method:setUrl', transcription.audio_url);
-        if (should_auto_stream) {
+        if (
+            ($.cookie('auto_stream_view') && mode == 'view')
+            ||
+            ($.cookie('auto_stream_transcribe') && mode == 'transcribe')
+        ) {
             window.setTimeout(player_begin_streaming, 100);
         };
     } else {
@@ -741,6 +743,57 @@ var player_replay_at = function (end_position, replay_function) {
 
 var player_seek = function (position) {
     player().SetVariable('method:setPosition', position);
+};
+
+
+// =========================================================================
+// player preferences
+
+
+var set_default_player_preferences = function () {
+    if ($.cookie('auto_stream_view') === null) {
+        $.cookie('auto_stream_view', '', cookie_options)
+    };
+    if ($.cookie('auto_stream_transcribe') === null) {
+        $.cookie('auto_stream_transcribe', '', cookie_options);
+    };
+    if ($.cookie('auto_play_edit') === null) {
+        $.cookie('auto_play_edit', '1', cookie_options);
+    };
+};
+
+
+var fill_player_preferences = function () {
+    if ($.cookie('auto_stream_view')) {
+        $('#player-auto-stream-view').attr('checked', 'checked');
+    } else {
+        $('#player-auto-stream-view').removeAttr('checked');
+    };
+    if ($.cookie('auto_stream_transcribe')) {
+        $('#player-auto-stream-transcribe').attr('checked', 'checked');
+    } else {
+        $('#player-auto-stream-transcribe').removeAttr('checked');
+    };
+    if ($.cookie('auto_play_edit')) {
+        $('#player-auto-play-edit').attr('checked', 'checked');
+    } else {
+        $('#player-auto-play-edit').removeAttr('checked');
+    };
+};
+
+
+var player_auto_stream_view_changed = function () {
+    $.cookie('auto_stream_view', $(this).attr('checked') ? '1' : '', cookie_options);
+};
+
+
+var player_auto_stream_transcribe_changed = function () {
+    $.cookie('auto_stream_transcribe', $(this).attr('checked') ? '1' : '', cookie_options);
+};
+
+
+var player_auto_play_edit_changed = function () {
+    $.cookie('auto_play_edit', $(this).attr('checked') ? '1' : '', cookie_options);
 };
 
 

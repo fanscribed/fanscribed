@@ -15,7 +15,7 @@
   <![endif]-->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
   <script type="text/javascript" src="${request.static_url('fanscribed:static/jquery.cookie.js')}?2012012401"></script>
-  <script type="text/javascript" src="${request.static_url('fanscribed:static/fanscribed.js')}?2012012801"></script>
+  <script type="text/javascript" src="${request.static_url('fanscribed:static/fanscribed.js')}?2012012901"></script>
   <script type="text/javascript">
     var cookie_options = {
       expires: 365,
@@ -85,6 +85,9 @@
     <div id="player-info">
       <h2>Player</h2>
       <ul>
+        <li><input id="player-auto-stream-view" type="checkbox"> <label for="player-auto-stream-view">Auto-stream (view)</label></li>
+        <li><input id="player-auto-stream-transcribe" type="checkbox"> <label for="player-auto-stream-transcribe">Auto-stream (transcribe)</label></li>
+        <li><input id="player-auto-play-edit" type="checkbox"> <label for="player-auto-play-edit">Auto-play (on edit)</label></li>
         <li style="display:none;">enabled: <span id="player-enabled"></span></li>
         <li>playing: <span id="player-isPlaying"></span></li>
         <li style="display:none;">url: <span id="player-url"></span></li>
