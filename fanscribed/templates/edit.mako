@@ -26,7 +26,7 @@
 </%def>
 
 <%def name="sidebar()">
-  <div id="identity">
+  <div id="identity" class="needs-player no-player">
     <h2>Identity</h2>
     <div>For giving you credit for your work.</div>
     <ul>
@@ -39,11 +39,16 @@
 
 <%def name="body()">
 
-  <p class="no-identity">
-    Please see the <em>Quick Start</em> to the right to continue.
-  </p>  
+  <p class="needs-unset-player">
+    Getting the player ready.
+    If this message does not disappear, please make sure you enable Flash to use editing and playback features.
+  </p>
 
-  <div class="needs-identity">
+  <p class="needs-unset-identity no-unset-identity">
+    Please see the <em>Quick Start</em> to the right to continue.
+  </p>
+
+  <div class="needs-identity no-identity needs-player no-player">
     <h2>Editing: <span id="editing">Nothing</span></h2>
 
     <div id="edit-buttons">

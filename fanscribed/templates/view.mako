@@ -87,9 +87,9 @@
       <div class="snippet" id="${anchor}">
         <ul class="timestamp">
           <li class="label"><a href="#${anchor}">${anchor_label}</a></li>
-          <li class="play"><a href="#${anchor}" onclick="player_play_from(${starting_point})">Play</a></li>
+          <li class="play needs-player no-player"><a href="#${anchor}" onclick="player_play_from(${starting_point})">Play</a></li>
+          <li class="edit needs-identity no-identity needs-player no-player"><a href="#${anchor}" onclick="inline_editor('${anchor}', ${starting_point})">Edit</a></li>
           <li class="info"><a href="#${anchor}" onclick="show_snippet_info('${anchor}', ${starting_point})">Info</a></li>
-          <li class="edit needs-identity"><a href="#${anchor}" onclick="inline_editor('${anchor}', ${starting_point})">Edit</a></li>
         </ul>
         <div class="snippet-info-container"></div>
         <dl class="transcript">

@@ -6,7 +6,7 @@
   <meta name="keywords" content="transcription transcribe podcast crowdsource" />
   <meta name="description" content="Croudsourced podcast transcription" />
   <link rel="shortcut icon" href="${request.static_url('fanscribed:static/favicon.ico')}?2012012401" />
-  <link rel="stylesheet" href="${request.static_url('fanscribed:static/fanscribed.css')}?2012012901" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="${request.static_url('fanscribed:static/fanscribed.css')}?2012012902" type="text/css" media="screen" charset="utf-8" />
   % if custom_css_revision:
     <link rel="stylesheet" href="${request.route_path('custom_css')}?${custom_css_revision}" type="text/css" media="screen" charset="utf-8" />
   % endif
@@ -15,7 +15,7 @@
   <![endif]-->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
   <script type="text/javascript" src="${request.static_url('fanscribed:static/jquery.cookie.js')}?2012012401"></script>
-  <script type="text/javascript" src="${request.static_url('fanscribed:static/fanscribed.js')}?2012012901"></script>
+  <script type="text/javascript" src="${request.static_url('fanscribed:static/fanscribed.js')}?2012012902"></script>
   <script type="text/javascript">
     var cookie_options = {
       expires: 365,
@@ -44,7 +44,7 @@
 
     ${next.sidebar_top()}
 
-    <div id="speakers">
+    <div id="speakers" class="needs-identity no-identity needs-player no-player">
       <h2>Speaker Abbreviations</h2>
 
       <div>
@@ -82,7 +82,7 @@
 
     ${next.sidebar()}
 
-    <div id="player-info">
+    <div id="player-info" class="needs-player no-player">
       <h2>Player</h2>
       <ul>
         <li><input id="player-auto-stream-view" type="checkbox"> <label for="player-auto-stream-view">Auto-stream (view)</label></li>
@@ -108,9 +108,11 @@
     <div class="footer">Powered by <a href="http://fanscribed.com/">Fanscribed</a>, &copy; 2012 by <a href="http://11craft.com/">ElevenCraft</a>. Site content is subject to copyrights held by its creators.</div>
   </div>
 
-  <object id="player" type="application/x-shockwave-flash" data="${request.static_url('fanscribed:static/player_mp3_js.swf')}" width="1" height="1">
-    <param name="AllowScriptAccess" value="always">
-    <param name="FlashVars" value="listener=player_listener&amp;interval=${next.player_update_interval()}">
-  </object>
+  % if not request.GET.get('noflash') == '1':
+      <object id="player" type="application/x-shockwave-flash" data="${request.static_url('fanscribed:static/player_mp3_js.swf')}" width="1" height="1">
+        <param name="AllowScriptAccess" value="always">
+        <param name="FlashVars" value="listener=player_listener&amp;interval=${next.player_update_interval()}">
+      </object>
+  % endif
 </body>
 </html>

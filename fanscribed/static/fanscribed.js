@@ -77,12 +77,12 @@ var save_identity = function () {
 var check_identity = function () {
     if (has_identity(false)) {
         // enable UI needing identity
-        $('.needs-identity').show();
-        $('.no-identity').hide();
+        $('.needs-identity').removeClass('no-identity');
+        $('.needs-unset-identity').addClass('no-unset-identity');
     } else {
         // disable UI needing identity
-        $('.needs-identity').hide();
-        $('.no-identity').show();
+        $('.needs-identity').addClass('no-identity');
+        $('.needs-unset-identity').removeClass('no-unset-identity');
     };
 };
 
@@ -619,8 +619,10 @@ var player_enable = function () {
     } else {
         // player was enabled and is updating the listener.
         player_listener.enabled = true;
+        $('.needs-player').removeClass('no-player');
+        $('.needs-unset-player').addClass('no-unset-player');
         player_setup_url();
-    }
+    };
 };
 
 

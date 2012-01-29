@@ -83,13 +83,23 @@ margin-top:1.5em;
 	display: none;
 }
 
-.needs-identity {
+.needs-identity.no-identity {
 	/* Hide by default until identity found. */
 	display: none;
 }
 
-.no-identity {
+.needs-player.no-player {
+	/* Hide by default until player initialized. */
+	display: none;
+}
+
+.needs-unset-identity.no-unset-identity {
 	/* Hide by default unless no identity found. */
+	display: none;
+}
+
+.needs-unset-player.no-unset-player {
+	/* Hide by default unless no player found. */
 	display: none;
 }
 
@@ -112,6 +122,8 @@ dt:odd{color:green;}
 .timestamp {float:right;line-height:1em;margin-top:-2.3em;display:inline-block;background:#eee;padding:.5em .7em;-webkit-border-radius:.5em;-moz-border-radius:.5em;font-size:10px;text-transform:lowercase;}
 .timestamp a{border:0;}
 .timestamp li{display:inline;}
+.timestamp li.needs-identity.no-identity{display:none;}
+.timestamp li.needs-player.no-player{display:none;}
 .timestamp li:after{content:" \00B7 ";}
 .timestamp li:last-child:after{content:"";}
 
