@@ -23,6 +23,10 @@ textarea{min-height:10em;}
 	height: 15em;
 }
 
+#transcribe-editor, .inline-editor {
+	min-height: 20em;
+}
+
 #speakers-editor, #transcribe-editor, .inline-editor {
 	width: 100%;
 }
@@ -35,7 +39,7 @@ input[type="button"]{border:0;background:#666;color:#fff;font-weight:600;text-tr
 
 #review-editor1, #review-editor2 {
 font-size:12px;
-	width:49%;resize:vertical;min-height:30em;
+	width:45%;resize:vertical;min-height:30em;
 }
 #review-editor1{margin-right:1%;}
 
