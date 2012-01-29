@@ -47,6 +47,24 @@ def transcription_info(tree):
     return json.load(blob.data_stream)
 
 
+def custom_css(tree):
+    if 'custom.css' in tree:
+        blob = tree['custom.css']
+        return blob.data_stream.read().decode('utf8')
+    else:
+        # Not yet created.
+        return ''
+
+
+def custom_css_revision(repo):
+    try:
+        commit = repo.iter_commits('master', 'custom.css').next()
+    except StopIteration:
+        return None
+    else:
+        return commit.hexsha
+
+
 def speakers_text(tree):
     if 'speakers.txt' in tree:
         blob = tree['speakers.txt']

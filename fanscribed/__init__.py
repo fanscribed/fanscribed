@@ -14,6 +14,7 @@ def main(global_config, **settings):
     config.add_route('edit', '/edit')
 
     config.add_route('all_contributors', '/all_contributors')
+    config.add_route('custom_css', '/custom.css')
     config.add_route('progress', '/progress')
     config.add_route('snippet_info', '/snippet_info')
     config.add_route('speakers_txt', '/speakers.txt')

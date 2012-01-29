@@ -128,10 +128,11 @@ def _split_lines_and_expand_abbreviations(text, speakers_map):
     return lines
 
 
-def _standard_response(tree):
+def _standard_response(repo, tree):
     transcription_info = repos.transcription_info(tree)
     return dict(
         _progress_dicts(tree, transcription_info),
+        custom_css_revision=repos.custom_css_revision(repo),
         speakers=repos.speakers_text(tree),
         transcription_info=transcription_info,
         transcription_info_json=json.dumps(transcription_info),
@@ -157,7 +158,7 @@ def edit(request):
     repo = repos.repo_from_request(request)
     master = repo.tree('master')
     return dict(
-        _standard_response(master),
+        _standard_response(repo, master),
     )
 
 
@@ -190,9 +191,21 @@ def view(request):
         lines = _split_lines_and_expand_abbreviations(text, speakers_map)
         snippets.append((starting_point, lines))
     return dict(
-        _standard_response(master),
+        _standard_response(repo, master),
         snippets=sorted(snippets),
     )
+
+
+@view_config(
+    request_method='GET',
+    route_name='custom_css',
+    context='fanscribed:resources.Root',
+)
+def custom_css(request):
+    repo = repos.repo_from_request(request)
+    master = repo.tree('master')
+    text = repos.custom_css(master)
+    return Response(text, content_type='text/css')
 
 
 @view_config(

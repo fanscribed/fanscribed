@@ -7,6 +7,9 @@
   <meta name="description" content="Croudsourced podcast transcription" />
   <link rel="shortcut icon" href="${request.static_url('fanscribed:static/favicon.ico')}?2012012401" />
   <link rel="stylesheet" href="${request.static_url('fanscribed:static/fanscribed.css')}?2012012901" type="text/css" media="screen" charset="utf-8" />
+  % if custom_css_revision:
+    <link rel="stylesheet" href="${request.route_path('custom_css')}?${custom_css_revision}" type="text/css" media="screen" charset="utf-8" />
+  % endif
   <!--[if lte IE 6]>
   <link rel="stylesheet" href="${request.static_url('fanscribed:static/ie6.css')}?2012012401" type="text/css" media="screen" charset="utf-8" />
   <![endif]-->
