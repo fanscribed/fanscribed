@@ -39,7 +39,7 @@
 
   <div id="sidebar">
     <!--[if IE]>
-    <p style="font-size:x-large;color:red;font-weight:bold;">Sorry, audio playback and transcription editing do not yet work with Internet Explorer.  Please use <a href="http://chrome.google.com/">Chrome</a>, <a href="http://getfirefox.com/">Firefox</a>, or <a href="http://apple.com/safari/">Safari</a> to hear audio or to help transcribe.</p>
+    <p style="font-size:x-large;color:red;font-weight:bold;">Sorry, audio playback and transcription editing do not yet work with Internet Explorer.  Please use <a href="http://chrome.google.com/">Chrome</a>, <a href="http://getfirefox.com/">Firefox</a>, or <a href="http://apple.com/safari/">Safari</a> to hear audio or to help transcribe.  <em>If you are a web developer, please <a href="https://github.com/fanscribed/fanscribed/issues/26">help solve IE compatibility issues</a>.</em></p>
     <![endif]-->
 
     ${next.sidebar_top()}
