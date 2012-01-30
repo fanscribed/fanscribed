@@ -13,6 +13,8 @@ requires = [
     'gitdb >= 0.5.4, < 0.6',
     'smmap >= 0.8.1, < 0.9',
     'async >= 0.6.1, < 0.7',
+    'twiggy >= 0.4.4, < 0.5',
+    'ujson >= 1.15, < 2.0',
 ]
 
 setup(
@@ -40,6 +42,9 @@ setup(
     entry_points = """
         [paste.app_factory]
         main = fanscribed:main
+
+        [console_scripts]
+        fanscribed-stats = fanscribed.stats:main
     """,
     paster_plugins=[
         'pyramid',
