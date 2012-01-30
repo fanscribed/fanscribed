@@ -182,6 +182,18 @@ var cancel_speakers = function () {
 };
 
 
+var hide_editor = function () {
+    $('#edit-buttons').show();
+    $('#edit-action-buttons').hide();
+    $('#transcribe-editor').hide();
+    $('#review-editor1').hide();
+    $('#review-editor2').hide();
+    $('#instructions-transcribe').hide();
+    $('#instructions-review').hide();
+    $('#editing').text('Nothing');
+};
+
+
 var editor_transcribe = function () {
     if (has_identity(true)) {
         $.post(
@@ -211,6 +223,8 @@ var editor_transcribe = function () {
                     editor_replay();
                 } else {
                     alert(data.message);
+                    hide_editor();
+                    request_and_fill_progress();
                 };
             },
             // return data type
@@ -254,6 +268,8 @@ var editor_review = function () {
                     editor_replay();
                 } else {
                     alert(data.message);
+                    hide_editor();
+                    request_and_fill_progress();
                 };
             },
             // return data type
@@ -264,7 +280,7 @@ var editor_review = function () {
 };
 
 
-var editor_save = function () {
+var editor_save = function (continue_editing) {
     player_pause(true);
     if (has_identity(true)) {
         var data = {
@@ -287,19 +303,21 @@ var editor_save = function () {
             return false;
         };
         $.post(url, data, function (data) {
+            var lock_type = lock_info.type; // to determine what to do if user wants to continue
             lock_info.secret = undefined;
             lock_info.starting_point = undefined;
             lock_info.ending_point = undefined;
             lock_info.type = undefined;
-            $('#edit-buttons').show();
-            $('#edit-action-buttons').hide();
-            $('#transcribe-editor').hide();
-            $('#review-editor1').hide();
-            $('#review-editor2').hide();
-            $('#instructions-transcribe').hide();
-            $('#instructions-review').hide();
-            $('#editing').text('Nothing');
             request_and_fill_progress();
+            if (continue_editing) {
+                if (lock_type == 'snippet') {
+                    editor_transcribe();
+                } else if (lock_type == 'review') {
+                    editor_review();
+                };
+            } else {
+                hide_editor();
+            };
         });
     };
     return false;
@@ -330,15 +348,8 @@ var editor_cancel = function () {
             lock_info.starting_point = undefined;
             lock_info.ending_point = undefined;
             lock_info.type = undefined;
-            $('#edit-buttons').show();
-            $('#edit-action-buttons').hide();
-            $('#transcribe-editor').hide();
-            $('#review-editor1').hide();
-            $('#review-editor2').hide();
-            $('#instructions-transcribe').hide();
-            $('#instructions-review').hide();
-            $('#editing').text('Nothing');
             request_and_fill_progress();
+            hide_editor();
         });
     };
     return false;

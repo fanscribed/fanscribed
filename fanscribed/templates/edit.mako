@@ -58,7 +58,8 @@
 
     <div id="edit-action-buttons" style="display: none;">
       <div>
-        <input id="editor-save" type="button" value="Save" onclick="editor_save();" />
+        <input id="editor-save-continue" type="button" value="Save &amp; continue" onclick="editor_save(true);" />
+        <input id="editor-save-stop" type="button" value="Save &amp; stop" onclick="editor_save(false);" />
         <input id="editor-cancel" type="button" value="Cancel" onclick="editor_cancel();" />
         <input id="editor-replay" type="button" value="Replay" onclick="editor_replay(true);" />
         <input id="editor-pause" type="button" value="Pause/Play" onclick="editor_pause_play();" />
