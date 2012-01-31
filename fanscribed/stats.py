@@ -40,22 +40,42 @@ def get_parser():
 secretgetter = attrgetter('secret')
 
 
-class Lock(object):
+class _SimpleObject(object):
 
-    __slots__ = [
-        'type',
-        'starting_point',
-        'timestamp',
-        'created_at',
-        'created_by',
-        'destroyed_at',
-        'destroyed_by',
-    ]
+    __slots__ = []
 
     def __init__(self, **kwargs):
         # Initialize based on kwargs, or None if value not given.
         for name in self.__slots__:
             setattr(self, name, kwargs.get(name, None))
+
+
+class Lock(_SimpleObject):
+
+    __slots__ = [
+        'type',             # 'review' or 'snippet'
+        'starting_point',   # ms
+        'timestamp',        # time
+        'created_at',       # time
+        'created_by',       # email
+        'destroyed_at',     # time
+        'destroyed_by',     # email
+        'snippet_created',  # bool
+        'snippet_updated',  # bool
+    ]
+
+
+class Snippet(_SimpleObject):
+
+    __slots__ = [
+        'starting_point',   # ms
+    ]
+
+    def __cmp__(self, other):
+        return cmp(self.starting_point, other.starting_point)
+
+    def __hash__(self):
+        return hash(self.starting_point)
 
 
 # Map author emails to stats.
@@ -66,6 +86,9 @@ authors_map = {
     #       reponame=dict(
     #           secret=lock,
     #       ),
+    #   ),
+    #   snippets=dict(
+    #       reponame={snippet, ...},
     #   ),
     # ),
 }
@@ -134,18 +157,20 @@ def process_all_repos():
         repolog.info('processing')
         last_locks = {}
         for commit in reversed(list(repo.iter_commits('master'))):
-            update_authors_map(commit)
-            last_locks = update_locks(repo_name, commit, last_locks)
+            email = commit.author.email.lower()
+            update_authors_map(email, commit)
+            last_locks = update_locks(email, repo_name, commit, last_locks)
+            update_snippets(email, repo_name, commit)
 
 
-def update_authors_map(commit):
+def update_authors_map(email, commit):
     """Update the authors map based on the given commit."""
     author = commit.author
-    email = author.email.lower()
     if email not in authors_map:
         authors_map[email] = dict(
             names=set(),
             locks_created=dict(),
+            snippets=dict(),
         )
     author_info = authors_map[email]
     author_info['names'].add(author.name)
@@ -154,10 +179,9 @@ def update_authors_map(commit):
 RotatedLock = namedtuple('RotatedLock', 'starting_point timestamp')
 
 
-def update_locks(repo_name, commit, last_locks):
+def update_locks(email, repo_name, commit, last_locks):
     """Update locks based on the given commit."""
     tree = commit.tree
-    email = commit.author.email
     author_info = authors_map[email.lower()]
     date = commit.authored_date
     if 'locks.json' in tree:
@@ -202,7 +226,7 @@ def update_locks(repo_name, commit, last_locks):
                     created_at=date,
                     created_by=email,
                 )
-                author_repo_locks_created = author_info['locks_created'].setdefault(repo_name, dict())
+                author_repo_locks_created = author_info['locks_created'].setdefault(repo_name, {})
                 author_repo_locks_created[secret] = new_lock
         # Pass along most recently-read locks to compare with next round.
         return locks
@@ -210,6 +234,16 @@ def update_locks(repo_name, commit, last_locks):
         # Pass along last used locks to compare with next round, since
         # the structure wasn't found in the repo.
         return last_locks
+
+
+def update_snippets(email, repo_name, commit):
+    author_info = authors_map[email]
+    for filename in commit.stats.files:
+        if len(filename) == 20 and filename.endswith('.txt'):
+            starting_point = int(filename[:16])
+            snippet = Snippet(starting_point=starting_point)
+            author_snippets = author_info['snippets'].setdefault(repo_name, set())
+            author_snippets.add(snippet)
 
 
 # ===================================================================
@@ -230,6 +264,13 @@ PAGE_TEMPLATE = """\
     </body>
 </html>
 """
+
+
+def ms_to_label(ms):
+    seconds = ms / 1000
+    minutes = seconds / 60
+    seconds = seconds % 60
+    return '{0:d}m{0:02d}s'.format(minutes, seconds)
 
 
 def author_names(info):
@@ -283,11 +324,34 @@ def create_index(path):
 def create_all_author_pages(path):
     for email, info in authors_map.iteritems():
         names = escape(author_names(info))
+        body = ''
+        # Snippets contributed to.
+        body += '<h2>Snippets contributed to</h2>'
+        snippets_map = authors_map[email]['snippets']
+        for repo_name in sorted(snippets_map):
+            snippets_list = sorted(snippets_map[repo_name])
+            list_items = [
+                '<li><a href="http://{repo_name}/#{label}">{repo_name}/#{label}</a></li>'.format(
+                    repo_name=repo_name,
+                    label=ms_to_label(snippet.starting_point)
+                )
+                for snippet
+                in snippets_list
+            ]
+            body += """
+                <h3>{repo_name}</h3>
+                <ul>
+                {list_items}
+                </ul>
+            """.format(
+                repo_name=repo_name,
+                list_items='\n'.join(list_items),
+            )
         write_page(
             path=path,
             filename=author_filename(email),
             title='Author: {names}'.format(names=names),
-            body='Nothing here yet.'
+            body=body,
         )
 
 
