@@ -468,7 +468,7 @@ def save_snippet(request):
     starting_point = int(request.POST.getone('starting_point'))
     identity_name = request.POST.getone('identity_name')
     identity_email = request.POST.getone('identity_email')
-    snippet_text = request.POST.getone('snippet_text')
+    snippet_text = request.POST.getone('snippet_text').strip()
     inline = request.POST.get('inline') == '1'
     with repos.commit_lock:
         # find and validate the lock
@@ -481,7 +481,8 @@ def save_snippet(request):
         # remove the lock
         repos.remove_lock(repo, index, 'snippet', starting_point)
         # remove the snippet from remaining snippets
-        repos.remove_snippet_from_remaining(repo, index, starting_point)
+        if snippet_text:
+            repos.remove_snippet_from_remaining(repo, index, starting_point)
         # commit with identity
         os.environ['GIT_AUTHOR_NAME'] = identity_name
         os.environ['GIT_AUTHOR_EMAIL'] = identity_email
