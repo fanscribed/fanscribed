@@ -1,7 +1,9 @@
 """Stats generator for Fanscribed."""
 
 import argparse
+from cgi import escape
 from collections import namedtuple
+from hashlib import sha1
 from operator import attrgetter
 import os
 import sys
@@ -104,14 +106,15 @@ def main():
             repos[repo_path] = repo
     if not all_repos_valid:
         sys.exit(1)
-    process_all_repos(repos)
+    process_all_repos()
+    create_all_output(output_path)
 
 
 # ===================================================================
 # processing
 
 
-def process_all_repos(repos):
+def process_all_repos():
     """Loop through events in all repositories."""
     for repo_path, repo in repos.iteritems():
         repo_name = os.path.split(repo_path)[-1]
@@ -204,3 +207,89 @@ def update_locks(repo_name, commit, last_locks):
         # Pass along last used locks to compare with next round, since
         # the structure wasn't found in the repo.
         return last_locks
+
+
+# ===================================================================
+# output
+
+
+PAGE_TEMPLATE = """\
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{title} - Stats - Fanscribed</title>
+    </head>
+    <body>
+        <h1>{title}</h1>
+        <div>
+            {body}
+        </div>
+    </body>
+</html>
+"""
+
+
+def author_names(info):
+    return u', '.join(sorted(info['names']))
+
+
+def author_filename(email):
+    return 'author_{0}.html'.format(sha1(email).hexdigest())
+
+
+def create_all_output(path):
+    create_index(path)
+    create_all_author_pages(path)
+
+
+def create_index(path):
+    body = ''
+    # Authors.
+    authors_list = [
+        # (names, html),
+    ]
+    for email in sorted(authors_map):
+        info = authors_map[email]
+        url = author_filename(email)
+        names = escape(author_names(info))
+        authors_list.append((
+            names,
+            '<li><a href="{url}">{names}</a></li>'.format(
+                url=url,
+                names=names,
+            ),
+        ))
+    # Sort by names, not by email address.
+    authors_list.sort(key=lambda item: item[0].lower())
+    body += """
+        <h2>Authors</h2>
+        <ul>
+            {authors_list}
+        </ul>
+    """.format(
+        authors_list='\n'.join(html for names, html in authors_list),
+    )
+    write_page(
+        path=path,
+        filename='index.html',
+        title='Index',
+        body=body,
+    )
+
+
+def create_all_author_pages(path):
+    for email, info in authors_map.iteritems():
+        names = escape(author_names(info))
+        write_page(
+            path=path,
+            filename=author_filename(email),
+            title='Author: {names}'.format(names=names),
+            body='Nothing here yet.'
+        )
+
+
+def write_page(path, filename, **kwargs):
+    filename = os.path.join(path, filename)
+    log.fields(filename=filename).info('writing')
+    with open(filename, 'wb') as f:
+        f.write(PAGE_TEMPLATE.format(**kwargs))
