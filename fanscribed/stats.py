@@ -40,10 +40,22 @@ def get_parser():
 secretgetter = attrgetter('secret')
 
 
-Lock = namedtuple(
-    'Lock',
-    'type starting_point timestamp created_at created_by destroyed_at destroyed_by',
-)
+class Lock(object):
+
+    __slots__ = [
+        'type',
+        'starting_point',
+        'timestamp',
+        'created_at',
+        'created_by',
+        'destroyed_at',
+        'destroyed_by',
+    ]
+
+    def __init__(self, **kwargs):
+        # Initialize based on kwargs, or None if value not given.
+        for name in self.__slots__:
+            setattr(self, name, kwargs.get(name, None))
 
 
 # Map author emails to stats.
@@ -60,12 +72,12 @@ authors_map = {
 
 
 review_locks = {
-    # secret: ReviewLock(),
+    # secret: Lock(),
 }
 
 
 snippet_locks = {
-    # secret: SnippetLock(),
+    # secret: Lock(),
 }
 
 
@@ -178,16 +190,9 @@ def update_locks(repo_name, commit, last_locks):
             for secret in removed_secrets:
                 lock = locks_dict.get(secret)
                 if lock is not None:
-                    locks_dict[secret] = updated_lock = Lock(
-                        type=lock.type,
-                        starting_point=lock.starting_point,
-                        timestamp=lock.timestamp,
-                        created_at=lock.created_at,
-                        created_by=lock.created_by,
-                        destroyed_at=date,
-                        destroyed_by=email,
-                    )
-                    authors_map[lock.created_by.lower()]['locks_created'][repo_name][secret] = updated_lock
+                    updated_lock = locks_dict[secret]
+                    updated_lock.destroyed_at = date
+                    updated_lock.destroyed_by = email
             for secret in added_secrets:
                 this = this_by_secret[secret]
                 locks_dict[secret] = new_lock = Lock(
@@ -196,8 +201,6 @@ def update_locks(repo_name, commit, last_locks):
                     timestamp=this.timestamp,
                     created_at=date,
                     created_by=email,
-                    destroyed_at=None,
-                    destroyed_by=None,
                 )
                 author_repo_locks_created = author_info['locks_created'].setdefault(repo_name, dict())
                 author_repo_locks_created[secret] = new_lock
