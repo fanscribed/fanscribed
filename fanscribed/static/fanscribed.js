@@ -302,6 +302,9 @@ var editor_save = function (continue_editing) {
             alert('Unknown lock type ' + lock_info.type);
             return false;
         };
+        if (continue_editing) {
+            url = url + '?continue=1';
+        };
         $.post(url, data, function (data) {
             var lock_type = lock_info.type; // to determine what to do if user wants to continue
             lock_info.secret = undefined;
