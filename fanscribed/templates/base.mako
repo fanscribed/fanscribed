@@ -42,6 +42,20 @@
     <p style="font-size:x-large;color:red;font-weight:bold;">Sorry, audio playback and transcription editing do not yet work with Internet Explorer.  Please use <a href="http://chrome.google.com/">Chrome</a>, <a href="http://getfirefox.com/">Firefox</a>, or <a href="http://apple.com/safari/">Safari</a> to hear audio or to help transcribe.  <em>If you are a web developer, please <a href="https://github.com/fanscribed/fanscribed/issues/26">help solve IE compatibility issues</a>.</em></p>
     <![endif]-->
 
+    <div id="links">
+      <%
+      links = transcription_info.get('links', [])
+      %>
+      % if links:
+          <h2>Links</h2>
+          <ul>
+            % for link_info in transcription_info.get('links', []):
+                <li><a href="${link_info['url']}" target="_blank">${link_info['title']}</a></li>
+            % endfor
+          </ul>
+      % endif
+    </div>
+
     ${next.sidebar_top()}
 
     <div id="speakers" class="needs-identity no-identity needs-player no-player">

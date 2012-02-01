@@ -19,19 +19,6 @@
 </%def>
 
 <%def name="sidebar_top()">
-    <div id="links">
-      <%
-      links = transcription_info.get('links', [])
-      %>
-      % if links:
-          <h2>Links</h2>
-          <ul>
-            % for link_info in transcription_info.get('links', []):
-                <li><a href="${link_info['url']}">${link_info['title']}</a></li>
-            % endfor
-          </ul>
-      % endif
-    </div>
 </%def>
 
 <%def name="sidebar()">
