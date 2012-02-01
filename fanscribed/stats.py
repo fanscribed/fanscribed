@@ -299,7 +299,7 @@ PAGE_TEMPLATE = """\
 <!DOCTYPE html>
 <html>
     <head>
-        <title>{title} - Stats - Fanscribed</title>
+        <title>{head_title} - Stats - Fanscribed</title>
         <style type="text/css">
             #footer {{
                 font-style: italic;
@@ -505,6 +505,7 @@ def create_all_transcript_pages(path):
         write_page(
             path=path,
             filename=filename,
+            head_title='Transcript: {name}'.format(name=name),
             title='Transcript: <a href="http://{name}/">{name}</a>'.format(name=name),
             body=body,
         )
@@ -561,6 +562,8 @@ def write_page(path, filename, **kwargs):
         kwargs['index_link'] = '<p><a href="index.html">Back to stats home page</a></p>'
     else:
         kwargs['index_link'] = ''
+    if 'head_title' not in kwargs:
+        kwargs['head_title'] = kwargs['title']
     kwargs['timestamp'] = unicode(datetime.now())
     filename = os.path.join(path, filename)
     log.fields(filename=filename).info('writing')
