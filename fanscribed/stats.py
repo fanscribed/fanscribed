@@ -308,6 +308,7 @@ PAGE_TEMPLATE = """\
         </style>
     </head>
     <body>
+        {index_link}
         <h1>{title}</h1>
         <div>
             {body}
@@ -418,6 +419,7 @@ def create_index(path):
         authors_by_name='\n'.join(html for names, time_spent, html in authors_by_name),
     )
     write_page(
+        index=True,
         path=path,
         filename='index.html',
         title='Fanscribed Stats',
@@ -555,6 +557,10 @@ def create_all_author_pages(path):
 
 
 def write_page(path, filename, **kwargs):
+    if 'index' not in kwargs:
+        kwargs['index_link'] = '<p><a href="index.html">Back to stats home page</a></p>'
+    else:
+        kwargs['index_link'] = ''
     kwargs['timestamp'] = unicode(datetime.now())
     filename = os.path.join(path, filename)
     log.fields(filename=filename).info('writing')
