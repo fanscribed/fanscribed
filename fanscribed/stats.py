@@ -56,11 +56,14 @@ class _SimpleObject(object):
 class AuthorInfo(_SimpleObject):
 
     __slots__ = [
-        'names',            # set()
-        'locks_created',    # dict(reponame={secret:Lock(), ...})
-        'snippets',         # dict(reponame={starting_point:[SnippetAction(), ...]}),
-        'total_actions',    # int
-        'time_spent',       # float
+        'names',                            # set()
+        'locks_created',                    # dict(reponame={secret:Lock(), ...})
+        'snippets',                         # dict(reponame={starting_point:[SnippetAction(), ...]}),
+        'total_actions',                    # int
+        'total_transcriptions',             # int
+        'time_spent',                       # float
+        'time_spent_transcribing',          # float
+        'average_time_per_transcription',   # float
     ]
 
 
@@ -98,6 +101,9 @@ class SnippetAction(_SimpleObject):
         'email',            # str
     ]
 
+    def __cmp__(self, other):
+        return cmp((self.saved, self.email), (other.saved, other.email))
+
 
 # Map author emails to stats.
 authors_map = {
@@ -118,6 +124,9 @@ snippet_locks = {
 # Map repo path to repo.
 repos = {
     # path: Repo(),
+}
+repos_by_name = {
+    # name: Repo(),
 }
 
 
@@ -151,8 +160,9 @@ def main():
             repolog.info('repository OK')
             master = repo.tree('master')
             transcription_json = load(master['transcription.json'].data_stream)
-            repos[repo_path] = RepoInfo(
-                name=os.path.split(repo_path)[-1],
+            repo_name = os.path.split(repo_path)[-1]
+            repos[repo_path] = repos_by_name[repo_name] = RepoInfo(
+                name=repo_name,
                 transcription=transcription_json,
                 repo=repo,
                 authors=set(),
@@ -187,14 +197,27 @@ def process_all_repos():
 def process_all_authors():
     """Loop through authors to calculate author-specific stats."""
     for author_info in authors_map.itervalues():
-        for reponame, snippet_map in author_info.snippets.iteritems():
-            for snippet_actions in snippet_map.itervalues():
+        for repo_name, snippet_map in author_info.snippets.iteritems():
+            for starting_point, snippet_actions in snippet_map.iteritems():
                 author_info.total_actions += len(snippet_actions)
-        for reponame, locks_map in author_info.locks_created.iteritems():
+                # Determine if the snippet action was a transcription.
+                repo_info = repos_by_name[repo_name]
+                first_repo_snippet_action = repo_info.snippets[starting_point][0]
+                if first_repo_snippet_action in snippet_actions:
+                    author_info.total_transcriptions += 1
+        for repo_name, locks_map in author_info.locks_created.iteritems():
             for lock in locks_map.itervalues():
                 if lock.created_by == lock.destroyed_by:
                     duration = lock.destroyed_at - lock.created_at
                     author_info.time_spent += duration
+                    # Determine if the lock was associated with a transcription.
+                    repo_info = repos_by_name[repo_name]
+                    if lock.starting_point in repo_info.snippets:
+                        first_repo_snippet_action = repo_info.snippets[lock.starting_point][0]
+                        if first_repo_snippet_action.saved == lock.destroyed_at:
+                            author_info.time_spent_transcribing += duration
+        if author_info.total_transcriptions:
+            author_info.average_time_per_transcription = author_info.time_spent_transcribing / author_info.total_transcriptions
 
 
 def update_authors_map(email, commit):
@@ -206,7 +229,10 @@ def update_authors_map(email, commit):
             locks_created=dict(),
             snippets=dict(),
             total_actions=0,
+            total_transcriptions=0,
             time_spent=0.0,
+            time_spent_transcribing=0.0,
+            average_time_per_snippet=0.0,
         )
     author_info = authors_map[email]
     author_info.names.add(author.name)
@@ -232,7 +258,7 @@ def update_locks(email, repo_name, commit, last_locks):
             this_by_secret = dict(
                 (
                     value['secret'],
-                    RotatedLock(starting_point=key, timestamp=value['timestamp']),
+                    RotatedLock(starting_point=int(key), timestamp=value['timestamp']),
                 )
                 for key, value
                 in this_locks.iteritems()
@@ -240,7 +266,7 @@ def update_locks(email, repo_name, commit, last_locks):
             last_by_secret = dict(
                 (
                     value['secret'],
-                    RotatedLock(starting_point=key, timestamp=value['timestamp']),
+                    RotatedLock(starting_point=int(key), timestamp=value['timestamp']),
                 )
                 for key, value
                 in last_locks.iteritems()
@@ -257,7 +283,7 @@ def update_locks(email, repo_name, commit, last_locks):
                 this = this_by_secret[secret]
                 locks_dict[secret] = new_lock = Lock(
                     type=lock_type,
-                    starting_point=this.starting_point,
+                    starting_point=int(this.starting_point),
                     timestamp=this.timestamp,
                     created_at=date,
                     created_by=email,
@@ -396,27 +422,67 @@ def create_index(path):
             authors_list.append((
                 names,
                 author_info.time_spent,
-                '<li><a href="{url}">{names}</a> ({time_spent:0.02f} hours)</li>'.format(
+                author_info.total_transcriptions,
+                author_info.average_time_per_transcription,
+                '<li><a href="{url}">{names}</a> ({time_spent:0.02f}h{speed})</li>'.format(
                     url=url,
                     names=names,
                     time_spent=author_info.time_spent / 60.0 / 60.0,
+                    speed=', {total_transcriptions:d} @ ~ {average_time:0.02f}m'.format(
+                        average_time=(author_info.average_time_per_transcription / 60.0),
+                        total_transcriptions=author_info.total_transcriptions,
+                    ) if author_info.total_transcriptions > 0 else '',
                 ),
             ))
     # Sort by names, not by email address.
     authors_by_name = sorted(authors_list, key=lambda item: item[0].lower())
     authors_by_time_spent = reversed(sorted(authors_list, key=lambda item: item[1]))
+    authors_by_total_transcriptions = sorted(
+        [item for item in authors_list if item[2] > 0], # exclude non-transcribers
+        key=lambda item: item[2],
+    )
+    authors_by_average_time = sorted(
+        [item for item in authors_list if item[2] > 0], # exclude non-transcribers
+        key=lambda item: item[3],
+    )
     body += """
-        <h2>Authors, by time spent</h2>
-        <ul>
-            {authors_by_time_spent}
-        </ul>
-        <h2>Authors, by name</h2>
-        <ul>
-            {authors_by_name}
-        </ul>
+        <hr/>
+        <p>Key: [author name] ([total hours spent], [transcriptions] @ [average minutes per transcription])</p>
+        <table border="0" cellspacing="10">
+            <tr>
+                <td>
+                    <h2>Authors, by name</h2>
+                    <ul>
+                        {authors_by_name}
+                    </ul>
+                </td>
+                <td>
+                    <h2>Authors, by time spent</h2>
+                    <ul>
+                        {authors_by_time_spent}
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <h2>Authors, by transcriptions</h2>
+                    <ul>
+                        {authors_by_total_transcriptions}
+                    </ul>
+                </td>
+                <td>
+                    <h2>Authors, by average speed</h2>
+                    <ul>
+                        {authors_by_average_time}
+                    </ul>
+                </td>
+            </tr>
+        </table>
     """.format(
-        authors_by_time_spent='\n'.join(html for names, time_spent, html in authors_by_time_spent),
-        authors_by_name='\n'.join(html for names, time_spent, html in authors_by_name),
+        authors_by_time_spent='\n'.join(item[-1] for item in authors_by_time_spent),
+        authors_by_name='\n'.join(item[-1] for item in authors_by_name),
+        authors_by_total_transcriptions='\n'.join(item[-1] for item in authors_by_total_transcriptions),
+        authors_by_average_time='\n'.join(item[-1] for item in authors_by_average_time),
     )
     write_page(
         index=True,
@@ -490,14 +556,22 @@ def create_all_transcript_pages(path):
             in snippet_editors
         ]
         body += """
-            <h2>Top transcriptionists</h2>
-            <ul>
-                {snippet_creators}
-            </ul>
-            <h2>Top reviewers/editors</h2>
-            <ul>
-                {snippet_editors}
-            </ul>
+            <table border="0" cellspacing="10">
+                <tr>
+                    <td>
+                        <h2>Top transcriptionists</h2>
+                        <ul>
+                            {snippet_creators}
+                        </ul>
+                    </td>
+                    <td>
+                        <h2>Top reviewers/editors</h2>
+                        <ul>
+                            {snippet_editors}
+                        </ul>
+                    </td>
+                </tr>
+            </table>
         """.format(
             snippet_creators='\n'.join(snippet_creators),
             snippet_editors='\n'.join(snippet_editors),
