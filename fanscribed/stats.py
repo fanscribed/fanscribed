@@ -517,7 +517,7 @@ def create_all_author_pages(path):
             <h2>General stats</h2>
             <ul>
                 <li>Total transcribe/edit actions: {total_actions}</li>
-                <li>Time spent transcribing/editing: {time_spent:0.02f}</li>
+                <li>Time spent transcribing/editing: {time_spent:0.02f} hours</li>
             </ul>
         """.format(
             total_actions=author_info.total_actions,
