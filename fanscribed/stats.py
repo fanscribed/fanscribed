@@ -58,7 +58,9 @@ class AuthorInfo(_SimpleObject):
     __slots__ = [
         'names',            # set()
         'locks_created',    # dict(reponame={secret:Lock(), ...})
-        'snippets',         # dict(reponame={starting_point:[SnippetChange(), ...]})
+        'snippets',         # dict(reponame={starting_point:[SnippetAction(), ...]}),
+        'total_actions',    # int
+        'time_spent',       # float
     ]
 
 
@@ -72,8 +74,8 @@ class Lock(_SimpleObject):
         'created_by',       # email
         'destroyed_at',     # time
         'destroyed_by',     # email
-        'snippet_created',  # bool
-        'snippet_updated',  # bool
+        'snippet_created',  # bool  TODO
+        'snippet_updated',  # bool  TODO
     ]
 
 
@@ -84,11 +86,11 @@ class RepoInfo(_SimpleObject):
         'transcription',    # dict
         'repo',             # Repo()
         'authors',          # set()
-        'snippets',         # {starting_point: [SnippetChange(), ...]}
+        'snippets',         # {starting_point: [SnippetAction(), ...]}
     ]
 
 
-class SnippetChange(_SimpleObject):
+class SnippetAction(_SimpleObject):
     """Represents the creation or modification of a snippet."""
 
     __slots__ = [
@@ -159,6 +161,7 @@ def main():
     if not all_repos_valid:
         sys.exit(1)
     process_all_repos()
+    process_all_authors()
     create_all_output(output_path)
 
 
@@ -181,6 +184,19 @@ def process_all_repos():
             update_snippets(email, repo_info, commit)
 
 
+def process_all_authors():
+    """Loop through authors to calculate author-specific stats."""
+    for author_info in authors_map.itervalues():
+        for reponame, snippet_map in author_info.snippets.iteritems():
+            for snippet_actions in snippet_map.itervalues():
+                author_info.total_actions += len(snippet_actions)
+        for reponame, locks_map in author_info.locks_created.iteritems():
+            for lock in locks_map.itervalues():
+                if lock.created_by == lock.destroyed_by:
+                    duration = lock.destroyed_at - lock.created_at
+                    author_info.time_spent += duration
+
+
 def update_authors_map(email, commit):
     """Update the authors map based on the given commit."""
     author = commit.author
@@ -189,6 +205,8 @@ def update_authors_map(email, commit):
             names=set(),
             locks_created=dict(),
             snippets=dict(),
+            total_actions=0,
+            time_spent=0.0,
         )
     author_info = authors_map[email]
     author_info.names.add(author.name)
@@ -261,16 +279,16 @@ def update_snippets(email, repo_info, commit):
     author_info = authors_map[email]
     for filename in commit.stats.files:
         if len(filename) == 20 and filename.endswith('.txt'):
-            # It's a snippet.  Find its starting point and create a SnippetChange instance.
+            # It's a snippet.  Find its starting point and create a SnippetAction instance.
             starting_point = int(filename[:16])
-            snippet_change = SnippetChange(email=email, saved=commit.authored_date)
+            snippet_action = SnippetAction(email=email, saved=commit.authored_date)
             # Add the snippet change to the author's info.
             author_repo_snippets = author_info.snippets.setdefault(repo_name, {})
             author_repo_snippets_list = author_repo_snippets.setdefault(starting_point, [])
-            author_repo_snippets_list.append(snippet_change)
+            author_repo_snippets_list.append(snippet_action)
             # Add the snippet change to the repo's info.
             repo_snippets_list = repo_snippets.setdefault(starting_point, [])
-            repo_snippets_list.append(snippet_change)
+            repo_snippets_list.append(snippet_action)
 
 
 # ===================================================================
@@ -370,24 +388,34 @@ def create_index(path):
     ]
     for email in sorted(authors_map):
         author_info = authors_map[email]
-        url = author_filename(email)
-        names = escape(author_names(author_info))
-        authors_list.append((
-            names,
-            '<li><a href="{url}">{names}</a></li>'.format(
-                url=url,
-                names=names,
-            ),
-        ))
+        if author_info.total_actions:
+            # Only include authors who have contributed at least one snippet.
+            url = author_filename(email)
+            names = escape(author_names(author_info))
+            authors_list.append((
+                names,
+                author_info.time_spent,
+                '<li><a href="{url}">{names}</a> ({time_spent:0.02f} hours)</li>'.format(
+                    url=url,
+                    names=names,
+                    time_spent=author_info.time_spent / 60.0 / 60.0,
+                ),
+            ))
     # Sort by names, not by email address.
-    authors_list.sort(key=lambda item: item[0].lower())
+    authors_by_name = sorted(authors_list, key=lambda item: item[0].lower())
+    authors_by_time_spent = reversed(sorted(authors_list, key=lambda item: item[1]))
     body += """
-        <h2>Authors</h2>
+        <h2>Authors, by time spent</h2>
         <ul>
-            {authors_list}
+            {authors_by_time_spent}
+        </ul>
+        <h2>Authors, by name</h2>
+        <ul>
+            {authors_by_name}
         </ul>
     """.format(
-        authors_list='\n'.join(html for names, html in authors_list),
+        authors_by_time_spent='\n'.join(html for names, time_spent, html in authors_by_time_spent),
+        authors_by_name='\n'.join(html for names, time_spent, html in authors_by_name),
     )
     write_page(
         path=path,
@@ -411,10 +439,10 @@ def create_all_transcript_pages(path):
         master = repo.tree('master')
         remaining_reviews = len(load(master['remaining_reviews.json'].data_stream))
         remaining_snippets = len(load(master['remaining_snippets.json'].data_stream))
-        percent_reviews = (remaining_reviews * 100) / total_reviews
-        percent_snippets = (remaining_snippets * 100) / total_snippets
         snippets_completed = total_snippets - remaining_snippets
         reviews_completed = total_reviews - remaining_reviews
+        percent_reviews = (reviews_completed * 100) / total_reviews
+        percent_snippets = (snippets_completed * 100) / total_snippets
         body += """
         <ul>
             <li>Snippets transcribed: {snippets_completed} of {total_snippets} ({percent_snippets}%)</li>
@@ -430,12 +458,12 @@ def create_all_transcript_pages(path):
         snippet_editors = {
             # email: [starting_point, ...],
         }
-        for starting_point, snippet_changes in repo_info.snippets.iteritems():
-            transcriptionist = snippet_changes[0].email
+        for starting_point, snippet_actions in repo_info.snippets.iteritems():
+            transcriptionist = snippet_actions[0].email
             snippet_creator_snippets = snippet_creators.setdefault(transcriptionist, [])
             snippet_creator_snippets.append(starting_point)
-            for snippet_change in snippet_changes[1:]:
-                editor = snippet_change.email
+            for snippet_action in snippet_actions[1:]:
+                editor = snippet_action.email
                 snippet_editor_snippets = snippet_editors.setdefault(editor, [])
                 snippet_editor_snippets.append(starting_point)
         # Reverse sort by number of snippets created or edited.
@@ -475,7 +503,7 @@ def create_all_transcript_pages(path):
         write_page(
             path=path,
             filename=filename,
-            title='Transcript: {name}'.format(name=name),
+            title='Transcript: <a href="http://{name}/">{name}</a>'.format(name=name),
             body=body,
         )
 
@@ -484,12 +512,23 @@ def create_all_author_pages(path):
     for email, author_info in authors_map.iteritems():
         names = escape(author_names(author_info))
         body = ''
+        # General stats.
+        body += """
+            <h2>General stats</h2>
+            <ul>
+                <li>Total transcribe/edit actions: {total_actions}</li>
+                <li>Time spent transcribing/editing: {time_spent}</li>
+            </ul>
+        """.format(
+            total_actions=author_info.total_actions,
+            time_spent=author_info.time_spent,
+        )
         # Snippets contributed to.
         body += '<h2>Snippets transcribed or edited</h2>'
         snippets_map = authors_map[email].snippets
         for repo_name in sorted(snippets_map):
-            snippet_change_map = snippets_map[repo_name]
-            starting_points = sorted(snippet_change_map)
+            snippet_action_map = snippets_map[repo_name]
+            starting_points = sorted(snippet_action_map)
             list_items = [
                 '<li><a href="http://{repo_name}/#{label}">{repo_name}/#{label}</a></li>'.format(
                     repo_name=repo_name,
