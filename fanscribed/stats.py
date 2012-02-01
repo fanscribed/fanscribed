@@ -517,11 +517,11 @@ def create_all_author_pages(path):
             <h2>General stats</h2>
             <ul>
                 <li>Total transcribe/edit actions: {total_actions}</li>
-                <li>Time spent transcribing/editing: {time_spent}</li>
+                <li>Time spent transcribing/editing: {time_spent:0.02f}</li>
             </ul>
         """.format(
             total_actions=author_info.total_actions,
-            time_spent=author_info.time_spent,
+            time_spent=author_info.time_spent / 60.0 / 60.0,
         )
         # Snippets contributed to.
         body += '<h2>Snippets transcribed or edited</h2>'
