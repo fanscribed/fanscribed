@@ -232,7 +232,7 @@ def update_authors_map(email, commit):
             total_transcriptions=0,
             time_spent=0.0,
             time_spent_transcribing=0.0,
-            average_time_per_snippet=0.0,
+            average_time_per_transcription=0.0,
         )
     author_info = authors_map[email]
     author_info.names.add(author.name)
@@ -437,10 +437,10 @@ def create_index(path):
     # Sort by names, not by email address.
     authors_by_name = sorted(authors_list, key=lambda item: item[0].lower())
     authors_by_time_spent = reversed(sorted(authors_list, key=lambda item: item[1]))
-    authors_by_total_transcriptions = sorted(
+    authors_by_total_transcriptions = reversed(sorted(
         [item for item in authors_list if item[2] > 0], # exclude non-transcribers
         key=lambda item: item[2],
-    )
+    ))
     authors_by_average_time = sorted(
         [item for item in authors_list if item[2] > 0], # exclude non-transcribers
         key=lambda item: item[3],
@@ -594,11 +594,15 @@ def create_all_author_pages(path):
             <h2>General stats</h2>
             <ul>
                 <li>Total transcribe/edit actions: {total_actions}</li>
-                <li>Time spent transcribing/editing: {time_spent:0.02f} hours</li>
+                <li>Time spent transcribing/editing: {time_spent:0.02f}h</li>
+                <li>Total transcriptions: {total_transcriptions:d}</li>
+                <li>Average time per transcription: {average_time_per_transcription:0.02f}m</li>
             </ul>
         """.format(
             total_actions=author_info.total_actions,
             time_spent=author_info.time_spent / 60.0 / 60.0,
+            total_transcriptions=author_info.total_transcriptions,
+            average_time_per_transcription=author_info.average_time_per_transcription / 60.0,
         )
         # Snippets contributed to.
         body += '<h2>Snippets transcribed or edited</h2>'
