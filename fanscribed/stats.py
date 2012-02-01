@@ -324,7 +324,7 @@ def ms_to_label(ms):
     seconds = ms / 1000
     minutes = seconds / 60
     seconds %= 60
-    return '{0:d}m{0:02d}s'.format(minutes, seconds)
+    return '{0:d}m{1:02d}s'.format(minutes, seconds)
 
 
 def snippets_in_ms(ms, per_snippet=30000):
