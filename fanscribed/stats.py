@@ -7,6 +7,7 @@ from datetime import datetime
 from hashlib import sha1
 from operator import attrgetter, itemgetter
 import os
+import re
 import sys
 from urllib2 import quote
 
@@ -18,6 +19,9 @@ from twiggy import log, quickSetup
 
 # TODO: Read from config file or command line.
 LOCK_TIMEOUT = 20 * 60
+
+
+GMAIL_NORMALIZE_RE = re.compile(ur'(\+.+)@gmail\.com')
 
 
 def get_parser():
@@ -36,6 +40,14 @@ def get_parser():
         nargs=1,
         required=True,
         help='directory to write stats results to',
+    )
+    parser.add_argument(
+        '--email-map', '-m',
+        metavar='FROM:TO',
+        type=str,
+        nargs='*',
+        required=False,
+        help='Map one email address to another',
     )
     return parser
 
@@ -130,11 +142,20 @@ repos_by_name = {
 }
 
 
+email_maps = {
+    # email-from: email-to,
+}
+
+
 def main():
     # Begin by parsing options and ensuring existence of input and output paths.
     quickSetup()
     parser = get_parser()
     options = parser.parse_args()
+    for email_mapping in options.email_map:
+        email_from, email_to = email_mapping.split(':')
+        email_maps[email_from] = email_to
+        log.fields(email_from=email_from, email_to=email_to).info('email mapping')
     output_path = options.output_path[0]
     pathlog = log.fields(output_path=output_path)
     if os.path.isdir(output_path):
@@ -179,6 +200,14 @@ def main():
 # processing
 
 
+def normalize_email(email):
+    """Strip and lowercase email, then replace foo+bar@gmail.com with foo@gmail.com"""
+    email = GMAIL_NORMALIZE_RE.sub('@gmail.com', email.strip().lower())
+    if email in email_maps:
+        email = email_maps[email]
+    return email
+
+
 def process_all_repos():
     """Loop through events in all repositories."""
     for repo_path, repo_info in repos.iteritems():
@@ -188,7 +217,7 @@ def process_all_repos():
         repolog.info('processing')
         last_locks = {}
         for commit in reversed(list(repo.iter_commits('master'))):
-            email = commit.author.email.lower()
+            email = normalize_email(commit.author.email)
             update_authors_map(email, commit)
             last_locks = update_locks(email, repo_name, commit, last_locks)
             update_snippets(email, repo_info, commit)
@@ -244,7 +273,7 @@ RotatedLock = namedtuple('RotatedLock', 'starting_point timestamp')
 def update_locks(email, repo_name, commit, last_locks):
     """Update locks based on the given commit."""
     tree = commit.tree
-    author_info = authors_map[email.lower()]
+    author_info = authors_map[normalize_email(email)]
     date = commit.authored_date
     if 'locks.json' in tree:
         locks = load(tree['locks.json'].data_stream)
