@@ -646,7 +646,7 @@ def create_all_author_pages(path):
                 <dd>{total_transcriptions:d}</dd>
 
                 <dt>Average <a href="http://en.wikipedia.org/wiki/Words_per_minute">words per minute</a></td>
-                <dd>{average_wpm:d} WPM</dd>
+                <dd>{average_wpm:0.02f} WPM</dd>
             </dl>
         """.format(
             total_actions=author_info.total_actions,
