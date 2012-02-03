@@ -152,10 +152,11 @@ def main():
     quickSetup()
     parser = get_parser()
     options = parser.parse_args()
-    for email_mapping in options.email_map:
-        email_from, email_to = email_mapping.split(':')
-        email_maps[email_from] = email_to
-        log.fields(email_from=email_from, email_to=email_to).info('email mapping')
+    if options.email_map:
+        for email_mapping in options.email_map:
+            email_from, email_to = email_mapping.split(':')
+            email_maps[email_from] = email_to
+            log.fields(email_from=email_from, email_to=email_to).info('email mapping')
     output_path = options.output_path[0]
     pathlog = log.fields(output_path=output_path)
     if os.path.isdir(output_path):
