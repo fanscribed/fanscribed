@@ -7,7 +7,6 @@ from datetime import datetime
 from hashlib import sha1
 from operator import attrgetter, itemgetter
 import os
-import re
 import sys
 from urllib2 import quote
 
@@ -19,9 +18,6 @@ from twiggy import log, quickSetup
 
 # TODO: Read from config file or command line.
 LOCK_TIMEOUT = 20 * 60
-
-
-GMAIL_NORMALIZE_RE = re.compile(ur'(\+.+)@gmail\.com')
 
 
 def get_parser():
@@ -203,9 +199,8 @@ def main():
 
 def normalize_email(email):
     """Strip and lowercase email, then replace foo+bar@gmail.com with foo@gmail.com"""
-    email = GMAIL_NORMALIZE_RE.sub('@gmail.com', email.strip().lower())
-    if email in email_maps:
-        email = email_maps[email]
+    email = email.strip().lower() # strip spaces, and make all-lowercase
+    email = email_maps.get(email, email) # Replace with mapped email if it exists; otherwise use given email.
     return email
 
 
