@@ -474,7 +474,7 @@ def create_index(path):
         <hr/>
         <p>Key: [author name] ([total hours spent], [transcriptions] @ [average minutes per transcription])</p>
         <table border="0" cellspacing="10">
-            <tr>
+            <tr valign="top">
                 <td>
                     <h2>Authors, by name</h2>
                     <ul>
@@ -483,23 +483,23 @@ def create_index(path):
                 </td>
                 <td>
                     <h2>Authors, by time spent</h2>
-                    <ul>
+                    <ol>
                         {authors_by_time_spent}
-                    </ul>
+                    </ol>
                 </td>
             </tr>
-            <tr>
+            <tr valign="top">
                 <td>
                     <h2>Authors, by transcriptions</h2>
-                    <ul>
+                    <ol>
                         {authors_by_total_transcriptions}
-                    </ul>
+                    </ol>
                 </td>
                 <td>
                     <h2>Authors, by average speed</h2>
-                    <ul>
+                    <ol>
                         {authors_by_average_time}
-                    </ul>
+                    </ol>
                 </td>
             </tr>
         </table>
@@ -537,10 +537,13 @@ def create_all_transcript_pages(path):
         percent_reviews = (reviews_completed * 100) / total_reviews
         percent_snippets = (snippets_completed * 100) / total_snippets
         body += """
-        <ul>
-            <li>Snippets transcribed: {snippets_completed} of {total_snippets} ({percent_snippets}%)</li>
-            <li>Reviews completed: {reviews_completed} of {total_reviews} ({percent_reviews}%)</li>
-        </ul>
+        <dl>
+            <dt>Snippets transcribed</dt>
+            <dd>{snippets_completed} of {total_snippets} ({percent_snippets}%)</dd>
+
+            <dt>Reviews completed</dt>
+            <dd>{reviews_completed} of {total_reviews} ({percent_reviews}%)</dd>
+        </dl>
         """.format(**locals())
         # Authors and editors
         # ========
@@ -582,18 +585,18 @@ def create_all_transcript_pages(path):
         ]
         body += """
             <table border="0" cellspacing="10">
-                <tr>
+                <tr valign="top">
                     <td>
                         <h2>Top transcriptionists</h2>
-                        <ul>
+                        <ol>
                             {snippet_creators}
-                        </ul>
+                        </ol>
                     </td>
                     <td>
                         <h2>Top reviewers/editors</h2>
-                        <ul>
+                        <ol>
                             {snippet_editors}
-                        </ul>
+                        </ol>
                     </td>
                 </tr>
             </table>
@@ -617,12 +620,19 @@ def create_all_author_pages(path):
         # General stats.
         body += """
             <h2>General stats</h2>
-            <ul>
-                <li>Total transcribe/edit actions: {total_actions}</li>
-                <li>Time spent transcribing/editing: {time_spent:0.02f}h</li>
-                <li>Total transcriptions: {total_transcriptions:d}</li>
-                <li>Average time per transcription: {average_time_per_transcription:0.02f}m</li>
-            </ul>
+            <dl>
+                <dt>Total transcribe/edit actions</td>
+                <dd>{total_actions}</dd>
+
+                <dt>Time spent transcribing/editing</td>
+                <dd>{time_spent:0.02f} hours</dd>
+
+                <dt>Total transcriptions</td>
+                <dd>{total_transcriptions:d}</dd>
+
+                <dt>Average time per transcription</td>
+                <dd>{average_time_per_transcription:0.02f} minutes</dd>
+            </dl>
         """.format(
             total_actions=author_info.total_actions,
             time_spent=author_info.time_spent / 60.0 / 60.0,
