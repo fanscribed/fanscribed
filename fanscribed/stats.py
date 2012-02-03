@@ -69,9 +69,11 @@ class AuthorInfo(_SimpleObject):
         'snippets',                         # dict(reponame={starting_point:[SnippetAction(), ...]}),
         'total_actions',                    # int
         'total_transcriptions',             # int
+        'total_bytes_transcribed',          # int
         'time_spent',                       # float
         'time_spent_transcribing',          # float
         'average_time_per_transcription',   # float
+        'average_wpm',                      # float
     ]
 
 
@@ -105,8 +107,9 @@ class SnippetAction(_SimpleObject):
     """Represents the creation or modification of a snippet."""
 
     __slots__ = [
-        'saved',            # time
         'email',            # str
+        'saved',            # time
+        'bytes',            # int
     ]
 
     def __cmp__(self, other):
@@ -235,14 +238,16 @@ def process_all_authors():
                 if lock.created_by == lock.destroyed_by:
                     duration = lock.destroyed_at - lock.created_at
                     author_info.time_spent += duration
-                    # Determine if the lock was associated with a transcription.
+                    # Determine if the lock was associated with a transcription, vs. an edit.
                     repo_info = repos_by_name[repo_name]
                     if lock.starting_point in repo_info.snippets:
                         first_repo_snippet_action = repo_info.snippets[lock.starting_point][0]
                         if first_repo_snippet_action.saved == lock.destroyed_at:
                             author_info.time_spent_transcribing += duration
+                            author_info.total_bytes_transcribed += first_repo_snippet_action.bytes
         if author_info.total_transcriptions:
             author_info.average_time_per_transcription = author_info.time_spent_transcribing / author_info.total_transcriptions
+            author_info.average_wpm = (author_info.total_bytes_transcribed / 5.0) / (author_info.time_spent_transcribing / 60.0)
 
 
 def update_authors_map(email, commit):
@@ -255,9 +260,11 @@ def update_authors_map(email, commit):
             snippets=dict(),
             total_actions=0,
             total_transcriptions=0,
+            total_bytes_transcribed=0,
             time_spent=0.0,
             time_spent_transcribing=0.0,
             average_time_per_transcription=0.0,
+            average_wpm=0.0,
         )
     author_info = authors_map[email]
     author_info.names.add(author.name)
@@ -324,6 +331,7 @@ def update_locks(email, repo_name, commit, last_locks):
 
 
 def update_snippets(email, repo_info, commit):
+    """Update information about snippets touched by a commit."""
     repo_name = repo_info.name
     repo_authors = repo_info.authors
     repo_snippets = repo_info.snippets
@@ -332,7 +340,11 @@ def update_snippets(email, repo_info, commit):
         if len(filename) == 20 and filename.endswith('.txt'):
             # It's a snippet.  Find its starting point and create a SnippetAction instance.
             starting_point = int(filename[:16])
-            snippet_action = SnippetAction(email=email, saved=commit.authored_date)
+            snippet_action = SnippetAction(
+                email=email,
+                saved=commit.authored_date,
+                bytes=commit.tree[filename].size if filename in commit.tree else 0,
+            )
             # Add the snippet change to the author's info.
             author_repo_snippets = author_info.snippets.setdefault(repo_name, {})
             author_repo_snippets_list = author_repo_snippets.setdefault(starting_point, [])
@@ -448,31 +460,34 @@ def create_index(path):
                 names,
                 author_info.time_spent,
                 author_info.total_transcriptions,
-                author_info.average_time_per_transcription,
+                author_info.average_wpm,
                 '<li><a href="{url}">{names}</a> ({time_spent:0.02f}h{speed})</li>'.format(
                     url=url,
                     names=names,
                     time_spent=author_info.time_spent / 60.0 / 60.0,
-                    speed=', {total_transcriptions:d} @ ~ {average_time:0.02f}m'.format(
-                        average_time=(author_info.average_time_per_transcription / 60.0),
+                    speed=', {total_transcriptions:d} @ ~ {average_wpm:0.02f} wpm'.format(
+                        average_wpm=author_info.average_wpm,
                         total_transcriptions=author_info.total_transcriptions,
                     ) if author_info.total_transcriptions > 0 else '',
                 ),
             ))
     # Sort by names, not by email address.
     authors_by_name = sorted(authors_list, key=lambda item: item[0].lower())
+    # Sort by total time spent transcribing and editing.
     authors_by_time_spent = reversed(sorted(authors_list, key=lambda item: item[1]))
+    # Sort by total # of transcriptions created.
     authors_by_total_transcriptions = reversed(sorted(
         [item for item in authors_list if item[2] > 0], # exclude non-transcribers
         key=lambda item: item[2],
     ))
-    authors_by_average_time = sorted(
+    # Sort by average WPM during transcription.
+    authors_by_average_time = reversed(sorted(
         [item for item in authors_list if item[2] > 0], # exclude non-transcribers
         key=lambda item: item[3],
-    )
+    ))
     body += """
         <hr/>
-        <p>Key: [author name] ([total hours spent], [transcriptions] @ [average minutes per transcription])</p>
+        <p>Key: [author name] ([total hours spent], [transcriptions] @ [average <a href="http://en.wikipedia.org/wiki/Words_per_minute">WPM</a>])</p>
         <table border="0" cellspacing="10">
             <tr valign="top">
                 <td>
@@ -496,7 +511,7 @@ def create_index(path):
                     </ol>
                 </td>
                 <td>
-                    <h2>Authors, by average speed</h2>
+                    <h2>Authors, by average WPM</h2>
                     <ol>
                         {authors_by_average_time}
                     </ol>
@@ -630,14 +645,14 @@ def create_all_author_pages(path):
                 <dt>Total transcriptions</td>
                 <dd>{total_transcriptions:d}</dd>
 
-                <dt>Average time per transcription</td>
-                <dd>{average_time_per_transcription:0.02f} minutes</dd>
+                <dt>Average <a href="http://en.wikipedia.org/wiki/Words_per_minute">words per minute</a></td>
+                <dd>{average_wpm:d} WPM</dd>
             </dl>
         """.format(
             total_actions=author_info.total_actions,
             time_spent=author_info.time_spent / 60.0 / 60.0,
             total_transcriptions=author_info.total_transcriptions,
-            average_time_per_transcription=author_info.average_time_per_transcription / 60.0,
+            average_wpm=author_info.total_bytes_transcribed / 5,
         )
         # Snippets contributed to.
         body += '<h2>Snippets transcribed or edited</h2>'
