@@ -652,7 +652,7 @@ def create_all_author_pages(path):
             total_actions=author_info.total_actions,
             time_spent=author_info.time_spent / 60.0 / 60.0,
             total_transcriptions=author_info.total_transcriptions,
-            average_wpm=author_info.total_bytes_transcribed / 5,
+            average_wpm=author_info.average_wpm,
         )
         # Snippets contributed to.
         body += '<h2>Snippets transcribed or edited</h2>'
