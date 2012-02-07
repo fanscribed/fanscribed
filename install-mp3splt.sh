@@ -107,8 +107,10 @@ export PKG_CONFIG_PATH=${LIBDIR}/pkgconfig
     make install
 )
 
-cat > ${VIRTUAL_ENV}/bin/vmp3splt <<EOF
+cd ${VIRTUAL_ENV}/bin
+mv mp3splt _mp3splt
+cat > mp3splt <<EOF
 #!/bin/bash
-LD_LIBRARY_PATH=${VIRTUAL_ENV}/lib ${VIRTUAL_ENV}/bin/mp3splt $@
+LD_LIBRARY_PATH=${VIRTUAL_ENV}/lib ${VIRTUAL_ENV}/bin/_mp3splt \$@
 EOF
-chmod +x ${VIRTUAL_ENV}/bin/vmp3splt
+chmod +x mp3splt
