@@ -5,9 +5,10 @@ if [ "${VIRTUAL_ENV}" == "" ]; then
     exit 1
 fi
 
-cd $VIRTUAL_ENV
-mkdir -p tmp-install-mp3splt
-cd tmp-install-mp3splt
+TMP_INSTALL=$VIRTUAL_ENV/tmp-install-mp3splt
+mkdir -p $TMP_INSTALL
+cp -v patched-libmp3splt-0.7.1-plugins-mp3.h $TMP_INSTALL/
+cd $TMP_INSTALL
 
 LIBDIR=${VIRTUAL_ENV}/lib
 export LD_LIBRARY_PATH=${LIBDIR}
