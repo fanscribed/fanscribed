@@ -50,7 +50,8 @@ def snippet_path(full_mp3, duration_ms, output_path, starting_ms, length_ms, pad
     if os.path.isfile(output_filename):
         # File already exists; don't recreate it.
         # Instead, touch it so it doesn't get removed.
-        open(output_filename, 'a').close()
+        with open(output_filename, 'a'):
+            os.utime(output_filename, None)
         return output_filename
     else:
         subprocess.call([
