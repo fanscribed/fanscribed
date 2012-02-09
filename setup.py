@@ -43,6 +43,9 @@ setup(
         [paste.app_factory]
         main = fanscribed:main
 
+        [paste.paster_command]
+        initrepo = fanscribed.initrepo:InitRepoCommand
+
         [console_scripts]
         fanscribed-stats = fanscribed.stats:main
     """,

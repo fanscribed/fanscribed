@@ -1,7 +1,10 @@
 [app:main]
 use = config:development.ini
-fanscribed.repos = ../repos
-fanscribed.init_password = example
+fanscribed.audio = %(here)s/../audio
+fanscribed.repos = %(here)s/../repos
+fanscribed.repo_templates = %(here)s/../repo_templates
+fanscribed.snippet_cache = %(here)s/fanscribed/static/snippets/
+fanscribed.snippet_url_prefix = /static/snippets/
 fanscribed.snippet_seconds = 30
 
 [server:main]
