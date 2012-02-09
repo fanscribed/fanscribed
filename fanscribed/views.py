@@ -322,59 +322,6 @@ def snippet_info(request):
 
 @view_config(
     request_method='POST',
-    route_name='save_duration',
-    context='fanscribed:resources.Root',
-)
-def save_duration(request):
-    registry = get_current_registry()
-    settings = registry.settings
-    init_password = settings['fanscribed.init_password'].strip()
-    given_password = request.POST.getone('init_password').strip()
-    if given_password != init_password:
-        response = 'Wrong password'
-    else:
-        duration = int(request.POST.getone('duration'))
-        bytes_total = int(request.POST.getone('bytes_total'))
-        identity_name = request.POST.getone('identity_name')
-        identity_email = request.POST.getone('identity_email')
-        # Update transcription info.
-        repo = repos.repo_from_request(request)
-        master = repo.tree('master')
-        blob = master['transcription.json']
-        transcription_info = json.load(blob.data_stream)
-        if ('duration' not in transcription_info
-            and 'bytes_total' not in transcription_info
-            ):
-            transcription_info['duration'] = int(duration)
-            transcription_info['bytes_total'] = int(bytes_total)
-            # Save transcription info.
-            with repos.commit_lock:
-                repo.heads['master'].checkout()
-                index = repo.index
-                filename = os.path.join(repo.working_dir, 'transcription.json')
-                with open(filename, 'wb') as f:
-                    json.dump(transcription_info, f, indent=4)
-                index.add(['transcription.json'])
-                # Also save remaining snippets and reviews.
-                locks = repos.get_locks(master)
-                repos.save_locks(repo, index, locks)
-                snippets = range(0, transcription_info['duration'], _snippet_ms())
-                reviews = snippets[:-1]
-                repos.save_remaining_snippets(repo, index, snippets)
-                repos.save_remaining_reviews(repo, index, reviews)
-                # Perform commit.
-                os.environ['GIT_AUTHOR_NAME'] = identity_name
-                os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-                index.commit('initialize')
-            # Respond to client.
-            response = 'Committed - Duration: {0}, Bytes: {1}'.format(duration, bytes_total)
-        else:
-            response = 'Already initialized'.format(duration, bytes_total)
-    return Response(response, content_type='text/plain')
-
-
-@view_config(
-    request_method='POST',
     route_name='lock_snippet',
     context='fanscribed:resources.Root',
 )

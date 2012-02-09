@@ -598,14 +598,6 @@ var player_listener = {
             window.clearTimeout(this.finished_timeout_id);
         };
         this.update_player_info();
-        this.send_duration_if_finished();
-    },
-    send_duration_if_finished: function () {
-        if (this.bytesLoaded !== 'undefined' && (this.bytesLoaded == this.bytesTotal) && (this.duration_difference === 0) && (!this.finished_timeout_id)) {
-            // Wait five seconds before sending.
-            // (File may be done loading, but player still processing duration)
-            this.finished_timeout_id = window.setTimeout(send_duration, 5000);
-        }
     },
     update_player_info: function () {
         $('#player-enabled').text(this.enabled);
@@ -827,16 +819,9 @@ var request_and_fill_about = function () {
             $('#about-title')
                 .text(data.title)
             ;
-            $('#about-homepage')
-                .attr('href', data.homepage_url)
-                .text(data.homepage_url)
-            ;
             $('#about-audio')
                 .attr('href', data.audio_url)
                 .text(data.audio_url)
-            ;
-            $('#about-initialized')
-                .text(data.duration ? "Yes" : "No")
             ;
         }
     );
@@ -881,33 +866,6 @@ var request_and_fill_progress = function () {
             $('#reviews-progress-total').text(data.reviews_progress.total);
         }
     );
-};
-
-
-// send duration and total bytes to server if ?init=<password> set in URL
-var send_duration = function () {
-    if (!duration_sent && url_params.init) {
-        if (has_identity(true)) {
-            $.post(
-                // url
-                '/save_duration',
-                // data
-                {
-                    duration: player_listener.duration,
-                    bytes_total: player_listener.bytesTotal,
-                    init_password: url_params.init,
-                    identity_name: $.cookie('identity_name'),
-                    identity_email: $.cookie('identity_email')
-                },
-                // success
-                function (data) {
-                    alert('Initialization response: ' + data);
-                }
-            );
-            // only send it once.
-            duration_sent = true;
-        };
-    };
 };
 
 
