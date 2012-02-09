@@ -9,7 +9,7 @@ import json
 from paste.deploy.loadwsgi import loadapp
 from paste.script.command import Command
 
-from fanscribed import mp3split
+from fanscribed import mp3
 
 
 class InitRepoCommand(Command):
@@ -91,7 +91,7 @@ class InitRepoCommand(Command):
         # Get information about the audio.
         print 'Inspecting MP3 file for total time.'
         try:
-            mp3_duration_ms = mp3split.mp3_duration_ms(full_audio_file)
+            mp3_duration_ms = mp3.duration_ms(full_audio_file)
         except IOError:
             print 'Could not determine duration of MP3 file!'
             return 1

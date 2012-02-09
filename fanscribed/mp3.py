@@ -7,7 +7,7 @@ import subprocess
 TOTAL_TIME_RE = re.compile(r'.*Total time: (\d+)m.(\d+)s')
 
 
-def mp3_duration_ms(filename):
+def duration_ms(filename):
     """Return the approximate duration, in ms, of the given MP3 file."""
     mp3splt_output = subprocess.check_output(['mp3splt', '-qPft', '0.30.00', filename])
     duration = None
