@@ -1,5 +1,4 @@
 import os
-import re
 import shutil
 import subprocess
 import urllib
@@ -10,8 +9,7 @@ import json
 from paste.deploy.loadwsgi import loadapp
 from paste.script.command import Command
 
-
-TOTAL_TIME_RE = re.compile(r'.*Total time: (\d+)m.(\d+)s')
+from fanscribed import mp3split
 
 
 class InitRepoCommand(Command):
@@ -92,16 +90,9 @@ class InitRepoCommand(Command):
             print 'File already exists, and you wanted to keep it as-is.'
         # Get information about the audio.
         print 'Inspecting MP3 file for total time.'
-        mp3splt_output = subprocess.check_output(['mp3splt', '-qPft', '0.30.00', full_audio_file])
-        mp3_duration_ms = None
-        for line in mp3splt_output.splitlines():
-            match = TOTAL_TIME_RE.match(line)
-            if match is not None:
-                minutes = int(match.group(1))
-                seconds = int(match.group(2))
-                mp3_duration_ms = (minutes * 60 + seconds) * 1000
-                break
-        if mp3_duration_ms is None:
+        try:
+            mp3_duration_ms = mp3split.mp3_duration_ms(full_audio_file)
+        except IOError:
             print 'Could not determine duration of MP3 file!'
             return 1
         else:
