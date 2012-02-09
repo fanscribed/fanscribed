@@ -47,15 +47,22 @@ def snippet_path(full_mp3, duration_ms, output_path, starting_ms, length_ms, pad
     # Generate a hashed filename based on source file, starting, and ending.
     hash = sha1('{0} {1} {2}'.format(full_mp3, split_start, split_end)).hexdigest()
     output_filename = os.path.join(output_path, '{0}.mp3'.format(hash))
-    subprocess.call([
-        'mp3splt',
-        '-Qf',
-        '-d', output_path,
-        '-o', hash,
-        full_mp3,
-        split_start,
-        split_end,
-    ])
-    if not os.path.isfile(output_filename):
-        raise IOError('Output file {0:r} was not generated'.format(output_filename))
-    return output_filename
+    if os.path.isfile(output_filename):
+        # File already exists; don't recreate it.
+        # Instead, touch it so it doesn't get removed.
+        open(output_filename, 'a').close()
+        return output_filename
+    else:
+        subprocess.call([
+            'mp3splt',
+            '-Qf',
+            '-d', output_path,
+            '-o', hash,
+            full_mp3,
+            split_start,
+            split_end,
+        ])
+        if not os.path.isfile(output_filename):
+            raise IOError('Output file {0:r} was not generated'.format(output_filename))
+        else:
+            return output_filename
