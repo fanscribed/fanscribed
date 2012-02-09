@@ -1,5 +1,7 @@
 """Wrapper functions for controlling the 'mp3splt' tool."""
 
+from hashlib import sha1
+import os
 import re
 import subprocess
 
@@ -22,3 +24,38 @@ def duration_ms(filename):
         raise IOError('Could not determine duration of MP3 file')
     else:
         return duration
+
+
+def snippet_path(full_mp3, duration_ms, output_path, starting_ms, length_ms, padding_ms):
+    """Extract a snippet of audio from a full MP3, and return its full path."""
+    ending_ms = starting_ms + length_ms + padding_ms
+    starting_ms -= padding_ms
+    if starting_ms < 0:
+        starting_ms = 0
+    if ending_ms > duration_ms:
+        ending_ms = 0
+    split_start = '{0:d}.{1:02d}.{2:02d}'.format(
+        starting_ms / 60000,
+        starting_ms % 60000 / 1000,
+        starting_ms % 1000 / 10,
+    )
+    split_end = '{0:d}.{1:02d}.{2:02d}'.format(
+        ending_ms / 60000,
+        ending_ms % 60000 / 1000,
+        ending_ms % 1000 / 10,
+    )
+    # Generate a hashed filename based on source file, starting, and ending.
+    hash = sha1('{0} {1} {2}'.format(full_mp3, split_start, split_end)).hexdigest()
+    output_filename = os.path.join(output_path, '{0}.mp3'.format(hash))
+    subprocess.call([
+        'mp3splt',
+        '-Qf',
+        '-d', output_path,
+        '-o', hash,
+        full_mp3,
+        split_start,
+        split_end,
+    ])
+    if not os.path.isfile(output_filename):
+        raise IOError('Output file {0:r} was not generated'.format(output_filename))
+    return output_filename
