@@ -492,7 +492,6 @@ var inline_editor_save = function () {
             lock_info.type = undefined;
             // cleanup
             $current_inline_editor_div.find('.inline-editor-container').empty().hide();
-            request_and_fill_progress();
             $current_inline_editor_div = undefined;
             $('.play').removeClass('hidden-while-editing');
             $('.edit').removeClass('hidden-while-editing');
@@ -523,7 +522,6 @@ var inline_editor_cancel = function () {
             lock_info.type = undefined;
             $current_inline_editor_div.find('.inline-editor-container').empty().hide();
             $current_inline_editor_div.find('.transcript').show();
-            request_and_fill_progress();
             $current_inline_editor_div = undefined;
             $('.play').removeClass('hidden-while-editing');
             $('.edit').removeClass('hidden-while-editing');
@@ -831,6 +829,9 @@ var request_and_update_snippets = function () {
         function (data) {
             // update latest revision to what server gave.
             latest_revision = data.latest_revision;
+            if (data.snippets.length > 0) {
+                request_and_fill_progress();
+            }
             $.each(data.snippets, function (index, value) {
                 // find the snippet corresponding to the starting point.
                 var $snippet_div = $('div#' + ms_to_label(value.starting_point));

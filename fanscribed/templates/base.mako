@@ -15,7 +15,7 @@
   <![endif]-->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
   <script type="text/javascript" src="${request.static_url('fanscribed:static/jquery.cookie.js')}?2012012401"></script>
-  <script type="text/javascript" src="${request.static_url('fanscribed:static/fanscribed.js')}?2012021002"></script>
+  <script type="text/javascript" src="${request.static_url('fanscribed:static/fanscribed.js')}?2012021003"></script>
   <script type="text/javascript">
     var cookie_options = {
       expires: 365,
