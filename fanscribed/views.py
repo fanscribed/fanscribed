@@ -95,10 +95,12 @@ def _slugify(text):
     )
 
 
+def _settings():
+    return get_current_registry().settings
+
+
 def _snippet_ms():
-    registry = get_current_registry()
-    settings = registry.settings
-    snippet_seconds = int(settings['fanscribed.snippet_seconds'])
+    snippet_seconds = int(_settings()['fanscribed.snippet_seconds'])
     return snippet_seconds * 1000
 
 
@@ -259,6 +261,10 @@ def transcription_json(request):
     repo = repos.repo_from_request(request)
     master = repo.tree('master')
     info = repos.transcription_info(master)
+    # Inject additional information into the info dict.
+    settings = _settings()
+    info['snippet_ms'] = int(settings['fanscribed.snippet_seconds']) * 1000
+    info['snippet_padding_ms'] = int(float(settings['fanscribed.snippet_padding_seconds']) * 1000)
     return Response(body=json.dumps(info), content_type='application/json')
 
 
@@ -544,8 +550,7 @@ def cancel_review(request):
 )
 def snippet_mp3(request):
     # Get information needed from settings and repository.
-    registry = get_current_registry()
-    settings = registry.settings
+    settings = _settings()
     full_mp3 = os.path.join(
         settings['fanscribed.audio'],
         '{0}.mp3'.format(request.host),
