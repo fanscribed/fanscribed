@@ -303,7 +303,7 @@ def snippet_info(request):
 
 def _banned_message(request):
     """Returns a reason why you're banned, or None if you're not banned."""
-    ip_address = request.remote_addr
+    ip_address = request.headers.get('X-Forwarded-For', request.remote_addr).strip()
     bans_filename = _settings().get('fanscribed.ip_address_bans')
     if bans_filename:
         with open(bans_filename, 'rU') as f:
