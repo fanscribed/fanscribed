@@ -44,6 +44,7 @@ setup(
         main = fanscribed:main
 
         [paste.paster_command]
+        cleanup = fanscribed.cleanup:CleanupCommand
         initrepo = fanscribed.initrepo:InitRepoCommand
 
         [console_scripts]
