@@ -37,7 +37,7 @@ div#sidebar{width:15em;background:#ffc;-webkit-border-radius:2px;-moz-border-rad
 .view div#sidebar{position:fixed;margin-left:65em;}
 .edit div#sidebar{float:right;margin-bottom:2em;}
 div#content{width:60em;float:left;}
-.view div#speakers,.needs-identity.no-identity,.needs-player.no-player,.needs-unset-identity.no-unset-identity,.needs-unset-player.no-unset-player,.hidden-while-editing{display:none !important;}
+.view div#speakers.hidden-while-viewing,.needs-identity.no-identity,.needs-player.no-player,.needs-unset-identity.no-unset-identity,.needs-unset-player.no-unset-player,.hidden-while-editing{display:none !important;}
 
 
 /* remove the colon after speaker's name */

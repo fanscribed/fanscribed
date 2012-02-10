@@ -459,7 +459,7 @@ var inline_editor = function (anchor, starting_point) {
                     ;
                     $('.play').addClass('hidden-while-editing');
                     $('.edit').addClass('hidden-while-editing');
-                    $('#speakers').show();
+                    $('#speakers').removeClass('hidden-while-viewing');
                     editor_replay();
                 } else {
                     alert(data.message);
@@ -495,7 +495,7 @@ var inline_editor_save = function () {
             $current_inline_editor_div = undefined;
             $('.play').removeClass('hidden-while-editing');
             $('.edit').removeClass('hidden-while-editing');
-            $('#speakers').hide();
+            $('#speakers').addClass('hidden-while-viewing');
             // update this and any other snippets, and restart update schedule
             request_and_update_snippets();
             start_updating_snippets();
@@ -525,7 +525,7 @@ var inline_editor_cancel = function () {
             $current_inline_editor_div = undefined;
             $('.play').removeClass('hidden-while-editing');
             $('.edit').removeClass('hidden-while-editing');
-            $('#speakers').hide();
+            $('#speakers').addClass('hidden-while-viewing');
             // update any other snippets edited, and restart update schedule
             request_and_update_snippets();
             start_updating_snippets();
