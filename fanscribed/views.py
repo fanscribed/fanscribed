@@ -301,12 +301,33 @@ def snippet_info(request):
     return Response(body=json.dumps(info), content_type='application/json')
 
 
+def _banned_message(request):
+    """Returns a reason why you're banned, or None if you're not banned."""
+    ip_address = request.remote_addr
+    bans_filename = _settings().get('fanscribed.ip_address_bans')
+    if bans_filename:
+        with open(bans_filename, 'rU') as f:
+            for line in f.readlines():
+                if ';' in line:
+                    candidate_ip_address, reason = line.strip().split(';', 1)
+                    if ip_address == candidate_ip_address:
+                        return reason.strip()
+
+
 @view_config(
     request_method='POST',
     route_name='lock_snippet',
     context='fanscribed:resources.Root',
 )
 def lock_snippet(request):
+    # First make sure IP address is not banned.
+    message = _banned_message(request)
+    if message is not None:
+        body = json.dumps({
+            'lock_acquired': False,
+            'message': message,
+        })
+        return Response(body, content_type='application_json')
     # unpack identity
     identity_name = request.POST.getone('identity_name')
     identity_email = request.POST.getone('identity_email')
@@ -350,6 +371,14 @@ def lock_snippet(request):
     context='fanscribed:resources.Root',
 )
 def lock_review(request):
+    # First make sure IP address is not banned.
+    message = _banned_message(request)
+    if message is not None:
+        body = json.dumps({
+            'lock_acquired': False,
+            'message': message,
+        })
+        return Response(body, content_type='application_json')
     # unpack identity
     identity_name = request.POST.getone('identity_name')
     identity_email = request.POST.getone('identity_email')
