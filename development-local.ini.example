@@ -10,3 +10,9 @@ fanscribed.snippet_padding_seconds = 2.5
 
 [server:main]
 use = config:development.ini
+## If you are using Google Chrome as your development browser,
+## uncomment the line below to listen on 0.0.0.0, then browse to your
+## computer's IP address or Zeroconf name (e.g. mycomputer.local).
+## This is necessary due to Chrome's avoidance of saving cookies
+## for localhost domains.
+# host = 0.0.0.0
