@@ -137,6 +137,7 @@ def _standard_response(repo, tree):
     transcription_info = repos.transcription_info(tree)
     return dict(
         _progress_dicts(tree, transcription_info),
+        latest_revision=repos.latest_revision(repo),
         custom_css_revision=repos.custom_css_revision(repo),
         speakers=repos.speakers_text(tree),
         transcription_info=transcription_info,
@@ -457,13 +458,7 @@ def save_snippet(request):
         if inline:
             commit_message += ' (inline)'
         index.commit(commit_message)
-    # return structure of snippet including resolved speaker names
-    # for potential rendering
-    master = repo.tree('master')
-    speakers_map = repos.speakers_map(master)
-    text = snippet_text.strip()
-    lines = _split_lines_and_expand_abbreviations(text, speakers_map)
-    return Response(json.dumps(lines), content_type='application/json')
+    return Response('', content_type='text/plain')
 
 
 @view_config(
@@ -586,3 +581,40 @@ def snippet_mp3(request):
     relative_path = os.path.relpath(snippet_path, snippet_cache)
     snippet_url = urlparse.urljoin(snippet_url_prefix, relative_path)
     raise HTTPFound(location=snippet_url)
+
+
+@view_config(
+    request_method='GET',
+    route_name='snippets_updated',
+    context='fanscribed:resources.Root',
+)
+def snippets_updated(request):
+    """Return formatted snippets that have been updated since the given revision."""
+    repo = repos.repo_from_request(request)
+    since_revision = request.GET.getone('since')
+    since_commit = repo.commit(since_revision)
+    files_updated = set()
+    for commit in repo.iter_commits('master'):
+        # Have we reached the end?
+        if commit == since_commit:
+            break
+        # Look for snippet changes.
+        for filename in commit.stats.files:
+            if len(filename) == 20 and filename.endswith('.txt'):
+                files_updated.add(filename)
+    master = repo.tree('master')
+    speakers_map = repos.speakers_map(master)
+    snippets = []
+    for filename in files_updated:
+        starting_point = int(filename[:16])
+        snippet = dict(
+            starting_point=starting_point,
+        )
+        text = master[filename].data_stream.read().strip()
+        snippet['lines'] = _split_lines_and_expand_abbreviations(text, speakers_map)
+        snippets.append(snippet)
+    data = dict(
+        latest_revision=repos.latest_revision(repo),
+        snippets=snippets,
+    )
+    return Response(json.dumps(data), content_type='application/json')

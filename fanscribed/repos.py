@@ -42,6 +42,10 @@ def repo_from_request(request):
     return git.Repo(repo_path)
 
 
+def latest_revision(repo):
+    return repo.iter_commits('master').next().hexsha
+
+
 def transcription_info(tree):
     blob = tree['transcription.json']
     return json.load(blob.data_stream)

@@ -2,13 +2,15 @@
 // constants
 
 
-var PADDING = 2500; // 2.5 second audio padding on either side of a snippet
+var PADDING = 2.5 * 1000; // 2.5 second audio padding on either side of a snippet
+var UPDATE_SNIPPETS_INTERVAL = 3 * 60 * 1000; // check for new snippets every 3 mins
 
 
 // =========================================================================
 // globals (yes, I know... run away screaming!)
 
 
+var latest_revision; // set in header of page
 var mode; // 'view' or 'transcribe'
 var transcription = {};
 
@@ -27,6 +29,7 @@ var view_onload = function () {
     mode = 'view';
     common_onload();
     $('.play a').click(player_play_from_snippet_start);
+    start_updating_snippets();
 };
 
 
@@ -435,6 +438,7 @@ var inline_editor = function (anchor, starting_point) {
             // success
             function (data) {
                 if (data.lock_acquired) {
+                    stop_updating_snippets();
                     lock_info.starting_point = data.starting_point;
                     lock_info.ending_point = data.ending_point;
                     lock_info.secret = data.lock_secret;
@@ -486,34 +490,6 @@ var inline_editor_save = function () {
             lock_info.starting_point = undefined;
             lock_info.ending_point = undefined;
             lock_info.type = undefined;
-            // render new transcript
-            var $oldTranscript = $current_inline_editor_div.find('.transcript');
-            var $newTranscript = $('<dl class="transcript"></dl>');
-            var last_abbreviation = '';
-            $.each(data, function (index, value) {
-                var abbreviation = value[0];
-                var speaker = value[1];
-                var spoken = value[2];
-                if (abbreviation && abbreviation != last_abbreviation) {
-                    last_abbreviation = abbreviation;
-                    $newTranscript
-                        .append(
-                            $('<dt>:</dt>')
-                                .prepend(
-                                    $('<span class="name"/>')
-                                        .text(speaker)
-                                )
-                                .addClass('speaker-' + abbreviation)
-                        )
-                    ;
-                }
-              $newTranscript.append(
-                    $('<dd/>')
-                        .addClass('speaker-' + last_abbreviation)
-                        .text(spoken)
-                );
-            });
-            $oldTranscript.replaceWith($newTranscript);
             // cleanup
             $current_inline_editor_div.find('.inline-editor-container').empty().hide();
             request_and_fill_progress();
@@ -521,6 +497,9 @@ var inline_editor_save = function () {
             $('.play').removeClass('hidden-while-editing');
             $('.edit').removeClass('hidden-while-editing');
             $('#speakers').hide();
+            // update this and any other snippets, and restart update schedule
+            request_and_update_snippets();
+            start_updating_snippets();
         });
     }
   return false;
@@ -549,6 +528,9 @@ var inline_editor_cancel = function () {
             $('.play').removeClass('hidden-while-editing');
             $('.edit').removeClass('hidden-while-editing');
             $('#speakers').hide();
+            // update any other snippets edited, and restart update schedule
+            request_and_update_snippets();
+            start_updating_snippets();
         });
     }
   return false;
@@ -839,6 +821,74 @@ var request_and_fill_progress = function () {
         }
     );
 };
+
+
+var request_and_update_snippets = function () {
+    $.getJSON(
+        // url
+        '/snippets_updated?since=' + latest_revision,
+        // success
+        function (data) {
+            // update latest revision to what server gave.
+            latest_revision = data.latest_revision;
+            $.each(data.snippets, function (index, value) {
+                // find the snippet corresponding to the starting point.
+                var $snippet_div = $('div#' + ms_to_label(value.starting_point));
+                // find the transcript inside it.
+                var $old_transcript = $snippet_div.find('.transcript');
+                var $new_transcript = $('<dl class="transcript"></dl>');
+                // build the new transcript line by line.
+                var last_abbreviation = '';
+                $.each(value.lines, function (index2, value2) {
+                    var abbreviation = value2[0];
+                    var speaker = value2[1];
+                    var spoken = value2[2];
+                    if (abbreviation && abbreviation != last_abbreviation) {
+                        last_abbreviation = abbreviation;
+                        $new_transcript
+                            .append(
+                                $('<dt>:</dt>')
+                                    .prepend(
+                                        $('<span class="name"/>')
+                                            .text(speaker)
+                                    )
+                                    .addClass('speaker-' + abbreviation)
+                            )
+                        ;
+                    }
+                    $new_transcript.append(
+                        $('<dd/>')
+                            .addClass('speaker-' + last_abbreviation)
+                            .text(spoken)
+                    );
+                });
+                $old_transcript.replaceWith($new_transcript);
+            });
+        }
+    );
+};
+
+
+var update_snippets_timeout;
+
+
+var start_updating_snippets = function () {
+    var schedule_next_update = function () {
+        update_snippets_timeout = window.setTimeout(do_update, UPDATE_SNIPPETS_INTERVAL);
+    };
+    var do_update = function () {
+        request_and_update_snippets();
+        schedule_next_update();
+    };
+    schedule_next_update();
+};
+
+
+var stop_updating_snippets = function () {
+    window.clearTimeout(update_snippets_timeout);
+    update_snippets_timeout = undefined;
+};
+
 
 
 // =========================================================================
