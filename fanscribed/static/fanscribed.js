@@ -9,7 +9,6 @@ var PADDING = 2500; // 2.5 second audio padding on either side of a snippet
 // globals (yes, I know... run away screaming!)
 
 
-var duration_sent = false;
 var mode; // 'view' or 'transcribe'
 var transcription = {};
 
@@ -82,7 +81,7 @@ var check_identity = function () {
         // disable UI needing identity
         $('.needs-identity').addClass('no-identity');
         $('.needs-unset-identity').removeClass('no-unset-identity');
-    };
+    }
 };
 
 
@@ -90,11 +89,11 @@ var has_identity = function (showAlert) {
     if (!($.cookie('identity_name')) || !($.cookie('identity_email'))) {
         if (showAlert) {
             alert('Must set identity before continuing.');
-        };
-        return false;
+        }
+      return false;
     } else {
         return true;
-    };
+    }
 };
 
 
@@ -157,8 +156,8 @@ var save_speakers = function () {
                 $('#instructions-speakers').hide();
             }
         );
-    };
-    return false;
+    }
+  return false;
 };
 
 
@@ -226,13 +225,13 @@ var editor_transcribe = function () {
                     alert(data.message);
                     hide_editor();
                     request_and_fill_progress();
-                };
+                }
             },
             // return data type
             'json'
         );
-    };
-    return false;
+    }
+  return false;
 };
 
 
@@ -271,13 +270,13 @@ var editor_review = function () {
                     alert(data.message);
                     hide_editor();
                     request_and_fill_progress();
-                };
+                }
             },
             // return data type
             'json'
         );
-    };
-    return false;
+    }
+  return false;
 };
 
 
@@ -302,11 +301,11 @@ var editor_save = function (continue_editing) {
         } else {
             alert('Unknown lock type ' + lock_info.type);
             return false;
-        };
-        if (continue_editing) {
+        }
+      if (continue_editing) {
             url = url + '?continue=1';
-        };
-        $.post(url, data, function (data) {
+        }
+      $.post(url, data, function () {
             var lock_type = lock_info.type; // to determine what to do if user wants to continue
             lock_info.secret = undefined;
             lock_info.starting_point = undefined;
@@ -318,13 +317,13 @@ var editor_save = function (continue_editing) {
                     editor_transcribe();
                 } else if (lock_type == 'review') {
                     editor_review();
-                };
+                }
             } else {
                 hide_editor();
-            };
+            }
         });
-    };
-    return false;
+    }
+  return false;
 };
 
 
@@ -346,8 +345,8 @@ var editor_cancel = function () {
         } else {
             alert('Unknown lock type ' + lock_info.type);
             return false;
-        };
-        $.post(url, data, function (data) {
+        }
+      $.post(url, data, function () {
             lock_info.secret = undefined;
             lock_info.starting_point = undefined;
             lock_info.ending_point = undefined;
@@ -355,8 +354,8 @@ var editor_cancel = function () {
             request_and_fill_progress();
             hide_editor();
         });
-    };
-    return false;
+    }
+  return false;
 };
 
 
@@ -381,8 +380,8 @@ var editor_replay = function (ignore_cookie) {
         player_seek(0);
         player_play();
         player_replay_at_end();
-    };
-    return false;
+    }
+  return false;
 };
 
 
@@ -395,10 +394,10 @@ var editor_pause_play = function () {
         if (new_position < 0) {
             // don't go past beginning of snippet.
             new_position = 0;
-        };
-        player_seek(new_position);
+        }
+      player_seek(new_position);
         player_play();
-    };
+    }
 };
 
 
@@ -407,11 +406,11 @@ var editor_rewind = function () {
     if (new_position < 0) {
         // don't go past beginning of snippet.
         new_position = 0;
-    };
-    player_seek(new_position);
+    }
+  player_seek(new_position);
     if (player_listener.isPlaying != 'true') {
         player_play();
-    };
+    }
 };
 
 
@@ -460,13 +459,13 @@ var inline_editor = function (anchor, starting_point) {
                     editor_replay();
                 } else {
                     alert(data.message);
-                };
+                }
             },
             // return data type
             'json'
         );
-    };
-    return false;
+    }
+  return false;
 };
 
 
@@ -507,8 +506,8 @@ var inline_editor_save = function () {
                                 .addClass('speaker-' + abbreviation)
                         )
                     ;
-                };
-                $newTranscript.append(
+                }
+              $newTranscript.append(
                     $('<dd/>')
                         .addClass('speaker-' + last_abbreviation)
                         .text(spoken)
@@ -523,8 +522,8 @@ var inline_editor_save = function () {
             $('.edit').removeClass('hidden-while-editing');
             $('#speakers').hide();
         });
-    };
-    return false;
+    }
+  return false;
 };
 
 
@@ -538,7 +537,7 @@ var inline_editor_cancel = function () {
             identity_email: $.cookie('identity_email')
         };
         var url = '/cancel_snippet';
-        $.post(url, data, function (data) {
+        $.post(url, data, function () {
             lock_info.secret = undefined;
             lock_info.starting_point = undefined;
             lock_info.ending_point = undefined;
@@ -551,8 +550,8 @@ var inline_editor_cancel = function () {
             $('.edit').removeClass('hidden-while-editing');
             $('#speakers').hide();
         });
-    };
-    return false;
+    }
+  return false;
 };
 
 
@@ -577,8 +576,8 @@ var player_listener = {
         this.old_duration = this.duration;
         if (this.duration_difference !== 0 && this.finished_timeout_id) {
             window.clearTimeout(this.finished_timeout_id);
-        };
-        this.update_player_info();
+        }
+      this.update_player_info();
     },
     update_player_info: function () {
         $('#player-enabled').text(this.enabled);
@@ -609,7 +608,7 @@ var player_enable = function () {
         $('.needs-player').removeClass('no-player');
         $('.needs-unset-player').addClass('no-unset-player');
         player_setup_url();
-    };
+    }
 };
 
 
@@ -624,7 +623,7 @@ var player_shortcuts_enable = function () {
         } else if (event.which == 92) { // \
             event.preventDefault();
             editor_pause_play();
-        };
+        }
     });
 };
 
@@ -674,7 +673,7 @@ var player_play_from_snippet_start = function () {
             wait_for_start_timeout = window.setTimeout(wait_for_start, 500);
         } else {
             start_reached();
-        };
+        }
     };
     // start playing, then stop at the end, when we have enough streamed.
     var start_reached = function () {
@@ -707,28 +706,28 @@ var player_pause = function (clear_timeouts) {
     if (position_check_timeout && clear_timeouts) {
         window.clearTimeout(position_check_timeout);
         position_check_timeout = undefined;
-    };
-    if (replay_timeout && clear_timeouts) {
+    }
+  if (replay_timeout && clear_timeouts) {
         window.clearTimeout(replay_timeout);
         replay_timeout = undefined;
-    };
-    if (wait_for_start_timeout && clear_timeouts) {
+    }
+  if (wait_for_start_timeout && clear_timeouts) {
         window.clearTimeout(wait_for_start_timeout);
         wait_for_start_timeout = undefined;
-    };
-    if (wait_for_end_timeout && clear_timeouts) {
+    }
+  if (wait_for_end_timeout && clear_timeouts) {
         window.clearTimeout(wait_for_end_timeout);
         wait_for_end_timeout = undefined;
-    };
-    player().SetVariable('method:pause', '');
+    }
+  player().SetVariable('method:pause', '');
 };
 
 
 var player_replay_at_end = function () {
     if (position_check_timeout) {
         window.clearTimeout(position_check_timeout);
-    };
-    var position_check = function () {
+    }
+  var position_check = function () {
         var duration = player_listener.duration === 'undefined' ? undefined : parseFloat(player_listener.duration);
         var position = player_listener.position === 'undefined' ? undefined : parseFloat(player_listener.position);
         if (position >= duration || (player_listener.isPlaying == 'false' && position == 0)) {
@@ -760,7 +759,7 @@ var player_seek = function (position) {
 var set_default_player_preferences = function () {
     if ($.cookie('auto_play_edit') === null) {
         $.cookie('auto_play_edit', '1', cookie_options);
-    };
+    }
 };
 
 
@@ -769,7 +768,7 @@ var fill_player_preferences = function () {
         $('#player-auto-play-edit').attr('checked', 'checked');
     } else {
         $('#player-auto-play-edit').removeAttr('checked');
-    };
+    }
 };
 
 
@@ -872,7 +871,7 @@ var show_snippet_info = function (anchor, starting_point) {
                 });
             } else {
                 $('<li>(No contributors found)</li>').appendTo($contributor_list);
-            };
+            }
         }
     );
 };
@@ -896,7 +895,7 @@ var show_all_contributors = function () {
                 });
             } else {
                 $('<li>(No contributors found)</li>').appendTo($contributor_list);
-            };
+            }
         }
     );
 };
@@ -932,7 +931,7 @@ var zeroFill = function(number, width)
     return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
   }
   return number;
-}
+};
 
 var ms_to_label = function (ms) {
     var seconds = ms / 1000;
