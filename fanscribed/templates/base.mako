@@ -6,7 +6,7 @@
   <meta name="keywords" content="transcription transcribe podcast crowdsource" />
   <meta name="description" content="Croudsourced podcast transcription" />
   <link rel="shortcut icon" href="${request.static_url('fanscribed:static/favicon.ico')}?2012012401" />
-  <link rel="stylesheet" href="${request.static_url('fanscribed:static/fanscribed.css')}?2012020902" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="${request.static_url('fanscribed:static/fanscribed.css')}?2012021001" type="text/css" media="screen" charset="utf-8" />
   % if custom_css_revision:
     <link rel="stylesheet" href="${request.route_path('custom_css')}?${custom_css_revision}" type="text/css" media="screen" charset="utf-8" />
   % endif
@@ -15,7 +15,7 @@
   <![endif]-->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
   <script type="text/javascript" src="${request.static_url('fanscribed:static/jquery.cookie.js')}?2012012401"></script>
-  <script type="text/javascript" src="${request.static_url('fanscribed:static/fanscribed.js')}?2012020902"></script>
+  <script type="text/javascript" src="${request.static_url('fanscribed:static/fanscribed.js')}?2012021001"></script>
   <script type="text/javascript">
     var cookie_options = {
       expires: 365,
@@ -29,12 +29,17 @@
 </head>
 <body class="${next.body_class()}">
 
-  <div id="toolbar">
-    ${next.toolbar()}
-  </div>
-
-  <div id="title">
-    <h1 id="about-title">${transcription_info['title']}</h1>
+  <div id="siteheader">
+    <%
+        site_name = transcription_info.get('site_name')
+        site_url = transcription_info.get('site_url')
+    %>
+    % if site_name and site_url:
+        <h3 id="header" class="headertext"><a href="${site_url}" title="${site_name}">${site_name}</a></h3>
+    % else:
+        <h3 id="header" class="headertext">Crowdsourced Podcast Transcription</h3>
+    % endif
+    <div id="subhead" class="headertext">powered by <a href="http://fanscribed.com/" title="Fanscribed">Fanscribed</a></div>
   </div>
 
   <div id="sidebar">
@@ -113,11 +118,19 @@
   </div>
 
   <div id="content">
+    <div id="title">
+      <h1 id="about-title">${transcription_info['title']}</h1>
+    </div>
+
+    <ul id="toolbar">
+      ${next.toolbar()}
+    </ul>
+
     ${next.body()}
   </div>
 
   <div id="footer">
-    <div class="footer">Powered by <a href="http://fanscribed.com/">Fanscribed</a>, &copy; 2012 by <a href="http://11craft.com/">ElevenCraft</a>. Site content is subject to copyrights held by its creators.</div>
+    <div class="footer">Transcript content is subject to copyrights held by its creators.</div>
   </div>
 
   % if not request.GET.get('noflash') == '1':

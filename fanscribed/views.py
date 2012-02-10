@@ -282,34 +282,6 @@ def progress(request):
 
 @view_config(
     request_method='GET',
-    route_name='all_contributors',
-    context='fanscribed:resources.Root',
-)
-def all_contributors(request):
-    repo = repos.repo_from_request(request)
-    master = repo.tree('master')
-    # Get list of all snippet files.
-    snippet_filenames = []
-    for blob in master:
-        if isinstance(blob, git.Blob):
-            if len(blob.name) == 20 and blob.name.endswith('.txt'):
-                # Found a snippet.
-                snippet_filenames.append(blob.name)
-    # Find contributors to snippets.
-    contributor_list = []
-    for commit in repo.iter_commits('master', snippet_filenames):
-        contributor = dict(author_name=commit.author.name)
-        if contributor not in contributor_list:
-            contributor_list.append(contributor)
-    contributor_list.sort()
-    info = dict(
-        contributor_list=contributor_list,
-    )
-    return Response(body=json.dumps(info), content_type='application/json')
-
-
-@view_config(
-    request_method='GET',
     route_name='snippet_info',
     context='fanscribed:resources.Root',
 )

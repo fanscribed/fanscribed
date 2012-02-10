@@ -13,9 +13,8 @@
 </%def>
 
 <%def name="toolbar()">
-  <strong>View</strong>
-  |
-  <a href="${request.route_path('edit')}">Transcribe</a>
+  <li class="tab view"><span>Read</span></li>
+  <li class="tab transcribe"><a href="${request.route_path('edit')}" title="Transcribe">Transcribe</a></li>
 </%def>
 
 <%def name="sidebar_top()">
@@ -25,7 +24,7 @@
 </%def>
 
 <%def name="body()">
-  <h2>Transcript</h2>
+  <h2 id="contentheader">Transcript</h2>
 
   <div id="inline-editor-template" style="display:none;">
     <div class="inline-editor-buttons">
@@ -49,12 +48,6 @@
       Contributors (by date):
       <ul class="contributor-list" />
     </div>
-  </div>
-
-  <div id="all-contributors">
-    <div><a id="show-all-contributors" href="#all-contributors" onclick="show_all_contributors()">List all contributors</a></div>
-    <h3 style="display:none;">All contributors (by name)</h3>
-    <ul></ul>
   </div>
 
   <%

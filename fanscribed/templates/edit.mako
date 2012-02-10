@@ -13,9 +13,8 @@
 </%def>
 
 <%def name="toolbar()">
-  <a href="${request.route_path('view')}">View</a>
-  |
-  <strong>Transcribe</strong>
+  <li class="tab view"><a href="${request.route_path('view')}" title="Read">Read</a></li>
+  <li class="tab transcribe"><span>Transcribe</span></li>
 </%def>
 
 <%def name="sidebar_top()">
@@ -38,6 +37,7 @@
 </%def>
 
 <%def name="body()">
+  <h2 id="contentheader">Transcription and Review Tools</h2>
 
   <p class="needs-unset-player">
     Getting the player ready.
@@ -61,10 +61,7 @@
         <input id="editor-save-continue" type="button" value="Save &amp; continue" onclick="editor_save(true);" />
         <input id="editor-save-stop" type="button" value="Save &amp; stop" onclick="editor_save(false);" />
         <input id="editor-cancel" type="button" value="Cancel" onclick="editor_cancel();" />
-        <input id="editor-replay" type="button" value="Replay" onclick="editor_replay(true);" />
-        <input id="editor-pause" type="button" value="Pause/Play" onclick="editor_pause_play();" />
-        <input id="editor-rewind" type="button" value="Rewind 5s" onclick="editor_rewind();" />
-        </div>
+      </div>
       <div>Special keys: \ (backslash) play/pause, ~ (tilde) replay, ` (backtick) back 5 seconds</div>
     </div>
 
