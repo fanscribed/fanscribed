@@ -6,6 +6,7 @@ fanscribed.repo_templates = %(here)s/../repo_templates
 fanscribed.snippet_cache = %(here)s/fanscribed/static/snippets/
 fanscribed.snippet_url_prefix = /static/snippets/
 fanscribed.snippet_seconds = 30
+fanscribed.snippet_padding_seconds = 2.5
 
 [server:main]
 use = config:development.ini

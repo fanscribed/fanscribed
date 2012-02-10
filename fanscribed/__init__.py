@@ -28,6 +28,8 @@ def main(global_config, **settings):
     config.add_route('save_review', '/save_review')
     config.add_route('cancel_review', '/cancel_review')
 
+    config.add_route('snippet_mp3', '/snippet.mp3')
+
     # Views.
     config.scan('fanscribed')
     config.add_static_view('static', 'fanscribed:static', cache_max_age=3600)

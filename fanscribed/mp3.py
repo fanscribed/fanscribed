@@ -9,8 +9,8 @@ import subprocess
 TOTAL_TIME_RE = re.compile(r'.*Total time: (\d+)m.(\d+)s')
 
 
-def duration_ms(filename):
-    """Return the approximate duration, in ms, of the given MP3 file."""
+def duration(filename):
+    """Return the approximate duration, in milliseconds, of the given MP3 file."""
     mp3splt_output = subprocess.check_output(['mp3splt', '-qPft', '0.30.00', filename])
     duration = None
     for line in mp3splt_output.splitlines():
@@ -26,18 +26,21 @@ def duration_ms(filename):
         return duration
 
 
-def snippet_path(full_mp3, duration_ms, output_path, starting_ms, length_ms, padding_ms):
-    """Extract a snippet of audio from a full MP3, and return its full path."""
-    ending_ms = starting_ms + length_ms + padding_ms
-    starting_ms -= padding_ms
-    if starting_ms < 0:
-        starting_ms = 0
-    if ending_ms > duration_ms:
+def snippet_path(full_mp3, duration, output_path, starting_point, length, padding):
+    """Extract a snippet of audio from a full MP3, and return its full path.
+
+    All times are given in milliseconds.
+    """
+    ending_ms = starting_point + length + padding
+    starting_point -= padding
+    if starting_point < 0:
+        starting_point = 0
+    if ending_ms > duration:
         ending_ms = 0
     split_start = '{0:d}.{1:02d}.{2:02d}'.format(
-        starting_ms / 60000,
-        starting_ms % 60000 / 1000,
-        starting_ms % 1000 / 10,
+        starting_point / 60000,
+        starting_point % 60000 / 1000,
+        starting_point % 1000 / 10,
     )
     split_end = '{0:d}.{1:02d}.{2:02d}'.format(
         ending_ms / 60000,

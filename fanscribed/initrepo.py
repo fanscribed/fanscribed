@@ -91,7 +91,7 @@ class InitRepoCommand(Command):
         # Get information about the audio.
         print 'Inspecting MP3 file for total time.'
         try:
-            mp3_duration_ms = mp3.duration_ms(full_audio_file)
+            mp3_duration_ms = mp3.duration(full_audio_file)
         except IOError:
             print 'Could not determine duration of MP3 file!'
             return 1

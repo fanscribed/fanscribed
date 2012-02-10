@@ -4,13 +4,16 @@ import json
 import os
 import re
 import unicodedata
+import urlparse
 
 import git
 
+from pyramid.httpexceptions import HTTPFound
 from pyramid.response import Response
 from pyramid.threadlocal import get_current_registry
 from pyramid.view import view_config
 
+from fanscribed import mp3
 from fanscribed import repos
 
 
@@ -532,3 +535,38 @@ def cancel_review(request):
         index.commit('review: cancel')
     # return empty indicating success
     return Response('', content_type='text/plain')
+
+
+@view_config(
+    request_method='GET',
+    route_name='snippet_mp3',
+    context='fanscribed:resources.Root',
+)
+def snippet_mp3(request):
+    # Get information needed from settings and repository.
+    registry = get_current_registry()
+    settings = registry.settings
+    full_mp3 = os.path.join(
+        settings['fanscribed.audio'],
+        '{0}.mp3'.format(request.host),
+    )
+    repo = repos.repo_from_request(request)
+    transcription_info = repos.transcription_info(repo.tree('master'))
+    duration = transcription_info['duration']
+    snippet_cache = settings['fanscribed.snippet_cache']
+    snippet_url_prefix = settings['fanscribed.snippet_url_prefix']
+    # Get information needed from GET params.
+    starting_point = int(request.GET.getone('starting_point'))
+    length = int(request.GET.getone('length'))
+    padding = int(request.GET.getone('padding'))
+    snippet_path = mp3.snippet_path(
+        full_mp3=full_mp3,
+        duration=duration,
+        output_path=snippet_cache,
+        starting_point=starting_point,
+        length=length,
+        padding=padding,
+    )
+    relative_path = os.path.relpath(snippet_path, snippet_cache)
+    snippet_url = urlparse.urljoin(snippet_url_prefix, relative_path)
+    raise HTTPFound(location=snippet_url)
