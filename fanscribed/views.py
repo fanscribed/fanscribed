@@ -304,14 +304,24 @@ def snippet_info(request):
 def _banned_message(request):
     """Returns a reason why you're banned, or None if you're not banned."""
     ip_address = request.headers.get('X-Forwarded-For', request.remote_addr).strip()
-    bans_filename = _settings().get('fanscribed.ip_address_bans')
-    if bans_filename:
-        with open(bans_filename, 'rU') as f:
+    ip_bans_filename = _settings().get('fanscribed.ip_address_bans')
+    email = request.POST.get('identity_email')
+    if ip_bans_filename:
+        with open(ip_bans_filename, 'rU') as f:
             for line in f.readlines():
                 if ';' in line:
                     candidate_ip_address, reason = line.strip().split(';', 1)
                     if ip_address == candidate_ip_address:
                         return reason.strip()
+    if email:
+        email_bans_filename = _settings().get('fanscribed.email_bans')
+        if email_bans_filename:
+            with open(email_bans_filename, 'rU') as f:
+                for line in f.readlines():
+                    if ';' in line:
+                        candidate_email, reason = line.strip().split(';', 1)
+                        if email == candidate_email:
+                            return reason.strip()
 
 
 @view_config(

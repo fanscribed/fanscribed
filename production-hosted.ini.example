@@ -7,6 +7,7 @@ fanscribed.snippet_cache = %(here)s/fanscribed/static/snippets/
 fanscribed.snippet_url_prefix = /static/snippets/
 fanscribed.snippet_seconds = 30
 fanscribed.snippet_padding_seconds = 2.5
+fanscribed.email_bans = %(here)s/../email_bans.txt
 fanscribed.ip_address_bans = %(here)s/../ip_address_bans.txt
 
 [server:main]
