@@ -7,12 +7,13 @@ import subprocess
 import time
 
 
+MP3SPLT = 'mp3splt' # may be overridden
 TOTAL_TIME_RE = re.compile(r'.*Total time: (\d+)m.(\d+)s')
 
 
 def duration(filename):
     """Return the approximate duration, in milliseconds, of the given MP3 file."""
-    mp3splt_output = subprocess.check_output(['mp3splt', '-qPft', '0.30.00', filename])
+    mp3splt_output = subprocess.check_output([MP3SPLT, '-qPft', '0.30.00', filename])
     duration = None
     for line in mp3splt_output.splitlines():
         match = TOTAL_TIME_RE.match(line)
@@ -61,7 +62,7 @@ def snippet_path(full_mp3, duration, output_path, starting_point, length, paddin
         return output_filename
     else:
         subprocess.call([
-            'mp3splt',
+            MP3SPLT,
             '-Qf',
             '-d', output_path,
             '-o', hash,

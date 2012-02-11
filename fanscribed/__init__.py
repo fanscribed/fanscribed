@@ -1,10 +1,16 @@
 from pyramid.config import Configurator
 
+import fanscribed.mp3
 from fanscribed.resources import Root
+
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
+    # Override mp3splt location as needed.
+    if 'fanscribed.mp3splt' in settings:
+        fanscribed.mp3.MP3SPLT = settings['fanscribed.mp3splt']
+        
     config = Configurator(root_factory=Root, settings=settings)
 
     # Routes
