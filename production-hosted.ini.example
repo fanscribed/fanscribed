@@ -1,6 +1,7 @@
 [app:main]
 use = config:production.ini
 fanscribed.audio = %(here)s/../audio
+fanscribed.cache = %(here)s/../cache
 fanscribed.repos = %(here)s/../repos
 fanscribed.repo_templates = %(here)s/../repo_templates
 fanscribed.snippet_cache = %(here)s/fanscribed/static/snippets/

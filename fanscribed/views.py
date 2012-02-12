@@ -9,10 +9,13 @@ import urlparse
 import git
 
 from pyramid.httpexceptions import HTTPFound
+from pyramid.renderers import render
 from pyramid.response import Response
 from pyramid.threadlocal import get_current_registry
 from pyramid.view import view_config
 
+from fanscribed import cache
+from fanscribed.common import app_settings
 from fanscribed import mp3
 from fanscribed import repos
 
@@ -95,12 +98,8 @@ def _slugify(text):
     )
 
 
-def _settings():
-    return get_current_registry().settings
-
-
 def _snippet_ms():
-    snippet_seconds = int(_settings()['fanscribed.snippet_seconds'])
+    snippet_seconds = int(app_settings()['fanscribed.snippet_seconds'])
     return snippet_seconds * 1000
 
 
@@ -172,34 +171,41 @@ def edit(request):
     request_method='GET',
     route_name='view',
     context='fanscribed:resources.Root',
-    renderer='fanscribed:templates/view.mako',
 )
 def view(request):
     repo = repos.repo_from_request(request)
-    master = repo.tree('master')
-    transcription_info = repos.transcription_info(master)
-    raw_snippets = {}
-    for obj in master:
-        if isinstance(obj, git.Blob):
-            name, ext = os.path.splitext(obj.name)
-            if ext == '.txt':
-                try:
-                    starting_point = int(name)
-                except ValueError:
-                    pass
-                else:
-                    raw_snippets[starting_point] = obj.data_stream.read().decode('utf8')
-    # Go through all snippets, whether they've been transcribed or not.
-    snippets = []
-    speakers_map = repos.speakers_map(master)
-    for starting_point in range(0, transcription_info['duration'], _snippet_ms()):
-        text = raw_snippets.get(starting_point, '').strip()
-        lines = _split_lines_and_expand_abbreviations(text, speakers_map)
-        snippets.append((starting_point, lines))
-    return dict(
-        _standard_response(repo, master),
-        snippets=sorted(snippets),
-    )
+    # Return cached if found.
+    cache_key = repo.head.commit.hexsha
+    content, mtime = cache.get_cached_content(cache_key)
+    if content is None:
+        mtime = repo.head.commit.authored_date
+        master = repo.tree('master')
+        transcription_info = repos.transcription_info(master)
+        raw_snippets = {}
+        for obj in master:
+            if isinstance(obj, git.Blob):
+                name, ext = os.path.splitext(obj.name)
+                if ext == '.txt':
+                    try:
+                        starting_point = int(name)
+                    except ValueError:
+                        pass
+                    else:
+                        raw_snippets[starting_point] = obj.data_stream.read().decode('utf8')
+        # Go through all snippets, whether they've been transcribed or not.
+        snippets = []
+        speakers_map = repos.speakers_map(master)
+        for starting_point in range(0, transcription_info['duration'], _snippet_ms()):
+            text = raw_snippets.get(starting_point, '').strip()
+            lines = _split_lines_and_expand_abbreviations(text, speakers_map)
+            snippets.append((starting_point, lines))
+        data = dict(
+            _standard_response(repo, master),
+            snippets=sorted(snippets),
+        )
+        content = render('fanscribed:templates/view.mako', data, request=request)
+        cache.cache_content(cache_key, content, mtime)
+    return Response(content, date=mtime)
 
 
 @view_config(
@@ -263,7 +269,7 @@ def transcription_json(request):
     master = repo.tree('master')
     info = repos.transcription_info(master)
     # Inject additional information into the info dict.
-    settings = _settings()
+    settings = app_settings()
     info['snippet_ms'] = int(settings['fanscribed.snippet_seconds']) * 1000
     info['snippet_padding_ms'] = int(float(settings['fanscribed.snippet_padding_seconds']) * 1000)
     return Response(body=json.dumps(info), content_type='application/json')
@@ -305,7 +311,7 @@ def snippet_info(request):
 def _banned_message(request):
     """Returns a reason why you're banned, or None if you're not banned."""
     ip_address = request.headers.get('X-Forwarded-For', request.remote_addr).strip()
-    ip_bans_filename = _settings().get('fanscribed.ip_address_bans')
+    ip_bans_filename = app_settings().get('fanscribed.ip_address_bans')
     email = request.POST.get('identity_email')
     if ip_bans_filename:
         with open(ip_bans_filename, 'rU') as f:
@@ -315,7 +321,7 @@ def _banned_message(request):
                     if ip_address == candidate_ip_address:
                         return reason.strip()
     if email:
-        email_bans_filename = _settings().get('fanscribed.email_bans')
+        email_bans_filename = app_settings().get('fanscribed.email_bans')
         if email_bans_filename:
             with open(email_bans_filename, 'rU') as f:
                 for line in f.readlines():
@@ -556,7 +562,7 @@ def cancel_review(request):
 )
 def snippet_mp3(request):
     # Get information needed from settings and repository.
-    settings = _settings()
+    settings = app_settings()
     full_mp3 = os.path.join(
         settings['fanscribed.audio'],
         '{0}.mp3'.format(request.host),

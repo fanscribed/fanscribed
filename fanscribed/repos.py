@@ -7,7 +7,7 @@ import time
 
 import git
 
-from pyramid.threadlocal import get_current_registry
+from fanscribed.common import app_settings
 
 
 # Twenty minute lock timeout.
@@ -25,17 +25,13 @@ def _lock_secret():
     return ''.join(random.choice(string.letters) for x in xrange(16))
 
 
-def _settings():
-    return get_current_registry().settings
-
-
 def _snippet_ms():
-    snippet_seconds = int(_settings()['fanscribed.snippet_seconds'])
+    snippet_seconds = int(app_settings()['fanscribed.snippet_seconds'])
     return snippet_seconds * 1000
 
 
 def repo_from_request(request):
-    repos_path = _settings()['fanscribed.repos']
+    repos_path = app_settings()['fanscribed.repos']
     repo_path = os.path.join(repos_path, request.host)
     # Make sure repo path is underneath outer repos path.
     assert '..' not in os.path.relpath(repo_path, repos_path)
