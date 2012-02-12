@@ -8,7 +8,7 @@
   <link rel="shortcut icon" href="${request.static_url('fanscribed:static/favicon.ico')}?2012012401" />
   <link rel="stylesheet" href="${request.static_url('fanscribed:static/fanscribed.css')}?2012021002" type="text/css" media="screen" charset="utf-8" />
   % if custom_css_revision:
-    <link rel="stylesheet" href="${request.route_path('custom_css')}?${custom_css_revision}" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" href="${request.route_path('custom_css')}?${custom_css_revision}${'&rev={0}'.format(request.GET.get('rev')) if request.GET.get('rev') else ''}" type="text/css" media="screen" charset="utf-8" />
   % endif
   <!--[if lte IE 6]>
   <link rel="stylesheet" href="${request.static_url('fanscribed:static/ie6.css')}?2012012401" type="text/css" media="screen" charset="utf-8" />
