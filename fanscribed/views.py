@@ -585,10 +585,10 @@ def snippet_mp3(request):
 
 @view_config(
     request_method='GET',
-    route_name='snippets_updated',
+    route_name='updated',
     context='fanscribed:resources.Root',
 )
-def snippets_updated(request):
+def updated(request):
     """Return formatted snippets that have been updated since the given revision."""
     repo = repos.repo_from_request(request)
     since_revision = request.GET.getone('since')
