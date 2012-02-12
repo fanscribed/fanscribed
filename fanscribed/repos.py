@@ -30,12 +30,22 @@ def _snippet_ms():
     return snippet_seconds * 1000
 
 
-def repo_from_request(request):
+def repo_from_request(request, rev=None):
+    """Return the repository and commit based on the request.
+
+    The host of the request is inspected to determine the repository.
+    The 'rev' GET param is used to determine the commit (default: master).
+    """
     repos_path = app_settings()['fanscribed.repos']
     repo_path = os.path.join(repos_path, request.host)
     # Make sure repo path is underneath outer repos path.
     assert '..' not in os.path.relpath(repo_path, repos_path)
-    return git.Repo(repo_path)
+    repo = git.Repo(repo_path)
+    # Only get rev from user if not specified in function call.
+    if rev is None:
+        rev = request.GET.get('rev', 'master')
+    commit = repo.commit(rev)
+    return (repo, commit)
 
 
 def latest_revision(repo):
@@ -47,13 +57,15 @@ def transcription_info(tree):
     return json.load(blob.data_stream)
 
 
-def custom_css(tree):
+def custom_css(repo, commit='master'):
+    tree = repo.tree(commit)
     if 'custom.css' in tree:
+        mtime = repo.iter_commits(commit, 'custom.css').next().authored_date
         blob = tree['custom.css']
-        return blob.data_stream.read().decode('utf8')
+        return (blob.data_stream.read().decode('utf8'), mtime)
     else:
         # Not yet created.
-        return ''
+        return ('', None)
 
 
 def custom_css_revision(repo):

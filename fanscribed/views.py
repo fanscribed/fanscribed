@@ -8,7 +8,7 @@ import urlparse
 
 import git
 
-from pyramid.httpexceptions import HTTPFound
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.renderers import render
 from pyramid.response import Response
 from pyramid.threadlocal import get_current_registry
@@ -132,7 +132,8 @@ def _split_lines_and_expand_abbreviations(text, speakers_map):
     return lines
 
 
-def _standard_response(repo, tree):
+def _standard_response(repo, commit):
+    tree = commit.tree
     transcription_info = repos.transcription_info(tree)
     return dict(
         _progress_dicts(tree, transcription_info),
@@ -160,10 +161,9 @@ def robots_txt(request):
     renderer='fanscribed:templates/edit.mako',
 )
 def edit(request):
-    repo = repos.repo_from_request(request)
-    master = repo.tree('master')
+    repo, commit = repos.repo_from_request(request, rev='master')
     return dict(
-        _standard_response(repo, master),
+        _standard_response(repo, commit),
     )
 
 
@@ -173,16 +173,16 @@ def edit(request):
     context='fanscribed:resources.Root',
 )
 def view(request):
-    repo = repos.repo_from_request(request)
+    repo, commit = repos.repo_from_request(request)
     # Return cached if found.
-    cache_key = repo.head.commit.hexsha
+    cache_key = commit.hexsha
     content, mtime = cache.get_cached_content(cache_key)
     if content is None:
-        mtime = repo.head.commit.authored_date
-        master = repo.tree('master')
-        transcription_info = repos.transcription_info(master)
+        mtime = commit.authored_date
+        tree = commit.tree
+        transcription_info = repos.transcription_info(tree)
         raw_snippets = {}
-        for obj in master:
+        for obj in tree:
             if isinstance(obj, git.Blob):
                 name, ext = os.path.splitext(obj.name)
                 if ext == '.txt':
@@ -194,13 +194,13 @@ def view(request):
                         raw_snippets[starting_point] = obj.data_stream.read().decode('utf8')
         # Go through all snippets, whether they've been transcribed or not.
         snippets = []
-        speakers_map = repos.speakers_map(master)
+        speakers_map = repos.speakers_map(tree)
         for starting_point in range(0, transcription_info['duration'], _snippet_ms()):
             text = raw_snippets.get(starting_point, '').strip()
             lines = _split_lines_and_expand_abbreviations(text, speakers_map)
             snippets.append((starting_point, lines))
         data = dict(
-            _standard_response(repo, master),
+            _standard_response(repo, commit),
             snippets=sorted(snippets),
         )
         content = render('fanscribed:templates/view.mako', data, request=request)
@@ -214,10 +214,16 @@ def view(request):
     context='fanscribed:resources.Root',
 )
 def custom_css(request):
-    repo = repos.repo_from_request(request)
-    master = repo.tree('master')
-    text = repos.custom_css(master)
-    return Response(text, content_type='text/css')
+    repo, commit = repos.repo_from_request(request)
+    tree = commit.tree
+    if 'custom.css' in tree:
+        mtime = repo.iter_commits(commit, 'custom.css').next().authored_date
+        blob = tree['custom.css']
+        content = blob.data_stream.read().decode('utf8')
+        return Response(content, date=mtime, content_type='text/css')
+    else:
+        # Not yet created.
+        raise HTTPNotFound()
 
 
 @view_config(
@@ -226,9 +232,9 @@ def custom_css(request):
     context='fanscribed:resources.Root',
 )
 def speakers_txt(request):
-    repo = repos.repo_from_request(request)
-    master = repo.tree('master')
-    text = repos.speakers_text(master)
+    repo, commit = repos.repo_from_request(request)
+    tree = commit.tree
+    text = repos.speakers_text(tree)
     return Response(text, content_type='text/plain')
 
 
@@ -242,7 +248,7 @@ def post_speakers_txt(request):
     identity_name = request.POST.getone('identity_name')
     identity_email = request.POST.getone('identity_email')
     # Save transcription info.
-    repo = repos.repo_from_request(request)
+    repo, commit = repos.repo_from_request(request, rev='master')
     with repos.commit_lock:
         repo.heads['master'].checkout()
         index = repo.index
@@ -254,8 +260,8 @@ def post_speakers_txt(request):
         os.environ['GIT_AUTHOR_EMAIL'] = identity_email
         index.commit('speakers: save')
     # Reload from repo and serve it up.
-    master = repo.tree('master')
-    text = repos.speakers_text(master)
+    tree = commit.tree
+    text = repos.speakers_text(tree)
     return Response(text, content_type='text/plain')
 
 
@@ -265,9 +271,9 @@ def post_speakers_txt(request):
     context='fanscribed:resources.Root',
 )
 def transcription_json(request):
-    repo = repos.repo_from_request(request)
-    master = repo.tree('master')
-    info = repos.transcription_info(master)
+    repo, commit = repos.repo_from_request(request)
+    tree = commit.tree
+    info = repos.transcription_info(tree)
     # Inject additional information into the info dict.
     settings = app_settings()
     info['snippet_ms'] = int(settings['fanscribed.snippet_seconds']) * 1000
@@ -281,10 +287,10 @@ def transcription_json(request):
     context='fanscribed:resources.Root',
 )
 def progress(request):
-    repo = repos.repo_from_request(request)
-    master = repo.tree('master')
-    info = repos.transcription_info(master)
-    return Response(body=json.dumps(_progress_dicts(master, info)), content_type='application/json')
+    repo, commit = repos.repo_from_request(request)
+    tree = commit.tree
+    info = repos.transcription_info(tree)
+    return Response(body=json.dumps(_progress_dicts(tree, info)), content_type='application/json')
 
 
 @view_config(
@@ -293,11 +299,11 @@ def progress(request):
     context='fanscribed:resources.Root',
 )
 def snippet_info(request):
+    repo, commit = repos.repo_from_request(request)
     starting_point = int(request.GET.getone('starting_point'))
     filename = '{0:016d}.txt'.format(starting_point)
-    repo = repos.repo_from_request(request)
     contributor_list = []
-    for commit in repo.iter_commits('master', paths=filename):
+    for commit in repo.iter_commits(commit, paths=filename):
         contributor = dict(author_name=commit.author.name)
         if contributor not in contributor_list:
             contributor_list.append(contributor)
@@ -353,7 +359,7 @@ def lock_snippet(request):
     if desired_starting_point is not None:
         desired_starting_point = int(desired_starting_point)
     with repos.commit_lock:
-        repo = repos.repo_from_request(request)
+        repo, commit = repos.repo_from_request(request, rev='master')
         index = repo.index
         # find and lock available snippet
         starting_point, lock_secret_or_message = repos.lock_available_snippet(repo, index, desired_starting_point)
@@ -400,7 +406,8 @@ def lock_review(request):
     identity_name = request.POST.getone('identity_name')
     identity_email = request.POST.getone('identity_email')
     with repos.commit_lock:
-        repo = repos.repo_from_request(request)
+        # Ignore commit; we want to save to master.
+        repo, commit = repos.repo_from_request(request, rev='master')
         index = repo.index
         # find and lock available review
         starting_point, lock_secret_or_message = repos.lock_available_review(repo, index)
@@ -446,7 +453,8 @@ def save_snippet(request):
     inline = request.POST.get('inline') == '1'
     with repos.commit_lock:
         # find and validate the lock
-        repo = repos.repo_from_request(request)
+        # Ignore commit; we want to save to master.
+        repo, commit = repos.repo_from_request(request, rev='master')
         index = repo.index
         if not repos.lock_is_valid(repo, index, 'snippet', starting_point, lock_secret):
             raise ValueError('Invalid lock')
@@ -482,7 +490,8 @@ def save_review(request):
     review_text_2 = request.POST.getone('review_text_2')
     with repos.commit_lock:
         # find and validate the lock
-        repo = repos.repo_from_request(request)
+        # Ignore commit; we want to save to master.
+        repo, commit = repos.repo_from_request(request, rev='master')
         index = repo.index
         if not repos.lock_is_valid(repo, index, 'review', starting_point, lock_secret):
             raise ValueError('Invalid lock')
@@ -514,7 +523,8 @@ def cancel_snippet(request):
     identity_email = request.POST.getone('identity_email')
     with repos.commit_lock:
         # find and validate the lock
-        repo = repos.repo_from_request(request)
+        # Ignore commit; we want to save to master.
+        repo, commit = repos.repo_from_request(request, rev='master')
         index = repo.index
         if not repos.lock_is_valid(repo, index, 'snippet', starting_point, lock_secret):
             raise ValueError('Invalid lock')
@@ -541,7 +551,8 @@ def cancel_review(request):
     identity_email = request.POST.getone('identity_email')
     with repos.commit_lock:
         # find and validate the lock
-        repo = repos.repo_from_request(request)
+        # Ignore commit; we want to save to master.
+        repo, commit = repos.repo_from_request(request, rev='master')
         index = repo.index
         if not repos.lock_is_valid(repo, index, 'review', starting_point, lock_secret):
             raise ValueError('Invalid lock')
@@ -561,14 +572,14 @@ def cancel_review(request):
     context='fanscribed:resources.Root',
 )
 def snippet_mp3(request):
+    repo, commit = repos.repo_from_request(request)
     # Get information needed from settings and repository.
     settings = app_settings()
     full_mp3 = os.path.join(
         settings['fanscribed.audio'],
         '{0}.mp3'.format(request.host),
     )
-    repo = repos.repo_from_request(request)
-    transcription_info = repos.transcription_info(repo.tree('master'))
+    transcription_info = repos.transcription_info(commit.tree)
     duration = transcription_info['duration']
     snippet_cache = settings['fanscribed.snippet_cache']
     snippet_url_prefix = settings['fanscribed.snippet_url_prefix']
@@ -596,11 +607,11 @@ def snippet_mp3(request):
 )
 def updated(request):
     """Return formatted snippets that have been updated since the given revision."""
-    repo = repos.repo_from_request(request)
-    since_revision = request.GET.getone('since')
-    since_commit = repo.commit(since_revision)
+    repo, request_commit = repos.repo_from_request(request)
+    since_rev = request.GET.getone('since')
+    since_commit = repo.commit(since_rev)
     files_updated = set()
-    for commit in repo.iter_commits('master'):
+    for commit in repo.iter_commits(request_commit):
         # Have we reached the end?
         if commit == since_commit:
             break
@@ -608,15 +619,15 @@ def updated(request):
         for filename in commit.stats.files:
             if len(filename) == 20 and filename.endswith('.txt'):
                 files_updated.add(filename)
-    master = repo.tree('master')
-    speakers_map = repos.speakers_map(master)
+    tree = request_commit.tree
+    speakers_map = repos.speakers_map(tree)
     snippets = []
     for filename in files_updated:
         starting_point = int(filename[:16])
         snippet = dict(
             starting_point=starting_point,
         )
-        text = master[filename].data_stream.read().strip()
+        text = tree[filename].data_stream.read().strip()
         snippet['lines'] = _split_lines_and_expand_abbreviations(text, speakers_map)
         snippets.append(snippet)
     data = dict(

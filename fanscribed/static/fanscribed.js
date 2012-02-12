@@ -38,7 +38,7 @@ var common_onload = function () {
     set_default_player_preferences();
     fill_player_preferences();
     fill_identity();
-    check_identity();
+    check_identity_and_rev();
     player_enable();
     player_shortcuts_enable();
 };
@@ -69,14 +69,16 @@ var save_identity = function () {
     $('#identity-saved').text('Saved!');
     var clear = function () { $('#identity-saved').text(''); };
     window.setTimeout(clear, 1000);
-    check_identity();
+    check_identity_and_rev();
     return false;
 };
 
 
 // update UI elements based on whether identity found.
-var check_identity = function () {
-    if (has_identity(false)) {
+// if rev not specified or is not 'master', assume anonymous identity and present read-only behavior.
+var check_identity_and_rev = function () {
+    var rev_is_master = !url_params.rev || url_params.rev == 'master';
+    if (has_identity(false) && rev_is_master) {
         // enable UI needing identity
         $('.needs-identity').removeClass('no-identity');
         $('.needs-unset-identity').addClass('no-unset-identity');
