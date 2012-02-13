@@ -52,9 +52,11 @@ def latest_revision(repo):
     return repo.iter_commits('master').next().hexsha
 
 
-def transcription_info(tree):
+def transcription_info(repo, commit):
+    tree = commit.tree
     blob = tree['transcription.json']
-    return json.load(blob.data_stream)
+    mtime = repo.iter_commits(commit, 'transcription.json').next().authored_date
+    return json.load(blob.data_stream), mtime
 
 
 def custom_css(repo, commit='master'):
@@ -77,17 +79,20 @@ def custom_css_revision(repo):
         return commit.hexsha
 
 
-def speakers_text(tree):
+def speakers_text(repo, commit):
+    tree = commit.tree
     if 'speakers.txt' in tree:
         blob = tree['speakers.txt']
-        return blob.data_stream.read().decode('utf8')
+        content = blob.data_stream.read().decode('utf8')
+        mtime = repo.iter_commits(commit, 'speakers.txt').next().authored_date
+        return (content, mtime)
     else:
         # Not yet created.
-        return ''
+        return ('', None)
 
 
-def speakers_map(tree):
-    text = speakers_text(tree)
+def speakers_map(repo, commit):
+    text, mtime = speakers_text(repo, commit)
     d = {}
     for line in text.splitlines():
         if ';' in line:

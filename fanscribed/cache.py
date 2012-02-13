@@ -23,10 +23,8 @@ def get_cached_content(key):
     content_path = os.path.join(_cache_path(), hashed_key)
     try:
         with open(content_path, 'rb') as f:
-            print 'Cache: {0} hit'.format(key)
             return f.read(), os.fstat(f.fileno()).st_mtime
     except IOError:
-        print 'Cache: {0} miss'.format(key)
         return None, None
 
 

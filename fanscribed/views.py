@@ -134,12 +134,12 @@ def _split_lines_and_expand_abbreviations(text, speakers_map):
 
 def _standard_response(repo, commit):
     tree = commit.tree
-    transcription_info = repos.transcription_info(tree)
+    transcription_info, _ = repos.transcription_info(repo, commit)
     return dict(
         _progress_dicts(tree, transcription_info),
         latest_revision=repos.latest_revision(repo),
         custom_css_revision=repos.custom_css_revision(repo),
-        speakers=repos.speakers_text(tree),
+        speakers=repos.speakers_text(repo, commit)[0],
         transcription_info=transcription_info,
         transcription_info_json=json.dumps(transcription_info),
     )
@@ -175,12 +175,12 @@ def edit(request):
 def view(request):
     repo, commit = repos.repo_from_request(request)
     # Return cached if found.
-    cache_key = commit.hexsha
+    cache_key = 'view-{0}'.format(commit.hexsha)
     content, mtime = cache.get_cached_content(cache_key)
     if content is None:
         mtime = commit.authored_date
         tree = commit.tree
-        transcription_info = repos.transcription_info(tree)
+        transcription_info, _ = repos.transcription_info(repo, commit)
         raw_snippets = {}
         for obj in tree:
             if isinstance(obj, git.Blob):
@@ -194,7 +194,7 @@ def view(request):
                         raw_snippets[starting_point] = obj.data_stream.read().decode('utf8')
         # Go through all snippets, whether they've been transcribed or not.
         snippets = []
-        speakers_map = repos.speakers_map(tree)
+        speakers_map = repos.speakers_map(repo, commit)
         for starting_point in range(0, transcription_info['duration'], _snippet_ms()):
             text = raw_snippets.get(starting_point, '').strip()
             lines = _split_lines_and_expand_abbreviations(text, speakers_map)
@@ -214,6 +214,7 @@ def view(request):
     context='fanscribed:resources.Root',
 )
 def custom_css(request):
+    # No rendering or processing, no need to cache.
     repo, commit = repos.repo_from_request(request)
     tree = commit.tree
     if 'custom.css' in tree:
@@ -232,10 +233,10 @@ def custom_css(request):
     context='fanscribed:resources.Root',
 )
 def speakers_txt(request):
+    # No rendering or processing, no need to cache.
     repo, commit = repos.repo_from_request(request)
-    tree = commit.tree
-    text = repos.speakers_text(tree)
-    return Response(text, content_type='text/plain')
+    text, mtime = repos.speakers_text(repo, commit)
+    return Response(text, content_type='text/plain', date=mtime)
 
 
 @view_config(
@@ -260,9 +261,8 @@ def post_speakers_txt(request):
         os.environ['GIT_AUTHOR_EMAIL'] = identity_email
         index.commit('speakers: save')
     # Reload from repo and serve it up.
-    tree = commit.tree
-    text = repos.speakers_text(tree)
-    return Response(text, content_type='text/plain')
+    text, mtime = repos.speakers_text(repo, commit)
+    return Response(text, content_type='text/plain', date=mtime)
 
 
 @view_config(
@@ -271,9 +271,9 @@ def post_speakers_txt(request):
     context='fanscribed:resources.Root',
 )
 def transcription_json(request):
+    # No rendering or processing, no need to cache.
     repo, commit = repos.repo_from_request(request)
-    tree = commit.tree
-    info = repos.transcription_info(tree)
+    info, mtime = repos.transcription_info(repo, commit)
     # Inject additional information into the info dict.
     settings = app_settings()
     info['snippet_ms'] = int(settings['fanscribed.snippet_seconds']) * 1000
@@ -288,9 +288,16 @@ def transcription_json(request):
 )
 def progress(request):
     repo, commit = repos.repo_from_request(request)
-    tree = commit.tree
-    info = repos.transcription_info(tree)
-    return Response(body=json.dumps(_progress_dicts(tree, info)), content_type='application/json')
+    # Return cached if found.
+    cache_key = 'progress-{0}'.format(commit.hexsha)
+    content, mtime = cache.get_cached_content(cache_key)
+    if content is None:
+        tree = commit.tree
+        info, _ = repos.transcription_info(repo, commit)
+        content = json.dumps(_progress_dicts(tree, info))
+        mtime = commit.authored_date
+        cache.cache_content(cache_key, content, mtime=mtime)
+    return Response(body=content, content_type='application/json', date=mtime)
 
 
 @view_config(
@@ -301,17 +308,28 @@ def progress(request):
 def snippet_info(request):
     repo, commit = repos.repo_from_request(request)
     starting_point = int(request.GET.getone('starting_point'))
-    filename = '{0:016d}.txt'.format(starting_point)
-    contributor_list = []
-    for commit in repo.iter_commits(commit, paths=filename):
-        contributor = dict(author_name=commit.author.name)
-        if contributor not in contributor_list:
-            contributor_list.append(contributor)
-    contributor_list.reverse()
-    info = dict(
-        contributor_list=contributor_list,
-    )
-    return Response(body=json.dumps(info), content_type='application/json')
+    # Return cached if found.
+    cache_key = 'snippet_info-{0}-{1}'.format(commit.hexsha, starting_point)
+    content, mtime = cache.get_cached_content(cache_key)
+    if content is None:
+        starting_point = int(request.GET.getone('starting_point'))
+        filename = '{0:016d}.txt'.format(starting_point)
+        contributor_list = []
+        mtime = None
+        for commit in repo.iter_commits(commit, paths=filename):
+            if mtime is None:
+                # Use the most recent modification time.
+                mtime = commit.authored_date
+            contributor = dict(author_name=commit.author.name)
+            if contributor not in contributor_list:
+                contributor_list.append(contributor)
+        contributor_list.reverse()
+        info = dict(
+            contributor_list=contributor_list,
+        )
+        content = json.dumps(info)
+        cache.cache_content(cache_key, content, mtime=mtime)
+    return Response(body=content, content_type='application/json', date=mtime)
 
 
 def _banned_message(request):
@@ -579,7 +597,7 @@ def snippet_mp3(request):
         settings['fanscribed.audio'],
         '{0}.mp3'.format(request.host),
     )
-    transcription_info = repos.transcription_info(commit.tree)
+    transcription_info, _ = repos.transcription_info(repo, commit)
     duration = transcription_info['duration']
     snippet_cache = settings['fanscribed.snippet_cache']
     snippet_url_prefix = settings['fanscribed.snippet_url_prefix']
@@ -609,29 +627,36 @@ def updated(request):
     """Return formatted snippets that have been updated since the given revision."""
     repo, request_commit = repos.repo_from_request(request)
     since_rev = request.GET.getone('since')
-    since_commit = repo.commit(since_rev)
-    files_updated = set()
-    for commit in repo.iter_commits(request_commit):
-        # Have we reached the end?
-        if commit == since_commit:
-            break
-        # Look for snippet changes.
-        for filename in commit.stats.files:
-            if len(filename) == 20 and filename.endswith('.txt'):
-                files_updated.add(filename)
-    tree = request_commit.tree
-    speakers_map = repos.speakers_map(tree)
-    snippets = []
-    for filename in files_updated:
-        starting_point = int(filename[:16])
-        snippet = dict(
-            starting_point=starting_point,
+    # Return cached if found.
+    cache_key = 'updated-{0}-{1}'.format(request_commit.hexsha, since_rev)
+    content, mtime = cache.get_cached_content(cache_key)
+    if content is None:
+        since_commit = repo.commit(since_rev)
+        files_updated = set()
+        for commit in repo.iter_commits(request_commit):
+            # Have we reached the end?
+            if commit == since_commit:
+                break
+            # Look for snippet changes.
+            for filename in commit.stats.files:
+                if len(filename) == 20 and filename.endswith('.txt'):
+                    files_updated.add(filename)
+        tree = request_commit.tree
+        speakers_map = repos.speakers_map(repo, request_commit)
+        snippets = []
+        for filename in files_updated:
+            starting_point = int(filename[:16])
+            snippet = dict(
+                starting_point=starting_point,
+            )
+            text = tree[filename].data_stream.read().strip()
+            snippet['lines'] = _split_lines_and_expand_abbreviations(text, speakers_map)
+            snippets.append(snippet)
+        data = dict(
+            latest_revision=repos.latest_revision(repo),
+            snippets=snippets,
         )
-        text = tree[filename].data_stream.read().strip()
-        snippet['lines'] = _split_lines_and_expand_abbreviations(text, speakers_map)
-        snippets.append(snippet)
-    data = dict(
-        latest_revision=repos.latest_revision(repo),
-        snippets=snippets,
-    )
-    return Response(json.dumps(data), content_type='application/json')
+        content = json.dumps(data)
+        mtime = request_commit.authored_date
+        cache.cache_content(cache_key, content, mtime)
+    return Response(content, content_type='application/json', date=mtime)

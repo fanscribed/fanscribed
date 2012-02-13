@@ -763,25 +763,6 @@ var player_auto_play_edit_changed = function () {
 // server
 
 
-var request_and_fill_about = function () {
-    $.getJSON(
-        // url
-        '/transcription.json',
-        // success
-        function (data) {
-            transcription = data;
-            $('#about-title')
-                .text(data.title)
-            ;
-            $('#about-audio')
-                .attr('href', data.audio_url)
-                .text(data.audio_url)
-            ;
-        }
-    );
-};
-
-
 var request_and_fill_speakers = function () {
     $.get(
         // url
@@ -799,7 +780,7 @@ var request_and_fill_speakers = function () {
 var request_and_fill_progress = function () {
     $.getJSON(
         // url
-        '/progress',
+        '/progress' + (url_params.rev ? '?rev=' + url_params.rev : ''),
         // success
         function (data) {
             $('#snippets-progress-percent')
@@ -826,7 +807,7 @@ var request_and_fill_progress = function () {
 var request_and_update_snippets = function () {
     $.getJSON(
         // url
-        '/updated?since=' + latest_revision,
+        '/updated?since=' + latest_revision + (url_params.rev ? '&rev=' + url_params.rev : ''),
         // success
         function (data) {
             // update latest revision to what server gave.
@@ -905,7 +886,7 @@ var stop_updating_snippets = function () {
 var show_snippet_info = function (anchor, starting_point) {
     $.getJSON(
         // url
-        '/snippet_info',
+        '/snippet_info' + (url_params.rev ? '?rev=' + url_params.rev : ''),
         // data
         {
             starting_point: starting_point
