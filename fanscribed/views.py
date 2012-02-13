@@ -139,6 +139,7 @@ def _standard_response(repo, commit):
         _progress_dicts(tree, transcription_info),
         latest_revision=repos.latest_revision(repo),
         custom_css_revision=repos.custom_css_revision(repo),
+        custom_js_revision=repos.custom_js_revision(repo),
         speakers=repos.speakers_text(repo, commit)[0],
         transcription_info=transcription_info,
         transcription_info_json=json.dumps(transcription_info),
@@ -243,6 +244,30 @@ def custom_css(request):
         blob = tree['custom.css']
         content = blob.data_stream.read().decode('utf8')
         return Response(content, date=mtime, content_type='text/css')
+    else:
+        # Not yet created.
+        raise HTTPNotFound()
+
+
+@view_config(
+    request_method='GET',
+    route_name='custom_js',
+    context='fanscribed:resources.Root',
+)
+@view_config(
+    request_method='HEAD',
+    route_name='custom_js',
+    context='fanscribed:resources.Root',
+)
+def custom_js(request):
+    # No rendering or processing, no need to cache.
+    repo, commit = repos.repo_from_request(request)
+    tree = commit.tree
+    if 'custom.js' in tree:
+        mtime = repo.iter_commits(commit, 'custom.js').next().authored_date
+        blob = tree['custom.js']
+        content = blob.data_stream.read().decode('utf8')
+        return Response(content, date=mtime, content_type='text/javascript')
     else:
         # Not yet created.
         raise HTTPNotFound()

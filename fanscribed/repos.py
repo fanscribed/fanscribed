@@ -59,20 +59,18 @@ def transcription_info(repo, commit):
     return json.load(blob.data_stream), mtime
 
 
-def custom_css(repo, commit='master'):
-    tree = repo.tree(commit)
-    if 'custom.css' in tree:
-        mtime = repo.iter_commits(commit, 'custom.css').next().authored_date
-        blob = tree['custom.css']
-        return (blob.data_stream.read().decode('utf8'), mtime)
-    else:
-        # Not yet created.
-        return ('', None)
-
-
 def custom_css_revision(repo):
     try:
         commit = repo.iter_commits('master', 'custom.css').next()
+    except StopIteration:
+        return None
+    else:
+        return commit.hexsha
+
+
+def custom_js_revision(repo):
+    try:
+        commit = repo.iter_commits('master', 'custom.js').next()
     except StopIteration:
         return None
     else:
