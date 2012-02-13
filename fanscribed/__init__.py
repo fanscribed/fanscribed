@@ -16,7 +16,7 @@ def main(global_config, **settings):
     # Routes
     config.add_route('robots_txt', '/robots.txt')
 
-    config.add_route('view', '/')
+    config.add_route('read', '/')
     config.add_route('edit', '/edit')
 
     config.add_route('custom_css', '/custom.css')

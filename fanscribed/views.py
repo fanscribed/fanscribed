@@ -150,12 +150,23 @@ def _standard_response(repo, commit):
     route_name='robots_txt',
     context='fanscribed:resources.Root',
 )
+@view_config(
+    request_method='HEAD',
+    route_name='robots_txt',
+    context='fanscribed:resources.Root',
+)
 def robots_txt(request):
     return Response(ROBOTS_TXT, content_type='text/plain')
 
 
 @view_config(
     request_method='GET',
+    route_name='edit',
+    context='fanscribed:resources.Root',
+    renderer='fanscribed:templates/edit.mako',
+)
+@view_config(
+    request_method='HEAD',
     route_name='edit',
     context='fanscribed:resources.Root',
     renderer='fanscribed:templates/edit.mako',
@@ -169,10 +180,15 @@ def edit(request):
 
 @view_config(
     request_method='GET',
-    route_name='view',
+    route_name='read',
     context='fanscribed:resources.Root',
 )
-def view(request):
+@view_config(
+    request_method='HEAD',
+    route_name='read',
+    context='fanscribed:resources.Root',
+)
+def read(request):
     repo, commit = repos.repo_from_request(request)
     # Return cached if found.
     cache_key = 'view-{0}'.format(commit.hexsha)
@@ -213,6 +229,11 @@ def view(request):
     route_name='custom_css',
     context='fanscribed:resources.Root',
 )
+@view_config(
+    request_method='HEAD',
+    route_name='custom_css',
+    context='fanscribed:resources.Root',
+)
 def custom_css(request):
     # No rendering or processing, no need to cache.
     repo, commit = repos.repo_from_request(request)
@@ -229,6 +250,11 @@ def custom_css(request):
 
 @view_config(
     request_method='GET',
+    route_name='speakers_txt',
+    context='fanscribed:resources.Root',
+)
+@view_config(
+    request_method='HEAD',
     route_name='speakers_txt',
     context='fanscribed:resources.Root',
 )
@@ -270,6 +296,11 @@ def post_speakers_txt(request):
     route_name='transcription_json',
     context='fanscribed:resources.Root',
 )
+@view_config(
+    request_method='HEAD',
+    route_name='transcription_json',
+    context='fanscribed:resources.Root',
+)
 def transcription_json(request):
     # No rendering or processing, no need to cache.
     repo, commit = repos.repo_from_request(request)
@@ -283,6 +314,11 @@ def transcription_json(request):
 
 @view_config(
     request_method='GET',
+    route_name='progress',
+    context='fanscribed:resources.Root',
+)
+@view_config(
+    request_method='HEAD',
     route_name='progress',
     context='fanscribed:resources.Root',
 )
@@ -302,6 +338,11 @@ def progress(request):
 
 @view_config(
     request_method='GET',
+    route_name='snippet_info',
+    context='fanscribed:resources.Root',
+)
+@view_config(
+    request_method='HEAD',
     route_name='snippet_info',
     context='fanscribed:resources.Root',
 )
@@ -620,6 +661,11 @@ def snippet_mp3(request):
 
 @view_config(
     request_method='GET',
+    route_name='updated',
+    context='fanscribed:resources.Root',
+)
+@view_config(
+    request_method='HEAD',
     route_name='updated',
     context='fanscribed:resources.Root',
 )

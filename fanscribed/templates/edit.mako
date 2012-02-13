@@ -13,7 +13,7 @@
 </%def>
 
 <%def name="toolbar()">
-  <li class="tab view"><a href="${request.route_path('view')}" title="Read">Read</a></li>
+  <li class="tab view"><a href="${request.route_path('read')}" title="Read">Read</a></li>
   <li class="tab transcribe"><span>Transcribe</span></li>
 </%def>
 
