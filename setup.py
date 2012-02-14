@@ -11,6 +11,7 @@ requires = [
     'pyramid_debugtoolbar',
     'GitPython >= 0.3.2.RC1, < 0.4',
     'gitdb >= 0.5.4, < 0.6',
+    'gunicorn >= 0.13.4, < 0.14',
     'smmap >= 0.8.1, < 0.9',
     'async >= 0.6.1, < 0.7',
     'twiggy >= 0.4.4, < 0.5',
