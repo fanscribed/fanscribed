@@ -25,7 +25,7 @@ def main(global_config, **settings):
     config.add_route('snippet_info', '/snippet_info')
     config.add_route('speakers_txt', '/speakers.txt')
     config.add_route('transcription_json', '/transcription.json')
-    config.add_route('updated', '/updated')
+    config.add_route('snippets_updated', '/snippets_updated')
 
     config.add_route('lock_snippet', '/lock_snippet')
     config.add_route('save_snippet', '/save_snippet')

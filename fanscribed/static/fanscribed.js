@@ -807,7 +807,7 @@ var request_and_fill_progress = function () {
 var request_and_update_snippets = function () {
     $.getJSON(
         // url
-        '/updated?since=' + latest_revision + (url_params.rev ? '&rev=' + url_params.rev : ''),
+        '/snippets_updated?since=' + latest_revision + (url_params.rev ? '&rev=' + url_params.rev : ''),
         // success
         function (data) {
             // update latest revision to what server gave.
@@ -857,10 +857,6 @@ var update_snippets_timeout;
 
 
 var start_updating_snippets = function () {
-
-    // temporarily disable until we can figure out memory leak issue
-    return undefined;
-
     var schedule_next_update = function () {
         update_snippets_timeout = window.setTimeout(do_update, UPDATE_SNIPPETS_INTERVAL);
     };
