@@ -45,6 +45,14 @@ def get_parser():
         required=False,
         help='Map one email address to another',
     )
+    parser.add_argument(
+        '--email-ignore', '-i',
+        metavar='EMAIL',
+        type=str,
+        nargs='*',
+        required=False,
+        help='Ignore an email address',
+    )
     return parser
 
 
@@ -144,6 +152,9 @@ repos_by_name = {
 email_maps = {
     # email-from: email-to,
 }
+email_ignores = set([
+    # email,
+])
 
 
 def main():
@@ -156,6 +167,8 @@ def main():
             email_from, email_to = email_mapping.split(':')
             email_maps[email_from] = email_to
             log.fields(email_from=email_from, email_to=email_to).info('email mapping')
+    if options.email_ignore:
+        email_ignores.update(options.email_ignore)
     output_path = options.output_path[0]
     pathlog = log.fields(output_path=output_path)
     if os.path.isdir(output_path):
@@ -452,7 +465,7 @@ def create_index(path):
     ]
     for email in sorted(authors_map):
         author_info = authors_map[email]
-        if author_info.total_actions:
+        if email not in email_ignores and author_info.total_actions:
             # Only include authors who have contributed at least one snippet.
             url = author_filename(email)
             names = escape(author_names(author_info))
@@ -588,6 +601,7 @@ def create_all_transcript_pages(path):
             )
             for email, starting_points
             in snippet_creators
+            if email not in email_ignores
         ]
         snippet_editors = [
             '<li><a href="{url}">{names}</a> ({count} snippets edited)</li>'.format(
@@ -597,6 +611,7 @@ def create_all_transcript_pages(path):
             )
             for email, starting_points
             in snippet_editors
+            if email not in email_ignores
         ]
         body += """
             <table border="0" cellspacing="10">
