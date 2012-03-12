@@ -134,13 +134,14 @@ def _split_lines_and_expand_abbreviations(text, speakers_map):
 
 def _standard_response(repo, commit):
     tree = commit.tree
-    transcription_info, _ = repos.transcription_info(repo, commit)
+    transcription_info, _ = repos.json_file_at_commit(
+        repo, 'transcription.json', commit, required=True)
     return dict(
         _progress_dicts(tree, transcription_info),
         latest_revision=repos.latest_revision(repo),
-        custom_css_revision=repos.custom_css_revision(repo),
-        custom_js_revision=repos.custom_js_revision(repo),
-        speakers=repos.speakers_text(repo, commit)[0],
+        custom_css_revision=repos.most_recent_revision(repo, 'custom.css'),
+        custom_js_revision=repos.most_recent_revision(repo, 'custom.js'),
+        speakers=repos.file_at_commit(repo, 'speakers.txt', commit)[0],
         transcription_info=transcription_info,
         transcription_info_json=json.dumps(transcription_info),
     )
@@ -197,7 +198,8 @@ def read(request):
     if content is None:
         mtime = commit.authored_date
         tree = commit.tree
-        transcription_info, _ = repos.transcription_info(repo, commit)
+        transcription_info, _ = repos.json_file_at_commit(
+            repo, 'transcription.json', commit, required=True)
         raw_snippets = {}
         for obj in tree:
             if isinstance(obj, git.Blob):
@@ -219,6 +221,12 @@ def read(request):
         data = dict(
             _standard_response(repo, commit),
             snippets=sorted(snippets),
+            preamble_incomplete=repos.file_at_commit(
+                repo, 'preamble_incomplete.html', commit,
+            )[0],
+            preamble_completed=repos.file_at_commit(
+                repo, 'preamble_completed.html', commit,
+            )[0],
         )
         content = render('fanscribed:templates/view.mako', data, request=request)
         cache.cache_content(cache_key, content, mtime)
@@ -286,7 +294,7 @@ def custom_js(request):
 def speakers_txt(request):
     # No rendering or processing, no need to cache.
     repo, commit = repos.repo_from_request(request)
-    text, mtime = repos.speakers_text(repo, commit)
+    text, mtime = repos.file_at_commit(repo, 'speakers.txt', commit)
     return Response(text, content_type='text/plain', date=mtime)
 
 
@@ -312,7 +320,8 @@ def post_speakers_txt(request):
         os.environ['GIT_AUTHOR_EMAIL'] = identity_email
         index.commit('speakers: save')
     # Reload from repo and serve it up.
-    text, mtime = repos.speakers_text(repo, commit)
+    commit = repo.commit('master') # Refresh commit to match latest master.
+    text, mtime = repos.file_at_commit(repo, 'speakers.txt', commit)
     return Response(text, content_type='text/plain', date=mtime)
 
 
@@ -329,7 +338,8 @@ def post_speakers_txt(request):
 def transcription_json(request):
     # No rendering or processing, no need to cache.
     repo, commit = repos.repo_from_request(request)
-    info, mtime = repos.transcription_info(repo, commit)
+    info, mtime = repos.json_file_at_commit(
+        repo, 'transcription.json', commit, required=True)
     # Inject additional information into the info dict.
     settings = app_settings()
     info['snippet_ms'] = int(settings['fanscribed.snippet_seconds']) * 1000
@@ -354,7 +364,8 @@ def progress(request):
     content, mtime = cache.get_cached_content(cache_key)
     if content is None:
         tree = commit.tree
-        info, _ = repos.transcription_info(repo, commit)
+        info, _ = repos.json_file_at_commit(
+            repo, 'transcription.json', commit, required=True)
         content = json.dumps(_progress_dicts(tree, info))
         mtime = commit.authored_date
         cache.cache_content(cache_key, content, mtime=mtime)
@@ -663,7 +674,8 @@ def snippet_mp3(request):
         settings['fanscribed.audio'],
         '{0}.mp3'.format(request.host),
     )
-    transcription_info, _ = repos.transcription_info(repo, commit)
+    transcription_info, _ = repos.json_file_at_commit(
+        repo, 'transcription.json', commit, required=True)
     duration = transcription_info['duration']
     snippet_cache = settings['fanscribed.snippet_cache']
     snippet_url_prefix = settings['fanscribed.snippet_url_prefix']

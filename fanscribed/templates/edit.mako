@@ -36,6 +36,15 @@
   </div>
 </%def>
 
+<%def name="preamble()">
+  <div id="preamble">
+    <p>
+      Thank you for contributing to this podcast.
+      Your volunteer efforts are appreciated.
+    </p>
+  </div>
+</%def>
+
 <%def name="body()">
   <h2 id="contentheader">Transcription and Review Tools</h2>
 

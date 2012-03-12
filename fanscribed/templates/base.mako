@@ -110,6 +110,8 @@
       <h1 id="about-title">${transcription_info['title']}</h1>
     </div>
 
+    ${next.preamble()}
+
     <ul id="toolbar">
       ${next.toolbar()}
     </ul>

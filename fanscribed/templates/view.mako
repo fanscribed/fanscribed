@@ -23,6 +23,22 @@
 <%def name="sidebar()">
 </%def>
 
+<%def name="preamble()">
+  % if snippets_progress['percent'] == 100:
+      % if preamble_completed:
+          <div id="preamble">
+            ${preamble_completed|n}
+          </div>
+      % endif
+  % else:
+      % if preamble_incomplete:
+          <div id="preamble">
+            ${preamble_incomplete|n}
+          </div>
+      % endif
+  % endif
+</%def>
+
 <%def name="body()">
   <h2 id="contentheader">Transcript</h2>
 

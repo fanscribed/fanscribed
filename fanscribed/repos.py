@@ -52,45 +52,41 @@ def latest_revision(repo):
     return repo.iter_commits('master').next().hexsha
 
 
-def transcription_info(repo, commit):
+def file_at_commit(repo, filename, commit, required=False, content_filter=None):
+    """
+    -> (content-string, mtime)   for the given filename+commit.
+    -> ('', None)  if file not found and not required.
+    """
     tree = commit.tree
-    blob = tree['transcription.json']
-    mtime = repo.iter_commits(commit, 'transcription.json').next().authored_date
-    return json.load(blob.data_stream), mtime
-
-
-def custom_css_revision(repo):
-    try:
-        commit = repo.iter_commits('master', 'custom.css').next()
-    except StopIteration:
-        return None
-    else:
-        return commit.hexsha
-
-
-def custom_js_revision(repo):
-    try:
-        commit = repo.iter_commits('master', 'custom.js').next()
-    except StopIteration:
-        return None
-    else:
-        return commit.hexsha
-
-
-def speakers_text(repo, commit):
-    tree = commit.tree
-    if 'speakers.txt' in tree:
-        blob = tree['speakers.txt']
+    if (filename in tree) or required:
+        blob = tree[filename]
         content = blob.data_stream.read().decode('utf8')
-        mtime = repo.iter_commits(commit, 'speakers.txt').next().authored_date
+        most_recent_commit = repo.iter_commits(commit, 'speakers.txt').next()
+        mtime = most_recent_commit.authored_date
+        if content_filter is not None:
+            content = content_filter(content)
         return (content, mtime)
     else:
-        # Not yet created.
+        # File does not exist in tree as of this commit.
         return ('', None)
 
 
+def json_file_at_commit(repo, filename, commit, required=False):
+    content, mtime = file_at_commit(repo, filename, commit, required)
+    return (json.loads(content), mtime)
+
+
+def most_recent_revision(repo, filename):
+    try:
+        most_recent_commit = repo.iter_commits('master', 'custom.css').next()
+    except StopIteration:
+        return None
+    else:
+        return most_recent_commit.hexsha
+
+
 def speakers_map(repo, commit):
-    text, mtime = speakers_text(repo, commit)
+    text, mtime = file_at_commit(repo, 'speakers.txt', commit)
     d = {}
     for line in text.splitlines():
         if ';' in line:
