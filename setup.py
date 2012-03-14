@@ -6,18 +6,6 @@ here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
-requires = [
-    'pyramid >= 1.2, < 1.3a0', # stick to 1.2 series for now
-    'pyramid_debugtoolbar',
-    'GitPython >= 0.3.2.RC1, < 0.4',
-    'gitdb >= 0.5.4, < 0.6',
-    'gunicorn >= 0.13.4, < 0.14',
-    'smmap >= 0.8.1, < 0.9',
-    'async >= 0.6.1, < 0.7',
-    'twiggy >= 0.4.4, < 0.5',
-    'ujson >= 1.15, < 2.0',
-]
-
 setup(
     name='fanscribed',
     version='1.0',
@@ -37,8 +25,17 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    install_requires=requires,
-    tests_require=requires,
+    install_requires=[
+        'pyramid >= 1.2, < 1.3a0', # stick to 1.2 series for now
+        'pyramid_debugtoolbar',
+        'GitPython >= 0.3.2.RC1, < 0.4',
+        'gitdb >= 0.5.4, < 0.6',
+        'gunicorn >= 0.13.4, < 0.14',
+        'smmap >= 0.8.1, < 0.9',
+        'async >= 0.6.1, < 0.7',
+        'twiggy >= 0.4.4, < 0.5',
+        'ujson >= 1.15, < 2.0',
+    ],
     test_suite="fanscribed",
     entry_points = """
         [paste.app_factory]
