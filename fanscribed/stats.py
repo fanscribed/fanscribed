@@ -2,10 +2,11 @@
 
 import argparse
 from cgi import escape
+import cPickle as pickle
 from collections import namedtuple
 from datetime import datetime
 from hashlib import sha1
-from operator import attrgetter, itemgetter
+from operator import itemgetter
 import os
 import sys
 from urllib2 import quote
@@ -13,6 +14,7 @@ from urllib2 import quote
 from ujson import load
 
 import git
+
 from twiggy import log, quickSetup
 
 
@@ -21,13 +23,24 @@ LOCK_TIMEOUT = 20 * 60
 
 
 def get_parser():
-    parser = argparse.ArgumentParser(description='Generate Fanscribed statistics.')
+    parser = argparse.ArgumentParser(
+        description='Generate Fanscribed statistics.',
+    )
     parser.add_argument(
         'repos',
         metavar='REPO',
         type=str,
         nargs='+',
         help='a repository to generate stats from',
+    )
+    parser.add_argument(
+        '--pickle', '-p',
+        metavar='FILENAME',
+        type=str,
+        nargs=1,
+        required=False,
+        default=None,
+        help='pickle file in which to cache stats',
     )
     parser.add_argument(
         '--output-path', '-o',
@@ -56,9 +69,6 @@ def get_parser():
     return parser
 
 
-secretgetter = attrgetter('secret')
-
-
 class _SimpleObject(object):
 
     __slots__ = []
@@ -72,29 +82,33 @@ class _SimpleObject(object):
 class AuthorInfo(_SimpleObject):
 
     __slots__ = [
-        'names',                            # set()
-        'locks_created',                    # dict(reponame={secret:Lock(), ...})
-        'snippets',                         # dict(reponame={starting_point:[SnippetAction(), ...]}),
-        'total_actions',                    # int
-        'total_transcriptions',             # int
-        'total_bytes_transcribed',          # int
-        'time_spent',                       # float
-        'time_spent_transcribing',          # float
-        'average_time_per_transcription',   # float
-        'average_wpm',                      # float
+        'names',  # set()
+        'locks_created',  # dict(reponame={secret:Lock(), ...})
+        'snippets',  # dict(reponame={
+                     #     starting_point: [
+                     #         SnippetAction(), ...
+                     #     ],
+                     # })
+        'total_actions',  # int
+        'total_transcriptions',  # int
+        'total_bytes_transcribed',  # int
+        'time_spent',  # float
+        'time_spent_transcribing',  # float
+        'average_time_per_transcription',  # float
+        'average_wpm',  # float
     ]
 
 
 class Lock(_SimpleObject):
 
     __slots__ = [
-        'type',             # 'review' or 'snippet'
-        'starting_point',   # ms
-        'timestamp',        # time
-        'created_at',       # time
-        'created_by',       # email
-        'destroyed_at',     # time
-        'destroyed_by',     # email
+        'type',  # 'review' or 'snippet'
+        'starting_point',  # ms
+        'timestamp',  # time
+        'created_at',  # time
+        'created_by',  # email
+        'destroyed_at',  # time
+        'destroyed_by',  # email
         'snippet_created',  # bool  TODO
         'snippet_updated',  # bool  TODO
     ]
@@ -103,21 +117,24 @@ class Lock(_SimpleObject):
 class RepoInfo(_SimpleObject):
 
     __slots__ = [
-        'name',             # str
-        'transcription',    # dict
-        'repo',             # Repo()
-        'authors',          # set()
-        'snippets',         # {starting_point: [SnippetAction(), ...]}
+        'name',  # str
+        'transcription',  # dict
+        'authors',  # set()
+        'snippets',  # {starting_point: [SnippetAction(), ...]}
     ]
+
+    @property
+    def repo(self):
+        return git_repos_by_name[self.name]
 
 
 class SnippetAction(_SimpleObject):
     """Represents the creation or modification of a snippet."""
 
     __slots__ = [
-        'email',            # str
-        'saved',            # time
-        'bytes',            # int
+        'email',  # str
+        'saved',  # time
+        'bytes',  # int
     ]
 
     def __cmp__(self, other):
@@ -141,11 +158,20 @@ snippet_locks = {
 
 
 # Map repo path to repo.
-repos = {
-    # path: Repo(),
+repo_infos_by_path = {
+    # path: RepoInfo(),
 }
-repos_by_name = {
-    # name: Repo(),
+repo_infos_by_name = {
+    # name: RepoInfo(),
+}
+git_repos_by_name = {
+    # name: git.Repo(),
+}
+
+
+# Keep information on the last commit processed in each repo.
+latest_commits = {
+    # name: last_commit,
 }
 
 
@@ -158,10 +184,16 @@ email_ignores = set([
 
 
 def main():
-    # Begin by parsing options and ensuring existence of input and output paths.
+    # Parse options and ensuring existence of input and output paths.
     quickSetup()
     parser = get_parser()
     options = parser.parse_args()
+    if options.pickle is not None:
+        options.pickle = options.pickle[0]  # list -> string
+        unpickle_all(options.pickle)
+    else:
+        # Do nothing; keep initial state.
+        pass
     if options.email_map:
         for email_mapping in options.email_map:
             email_from, email_to = email_mapping.split(':')
@@ -192,21 +224,56 @@ def main():
             all_repos_valid = False
         else:
             repolog.info('repository OK')
-            master = repo.tree('master')
-            transcription_json = load(master['transcription.json'].data_stream)
+            tree = repo.tree('master')
+            transcription_json = load(tree['transcription.json'].data_stream)
             repo_name = os.path.split(repo_path)[-1]
-            repos[repo_path] = repos_by_name[repo_name] = RepoInfo(
-                name=repo_name,
-                transcription=transcription_json,
-                repo=repo,
-                authors=set(),
-                snippets={},
-            )
+            git_repos_by_name[repo_name] = repo
+            if repo_path not in repo_infos_by_path:
+                # Create new RepoInfo structure.
+                repo_infos_by_path[repo_path] = repo_infos_by_name[repo_name] = RepoInfo(
+                    name=repo_name,
+                    transcription=transcription_json,
+                    authors=set(),
+                    snippets={},
+                )
+            else:
+                # Keep existing RepoInfo structure.
+                pass
     if not all_repos_valid:
         sys.exit(1)
     process_all_repos()
     process_all_authors()
     create_all_output(output_path)
+    if options.pickle is not None:
+        pickle_all(options.pickle)
+
+
+# ===================================================================
+# pickling
+
+
+def pickle_all(filename, log=log):
+    log.fields(filename=filename).info('pickling')
+    structure = dict(
+        authors_map=authors_map,
+        review_locks=review_locks,
+        snippet_locks=snippet_locks,
+        latest_commits=latest_commits,
+        repo_infos_by_path=repo_infos_by_path,
+        repo_infos_by_name=repo_infos_by_name,
+    )
+    with open(filename, 'wb') as f:
+        pickle.dump(structure, f, -1)
+
+
+def unpickle_all(filename, log=log):
+    log = log.fields(filename=filename)
+    if os.path.isfile(filename):
+        log.info('unpickling')
+        with open(filename, 'rb') as f:
+            globals().update(pickle.load(f))
+    else:
+        log.info('notfound')
 
 
 # ===================================================================
@@ -214,45 +281,74 @@ def main():
 
 
 def normalize_email(email):
-    """Strip and lowercase email, then replace foo+bar@gmail.com with foo@gmail.com"""
-    email = email.strip().lower() # strip spaces, and make all-lowercase
-    email = email_maps.get(email, email) # Replace with mapped email if it exists; otherwise use given email.
+    """Strip; lowercase; replace foo+bar@gmail.com with foo@gmail.com"""
+    email = email.strip().lower()
+    # Replace with mapped email if it exists; otherwise use given email.
+    email = email_maps.get(email, email)
     return email
 
 
 def process_all_repos():
     """Loop through events in all repositories."""
-    for repo_path, repo_info in repos.iteritems():
+    for repo_path, repo_info in repo_infos_by_path.iteritems():
         repo = repo_info.repo
         repo_name = repo_info.name
         repolog = log.fields(repo_name=repo_name)
         repolog.info('processing')
         last_locks = {}
-        for commit in reversed(list(repo.iter_commits('master'))):
+        prev_latest_commit = latest_commits.get(repo_name, None)
+        if prev_latest_commit is not None:
+            repolog.fields(prev_latest_commit=prev_latest_commit).info()
+        else:
+            repolog.info('new repo')
+        latest_commit = repo.commit('master').hexsha
+        commits = []
+        # Find applicable commits.
+        for commit in repo.iter_commits(latest_commit):
+            if commit.hexsha == prev_latest_commit:
+                # Reached commit we stopped at last time.
+                break
+            else:
+                commits.append(commit)
+        # Process them starting with eldest first.
+        for commit in reversed(commits):
             email = normalize_email(commit.author.email)
             update_authors_map(email, commit)
             last_locks = update_locks(email, repo_name, commit, last_locks)
             update_snippets(email, repo_info, commit)
+        # Store latest commit for next time.
+        latest_commits[repo_name] = latest_commit
+        repolog.fields(latest_commit=latest_commit).info()
 
 
 def process_all_authors():
     """Loop through authors to calculate author-specific stats."""
     for author_info in authors_map.itervalues():
+        author_log = log.fields(author_name=sorted(author_info.names)[0])
+        author_log.info('processing')
+        # Reset accumulators.
+        author_info.total_actions = 0
+        author_info.total_transcriptions = 0
+        author_info.time_spent = 0
+        author_info.time_spent_transcribing = 0
+        author_info.total_bytes_transcribed = 0
+        # Process snippets.
         for repo_name, snippet_map in author_info.snippets.iteritems():
             for starting_point, snippet_actions in snippet_map.iteritems():
                 author_info.total_actions += len(snippet_actions)
                 # Determine if the snippet action was a transcription.
-                repo_info = repos_by_name[repo_name]
+                repo_info = repo_infos_by_name[repo_name]
                 first_repo_snippet_action = repo_info.snippets[starting_point][0]
                 if first_repo_snippet_action in snippet_actions:
                     author_info.total_transcriptions += 1
+        # Process locks.
         for repo_name, locks_map in author_info.locks_created.iteritems():
             for lock in locks_map.itervalues():
                 if lock.created_by == lock.destroyed_by:
                     duration = lock.destroyed_at - lock.created_at
                     author_info.time_spent += duration
                     # Determine if the lock was associated with a transcription, vs. an edit.
-                    repo_info = repos_by_name[repo_name]
+                    repo_info = repo_infos_by_name[repo_name]
                     if lock.starting_point in repo_info.snippets:
                         first_repo_snippet_action = repo_info.snippets[lock.starting_point][0]
                         if first_repo_snippet_action.saved == lock.destroyed_at:
@@ -346,7 +442,6 @@ def update_locks(email, repo_name, commit, last_locks):
 def update_snippets(email, repo_info, commit):
     """Update information about snippets touched by a commit."""
     repo_name = repo_info.name
-    repo_authors = repo_info.authors
     repo_snippets = repo_info.snippets
     author_info = authors_map[email]
     for filename in commit.stats.files:
@@ -406,7 +501,7 @@ def ms_to_label(ms):
 
 def snippets_in_ms(ms, per_snippet=30000):
     """Return the number of snippets possible in the given number of milliseconds."""
-    snippets_total = ms/ per_snippet
+    snippets_total = ms / per_snippet
     if ms % per_snippet:
         # There is a partial snippet at the end.
         snippets_total += 1
@@ -438,7 +533,7 @@ def create_index(path):
     transcripts_list = [
         # (name, html),
     ]
-    for repo_path, repo_info in repos.iteritems():
+    for repo_path, repo_info in repo_infos_by_path.iteritems():
         name = repo_info.name
         url = transcript_filename(name)
         transcripts_list.append((
@@ -487,16 +582,16 @@ def create_index(path):
     # Sort by names, not by email address.
     authors_by_name = sorted(authors_list, key=lambda item: item[0].lower())
     # Sort by total time spent transcribing and editing.
-    authors_by_time_spent = reversed(sorted(authors_list, key=lambda item: item[1]))
+    authors_by_time_spent = reversed(sorted(authors_list, key=lambda item: (item[1], item[0].lower())))
     # Sort by total # of transcriptions created.
     authors_by_total_transcriptions = reversed(sorted(
-        [item for item in authors_list if item[2] > 0], # exclude non-transcribers
-        key=lambda item: item[2],
+        [item for item in authors_list if item[2] > 0],  # exclude non-transcribers
+        key=lambda item: (item[2], item[0].lower()),
     ))
     # Sort by average WPM during transcription.
     authors_by_average_time = reversed(sorted(
-        [item for item in authors_list if item[2] > 0], # exclude non-transcribers
-        key=lambda item: item[3],
+        [item for item in authors_list if item[2] > 0],  # exclude non-transcribers
+        key=lambda item: (item[3], item[0].lower()),
     ))
     body += """
         <hr/>
@@ -547,7 +642,7 @@ def create_index(path):
 
 
 def create_all_transcript_pages(path):
-    for repo_path, repo_info in repos.iteritems():
+    for repo_path, repo_info in repo_infos_by_path.iteritems():
         name = repo_info.name
         filename = transcript_filename(name)
         body = ''
@@ -591,8 +686,8 @@ def create_all_transcript_pages(path):
                 snippet_editor_snippets = snippet_editors.setdefault(editor, [])
                 snippet_editor_snippets.append(starting_point)
         # Reverse sort by number of snippets created or edited.
-        snippet_creators = reversed(sorted(snippet_creators.iteritems(), key=lambda kv: len(kv[1])))
-        snippet_editors = reversed(sorted(snippet_editors.iteritems(), key=lambda kv: len(kv[1])))
+        snippet_creators = reversed(sorted(snippet_creators.iteritems(), key=lambda kv: (len(kv[1]), kv[0])))
+        snippet_editors = reversed(sorted(snippet_editors.iteritems(), key=lambda kv: (len(kv[1]), kv[0])))
         snippet_creators = [
             '<li><a href="{url}">{names}</a> ({count} snippets transcribed)</li>'.format(
                 url=author_filename(email),
