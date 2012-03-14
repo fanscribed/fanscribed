@@ -582,16 +582,16 @@ def create_index(path):
     # Sort by names, not by email address.
     authors_by_name = sorted(authors_list, key=lambda item: item[0].lower())
     # Sort by total time spent transcribing and editing.
-    authors_by_time_spent = reversed(sorted(authors_list, key=lambda item: item[1]))
+    authors_by_time_spent = reversed(sorted(authors_list, key=lambda item: (item[1], item[0].lower())))
     # Sort by total # of transcriptions created.
     authors_by_total_transcriptions = reversed(sorted(
         [item for item in authors_list if item[2] > 0],  # exclude non-transcribers
-        key=lambda item: item[2],
+        key=lambda item: (item[2], item[0].lower()),
     ))
     # Sort by average WPM during transcription.
     authors_by_average_time = reversed(sorted(
         [item for item in authors_list if item[2] > 0],  # exclude non-transcribers
-        key=lambda item: item[3],
+        key=lambda item: (item[3], item[0].lower()),
     ))
     body += """
         <hr/>
@@ -686,8 +686,8 @@ def create_all_transcript_pages(path):
                 snippet_editor_snippets = snippet_editors.setdefault(editor, [])
                 snippet_editor_snippets.append(starting_point)
         # Reverse sort by number of snippets created or edited.
-        snippet_creators = reversed(sorted(snippet_creators.iteritems(), key=lambda kv: len(kv[1])))
-        snippet_editors = reversed(sorted(snippet_editors.iteritems(), key=lambda kv: len(kv[1])))
+        snippet_creators = reversed(sorted(snippet_creators.iteritems(), key=lambda kv: (len(kv[1]), kv[0])))
+        snippet_editors = reversed(sorted(snippet_editors.iteritems(), key=lambda kv: (len(kv[1]), kv[0])))
         snippet_creators = [
             '<li><a href="{url}">{names}</a> ({count} snippets transcribed)</li>'.format(
                 url=author_filename(email),
