@@ -327,6 +327,7 @@ def process_all_authors():
         author_log = log.fields(author_name=sorted(author_info.names)[0])
         author_log.info('processing')
         # Reset accumulators.
+        author_info.total_actions = 0
         author_info.total_transcriptions = 0
         author_info.time_spent = 0
         author_info.time_spent_transcribing = 0
