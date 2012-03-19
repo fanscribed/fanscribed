@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import time
 import unicodedata
 import urlparse
 
@@ -27,6 +28,32 @@ Disallow: /progress
 Disallow: /speakers.txt
 Disallow: /transcription.json
 """
+
+
+# Private functions
+# =================
+
+
+def _anchor_from_ms(ms):
+    seconds = ms / 1000
+    minutes = seconds / 60
+    seconds %= 60
+    return '{0:d}m{1:02d}s'.format(minutes, seconds)
+
+
+def _label_from_ms(ms):
+    seconds = ms / 1000
+    minutes = seconds / 60
+    seconds %= 60
+    return '{0:d}:{1:02d}'.format(minutes, seconds)
+
+
+def _ms_from_snippet_filename(filename):
+    """Return milliseconds from snippet filename, or None if not a snippet filename."""
+    if filename.endswith('.txt') and len(filename) == 20:
+        return int(filename[:16])
+    else:
+        return None
 
 
 def _progress_dicts(tree, transcription_info):
@@ -145,6 +172,18 @@ def _standard_response(repo, commit):
         transcription_info=transcription_info,
         transcription_info_json=json.dumps(transcription_info),
     )
+
+
+# Helpers
+# =======
+
+
+def rfc822_from_time(epoch):
+    return time.strftime('%a, %d %b %Y %H:%M:%S +0000', time.gmtime(epoch))
+
+
+# Views
+# =====
 
 
 @view_config(
@@ -743,3 +782,87 @@ def snippets_updated(request):
         mtime = request_commit.authored_date
         cache.cache_content(cache_key, content, mtime)
     return Response(content, content_type='application/json', date=mtime)
+
+
+@view_config(
+    request_method='GET',
+    route_name='rss_basic',
+    context='fanscribed:resources.Root',
+)
+@view_config(
+    request_method='HEAD',
+    route_name='rss_basic',
+    context='fanscribed:resources.Root',
+)
+def rss_basic(request, max_actions=50):
+    repo, commit = repos.repo_from_request(request)
+    # Return cached if found.
+    cache_key = 'rss_basic-{0}'.format(commit.hexsha)
+    content, mtime = cache.get_cached_content(cache_key)
+    if content is None:
+        mtime = commit.authored_date
+        tree = commit.tree
+        actions = [
+            # dict(author=AUTHOR, date=DATE, position=POSITION, this_url=URL, now_url=URL),
+        ]
+        transcription_info, _ = repos.json_file_at_commit(
+            repo, 'transcription.json', commit, required=True)
+        # Starting from the request's commit, iterate backwards.
+        for commit in repo.iter_commits(commit):
+            snippets_affected = set()
+            for filename in commit.stats.files:
+                ms = _ms_from_snippet_filename(filename)
+                if ms is not None:
+                    snippets_affected.add(ms)
+            if snippets_affected:
+                earliest_ms = min(snippets_affected)
+                anchor = _anchor_from_ms(earliest_ms)
+                position = _label_from_ms(earliest_ms)
+                author = commit.author
+                date = commit.authored_date
+                kwargs = dict(
+                    host=request.host,
+                    rev=commit.hexsha,
+                    anchor=anchor,
+                )
+                now_url = 'http://{host}/#{anchor}'.format(**kwargs)
+                this_url = 'http://{host}/?rev={rev}#{anchor}'.format(**kwargs)
+                actions.append(dict(
+                    author=author,
+                    date=date,
+                    position=position,
+                    this_url=this_url,
+                    now_url=now_url,
+                ))
+            if len(actions) >= max_actions:
+                break
+        # Report actions in chrono order.
+        actions.reverse()
+        if not actions:
+            pub_date = time.time()
+        else:
+            pub_date = actions[-1]['date']
+        data = dict(
+            _standard_response(repo, commit),
+            actions=actions,
+            pub_date=pub_date,
+            request=request,
+            rfc822_from_time=rfc822_from_time,
+        )
+        content = render('fanscribed:templates/rss_basic.xml.mako', data, request=request)
+        cache.cache_content(cache_key, content, mtime)
+    return Response(content, content_type='application/rss+xml', date=mtime)
+
+
+@view_config(
+    request_method='GET',
+    route_name='rss_kudos',
+    context='fanscribed:resources.Root',
+)
+@view_config(
+    request_method='HEAD',
+    route_name='rss_kudos',
+    context='fanscribed:resources.Root',
+)
+def rss_kudos(request):
+    pass
