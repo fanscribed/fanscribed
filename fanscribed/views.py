@@ -2,12 +2,15 @@
 
 import json
 import os
+import random
 import re
 import time
 import unicodedata
 import urlparse
 
 import git
+
+from mako.template import Template
 
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.renderers import render
@@ -19,6 +22,11 @@ from fanscribed import cache
 from fanscribed.common import app_settings
 from fanscribed import mp3
 from fanscribed import repos
+
+
+DEFAULT_KUDOS = """\
+Kudos to ${author_name} for ${contributions} recent contribution${'' if contributions == 1 else 's'} at http://${request.host}/
+"""
 
 
 ROBOTS_TXT = """\
@@ -797,7 +805,7 @@ def snippets_updated(request):
 def rss_basic(request, max_actions=50):
     repo, commit = repos.repo_from_request(request)
     # Return cached if found.
-    cache_key = 'rss_basic-{0}'.format(commit.hexsha)
+    cache_key = 'rss_basic commit={0} max_actions={1}'.format(commit.hexsha, max_actions)
     content, mtime = cache.get_cached_content(cache_key)
     if content is None:
         mtime = commit.authored_date
@@ -805,12 +813,10 @@ def rss_basic(request, max_actions=50):
         actions = [
             # dict(author=AUTHOR, date=DATE, position=POSITION, this_url=URL, now_url=URL),
         ]
-        transcription_info, _ = repos.json_file_at_commit(
-            repo, 'transcription.json', commit, required=True)
         # Starting from the request's commit, iterate backwards.
-        for commit in repo.iter_commits(commit):
+        for c in repo.iter_commits(commit):
             snippets_affected = set()
-            for filename in commit.stats.files:
+            for filename in c.stats.files:
                 ms = _ms_from_snippet_filename(filename)
                 if ms is not None:
                     snippets_affected.add(ms)
@@ -818,15 +824,15 @@ def rss_basic(request, max_actions=50):
                 earliest_ms = min(snippets_affected)
                 anchor = _anchor_from_ms(earliest_ms)
                 position = _label_from_ms(earliest_ms)
-                author = commit.author
-                date = commit.authored_date
+                author = c.author
+                date = c.authored_date
                 kwargs = dict(
                     host=request.host,
-                    rev=commit.hexsha,
+                    rev=c.hexsha,
                     anchor=anchor,
                 )
-                now_url = 'http://{host}/#{anchor}'.format(**kwargs)
-                this_url = 'http://{host}/?rev={rev}#{anchor}'.format(**kwargs)
+                now_url = 'http://{host}/?source=rss_basic#{anchor}'.format(**kwargs)
+                this_url = 'http://{host}/?rev={rev}&source=rss_basic#{anchor}'.format(**kwargs)
                 actions.append(dict(
                     author=author,
                     date=date,
@@ -864,5 +870,101 @@ def rss_basic(request, max_actions=50):
     route_name='rss_kudos',
     context='fanscribed:resources.Root',
 )
-def rss_kudos(request):
-    pass
+def rss_kudos(request, max_hours=24, default_minutes=60):
+    repo, commit = repos.repo_from_request(request)
+    # Get grouping parameters.
+    end_timestamp = int(request.GET.get('end', time.time()))
+    minutes_per_item = int(request.GET.get('minutes', default_minutes))
+    # Return cached if found.
+    cache_key = 'rss_kudos commit={0} minutes={1} max_hours={2} start={3}'.format(
+        commit.hexsha,
+        minutes_per_item,
+        max_hours,
+        end_timestamp,
+    )
+    content, mtime = cache.get_cached_content(cache_key)
+    if content is None:
+        # Get the list of kudos to give, or use the default.
+        kudos_txt, mtime = repos.file_at_commit(repo, 'kudos.txt', commit)
+        kudos_txt = kudos_txt or DEFAULT_KUDOS
+        kudos_lines = kudos_txt.strip().splitlines()
+        # Process the range of time needed for this RSS feed.
+        mtime = commit.authored_date
+        tree = commit.tree
+        timegroup_author_actions = {
+            # timegroup: {
+            #     AUTHOR_NAME: dict(actions=[ACTION, ...], kudos=KUDOS),
+            #         ACTION = dict(author=AUTHOR, date=DATE, position=POSITION, this_url=URL, now_url=URL)
+            # }
+        }
+        # Find the ending timestamp for the period of time that comes
+        # just before the current "partial" period of time.
+        max_timestamp = end_timestamp - (end_timestamp % (minutes_per_item * 60))
+        min_timestamp = max_timestamp - (max_hours * 60 * 60)
+        # Starting from the request's commit, iterate backwards.
+        for c in repo.iter_commits(commit):
+            if c.authored_date < min_timestamp:
+                break
+            snippets_affected = set()
+            for filename in c.stats.files:
+                ms = _ms_from_snippet_filename(filename)
+                if ms is not None:
+                    snippets_affected.add(ms)
+            if snippets_affected:
+                earliest_ms = min(snippets_affected)
+                date = c.authored_date
+                timegroup = date - (date % (minutes_per_item * 60))
+                timegroup_authors = timegroup_author_actions.setdefault(timegroup, {})
+                author = c.author
+                author_actions = timegroup_authors.setdefault(author.name, dict(actions=[]))['actions']
+                anchor = _anchor_from_ms(earliest_ms)
+                position = _label_from_ms(earliest_ms)
+                kwargs = dict(
+                    host=request.host,
+                    rev=c.hexsha,
+                    anchor=anchor,
+                )
+                now_url = 'http://{host}/?source=rss_kudos#{anchor}'.format(**kwargs)
+                this_url = 'http://{host}/?rev={rev}&source=rss_kudos#{anchor}'.format(**kwargs)
+                action = dict(
+                    author=author,
+                    author_name=author.name,
+                    date=date,
+                    position=position,
+                    this_url=this_url,
+                    now_url=now_url,
+                )
+                author_actions.append(action)
+        # Now create the kudos for each author.
+        for timegroup, authors in timegroup_author_actions.iteritems():
+            for author_name, author_info in authors.iteritems():
+                # Deterministically choose a pseudo-random kudos based on what we
+                # know about this author's contributions.
+                actions = author_info['actions']
+                latest_action = actions[0]
+                random.seed(latest_action['date'])
+                kudos_line = random.choice(kudos_lines).strip()
+                kudos_template = Template(text=kudos_line)
+                # Render it.
+                kudos = kudos_template.render(
+                    author_name=author_name,
+                    contributions=len(actions),
+                    latest_action=latest_action,
+                    request=request,
+                )
+                # Keep it with the author info.
+                author_info['kudos'] = kudos
+                author_info['latest_action'] = latest_action
+        pub_date = commit.authored_date
+        data = dict(
+            _standard_response(repo, commit),
+            timegroup_author_actions=timegroup_author_actions,
+            pub_date=pub_date,
+            request=request,
+            rfc822_from_time=rfc822_from_time,
+            end_timestamp=end_timestamp,
+            minutes_per_item=minutes_per_item,
+        )
+        content = render('fanscribed:templates/rss_kudos.xml.mako', data, request=request)
+        cache.cache_content(cache_key, content, mtime)
+    return Response(content, content_type='application/rss+xml', date=mtime)
