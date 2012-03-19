@@ -22,6 +22,7 @@ from fanscribed import cache
 from fanscribed.common import app_settings
 from fanscribed import mp3
 from fanscribed import repos
+from fanscribed import transcripts
 
 
 DEFAULT_KUDOS = """\
@@ -591,7 +592,8 @@ def save_snippet(request):
     starting_point = int(request.POST.getone('starting_point'))
     identity_name = request.POST.getone('identity_name')
     identity_email = request.POST.getone('identity_email')
-    snippet_text = request.POST.getone('snippet_text').strip()
+    snippet_text = transcripts.normalized_text(
+        request.POST.getone('snippet_text').strip())
     inline = request.POST.get('inline') == '1'
     with repos.commit_lock:
         # find and validate the lock
@@ -628,8 +630,10 @@ def save_review(request):
     starting_point = int(request.POST.getone('starting_point'))
     identity_name = request.POST.getone('identity_name')
     identity_email = request.POST.getone('identity_email')
-    review_text_1 = request.POST.getone('review_text_1')
-    review_text_2 = request.POST.getone('review_text_2')
+    review_text_1 = transcripts.normalized_text(
+        request.POST.getone('review_text_1'))
+    review_text_2 = transcripts.normalized_text(
+        request.POST.getone('review_text_2'))
     with repos.commit_lock:
         # find and validate the lock
         # Ignore commit; we want to save to master.
