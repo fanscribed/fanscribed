@@ -888,6 +888,9 @@ def rss_kudos(request, max_hours=24, default_minutes=60):
         kudos_txt, mtime = repos.file_at_commit(repo, 'kudos.txt', commit)
         kudos_txt = kudos_txt or DEFAULT_KUDOS
         kudos_lines = kudos_txt.strip().splitlines()
+        # Kudos templates might want transcription info.
+        transcription_info, _ = repos.json_file_at_commit(
+            repo, 'transcription.json', commit, required=True)
         # Process the range of time needed for this RSS feed.
         mtime = commit.authored_date
         tree = commit.tree
@@ -950,6 +953,7 @@ def rss_kudos(request, max_hours=24, default_minutes=60):
                     author_name=author_name,
                     contributions=len(actions),
                     latest_action=latest_action,
+                    transcription_info=transcription_info,
                     request=request,
                 )
                 # Keep it with the author info.
