@@ -14,6 +14,9 @@
                 <description>
                     ${action['author'].name} contributed to position ${action['position']}
                     in the transcript at http://${request.host}/.
+
+                    Text at this position, now: ${action['now_url']}.
+                    Text at this position, at time of contribution: ${action['this_url']}.
                 </description>
                 <pubDate>${rfc822_from_time(action['date'])}</pubDate>
                 <guid>${action['this_url']}</guid>
