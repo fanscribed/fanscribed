@@ -104,8 +104,7 @@ class InitRepoCommand(Command):
         transcription_json_path = os.path.join(template_path, 'transcription.json')
         if os.path.isfile(transcription_json_path):
             with open(transcription_json_path, 'rU') as f:
-                transcription_json = f.read()
-                transcription_json = transcription_json % variables
+                transcription_json = f.read() % variables
         else:
             transcription_json = '{}'
         transcription_json = json.loads(transcription_json)
@@ -135,8 +134,11 @@ class InitRepoCommand(Command):
                 continue
             print ' - {0}'.format(template_filename)
             template_source = os.path.join(template_path, template_filename)
+            with open(template_source, 'rb') as f:
+                template_content = f.read() % variables
             template_dest = os.path.join(repo_path, template_filename)
-            shutil.copy(template_source, template_dest)
+            with open(template_dest, 'wb') as f:
+                f.write(template_content)
             repo.index.add([template_filename])
         print 'Initial commit, using your globally configured name and email.'
         repo.index.commit('Initial commit.')
