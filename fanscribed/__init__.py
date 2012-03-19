@@ -37,6 +37,9 @@ def main(global_config, **settings):
 
     config.add_route('snippet_mp3', '/snippet.mp3')
 
+    config.add_route('rss_basic', '/rss/basic')
+    config.add_route('rss_kudos', '/rss/kudos')
+
     # Views.
     config.scan('fanscribed')
     config.add_static_view('static', 'fanscribed:static', cache_max_age=3600)
