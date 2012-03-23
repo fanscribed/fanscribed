@@ -835,8 +835,8 @@ def rss_basic(request, max_actions=50):
                     rev=c.hexsha,
                     anchor=anchor,
                 )
-                now_url = 'http://{host}/?source=rss_basic#{anchor}'.format(**kwargs)
-                this_url = 'http://{host}/?rev={rev}&source=rss_basic#{anchor}'.format(**kwargs)
+                now_url = 'http://{host}/?src=rb#{anchor}'.format(**kwargs)
+                this_url = 'http://{host}/?rev={rev}&src=rb#{anchor}'.format(**kwargs)
                 actions.append(dict(
                     author=author,
                     date=date,
@@ -895,11 +895,11 @@ def rss_completion(request, percentage_gap=5):
             snippets_total += 1
         reviews_total = snippets_total - 1
         completions = []
-        now_url = 'http://{host}/?source=rss_completion'.format(**dict(
+        now_url = 'http://{host}/?src=rc'.format(**dict(
             host=request.host,
         ))
         for c in reversed(list(repo.iter_commits(commit, ['remaining_reviews.json', 'remaining_snippets.json']))):
-            this_url = 'http://{host}/?rev={rev}&source=rss_completion'.format(**dict(
+            this_url = 'http://{host}/?rev={rev}&src=rc'.format(**dict(
                 host=request.host,
                 rev=c.hexsha,
             ))
@@ -1002,8 +1002,8 @@ def rss_kudos(request, max_hours=24, default_minutes=60):
                     rev=c.hexsha,
                     anchor=anchor,
                 )
-                now_url = 'http://{host}/?source=rss_kudos#{anchor}'.format(**kwargs)
-                this_url = 'http://{host}/?rev={rev}&source=rss_kudos#{anchor}'.format(**kwargs)
+                now_url = 'http://{host}/?src=rk#{anchor}'.format(**kwargs)
+                this_url = 'http://{host}/?rev={rev}&src=rk#{anchor}'.format(**kwargs)
                 action = dict(
                     author=author,
                     author_name=author.name,
