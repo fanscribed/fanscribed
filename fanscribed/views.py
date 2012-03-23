@@ -243,7 +243,7 @@ def read(request):
     # Return cached if found.
     cache_key = 'view-{0}'.format(commit.hexsha)
     content, mtime = cache.get_cached_content(cache_key)
-    if content is None:
+    if content is None or request.GET.has_key('nocache'):
         mtime = commit.authored_date
         tree = commit.tree
         transcription_info, _ = repos.json_file_at_commit(
@@ -410,7 +410,7 @@ def progress(request):
     # Return cached if found.
     cache_key = 'progress-{0}'.format(commit.hexsha)
     content, mtime = cache.get_cached_content(cache_key)
-    if content is None:
+    if content is None or request.GET.has_key('nocache'):
         tree = commit.tree
         info, _ = repos.json_file_at_commit(
             repo, 'transcription.json', commit, required=True)
@@ -436,7 +436,7 @@ def snippet_info(request):
     # Return cached if found.
     cache_key = 'snippet_info-{0}-{1}'.format(commit.hexsha, starting_point)
     content, mtime = cache.get_cached_content(cache_key)
-    if content is None:
+    if content is None or request.GET.has_key('nocache'):
         starting_point = int(request.GET.getone('starting_point'))
         filename = '{0:016d}.txt'.format(starting_point)
         contributor_list = []
@@ -764,7 +764,7 @@ def snippets_updated(request):
     # Return cached if found.
     cache_key = 'updated-{0}-{1}'.format(request_commit.hexsha, since_rev)
     content, mtime = cache.get_cached_content(cache_key)
-    if content is None:
+    if content is None or request.GET.has_key('nocache'):
         since_commit = repo.commit(since_rev)
         files_updated = set()
         for commit in repo.iter_commits(request_commit):
@@ -811,7 +811,7 @@ def rss_basic(request, max_actions=50):
     # Return cached if found.
     cache_key = 'rss_basic commit={0} max_actions={1}'.format(commit.hexsha, max_actions)
     content, mtime = cache.get_cached_content(cache_key)
-    if content is None:
+    if content is None or request.GET.has_key('nocache'):
         mtime = commit.authored_date
         tree = commit.tree
         actions = [
@@ -866,6 +866,77 @@ def rss_basic(request, max_actions=50):
 
 @view_config(
     request_method='GET',
+    route_name='rss_completion',
+    context='fanscribed:resources.Root',
+)
+@view_config(
+    request_method='HEAD',
+    route_name='rss_completion',
+    context='fanscribed:resources.Root',
+)
+def rss_completion(request, percentage_gap=5):
+    repo, commit = repos.repo_from_request(request)
+    # Return cached if found.
+    cache_key = 'rss_completion commit={0} percentage_gap={1}'.format(commit.hexsha, percentage_gap)
+    content, mtime = cache.get_cached_content(cache_key)
+    if content is None or request.GET.has_key('nocache'):
+        mtime = commit.authored_date
+        tree = commit.tree
+        percent_reviewed_to_report = set(xrange(percentage_gap, 100, percentage_gap))
+        percent_reviewed_to_report.add(100)
+        percent_transcribed_to_report = set(xrange(percentage_gap, 100, percentage_gap))
+        percent_transcribed_to_report.add(100)
+        transcription_info, _ = repos.json_file_at_commit(
+            repo, 'transcription.json', commit, required=True)
+        duration = transcription_info['duration']
+        snippet_ms = _snippet_ms()
+        snippets_total = duration / snippet_ms
+        if duration % snippet_ms:
+            snippets_total += 1
+        reviews_total = snippets_total - 1
+        completions = []
+        now_url = 'http://{host}/?source=rss_completion'.format(**dict(
+            host=request.host,
+        ))
+        for c in reversed(list(repo.iter_commits(commit, ['remaining_reviews.json', 'remaining_snippets.json']))):
+            this_url = 'http://{host}/?rev={rev}&source=rss_completion'.format(**dict(
+                host=request.host,
+                rev=c.hexsha,
+            ))
+            snippets_remaining = len(repos.get_remaining_snippets(c.tree))
+            snippets_completed = snippets_total - snippets_remaining
+            snippets_percent = snippets_completed * 100 / snippets_total
+            reviews_remaining = len(repos.get_remaining_reviews(c.tree))
+            reviews_completed = reviews_total - reviews_remaining
+            reviews_percent = reviews_completed * 100 / reviews_total
+            if snippets_percent in percent_transcribed_to_report:
+                completions.append((
+                    snippets_percent, None, this_url, c.authored_date,
+                ))
+                percent_transcribed_to_report.remove(snippets_percent)
+            elif reviews_percent in percent_reviewed_to_report:
+                completions.append((
+                    None, reviews_percent, this_url, c.authored_date,
+                ))
+                percent_reviewed_to_report.remove(reviews_percent)
+        # Report completion in chrono order.
+        completions.reverse()
+        pub_date = commit.authored_date
+        data = dict(
+            _standard_response(repo, commit),
+            completions=completions,
+            now_url=now_url,
+            pub_date=pub_date,
+            request=request,
+            rfc822_from_time=rfc822_from_time,
+        )
+        content = render('fanscribed:templates/rss_completion.xml.mako', data, request=request)
+        cache.cache_content(cache_key, content, mtime)
+    return Response(content, content_type='application/rss+xml', date=mtime)
+
+
+@view_config(
+    request_method='GET',
     route_name='rss_kudos',
     context='fanscribed:resources.Root',
 )
@@ -887,7 +958,7 @@ def rss_kudos(request, max_hours=24, default_minutes=60):
         end_timestamp,
     )
     content, mtime = cache.get_cached_content(cache_key)
-    if content is None:
+    if content is None or request.GET.has_key('nocache'):
         # Get the list of kudos to give, or use the default.
         kudos_txt, mtime = repos.file_at_commit(repo, 'kudos.txt', commit)
         kudos_txt = kudos_txt or DEFAULT_KUDOS

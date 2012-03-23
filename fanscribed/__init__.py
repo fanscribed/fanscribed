@@ -38,6 +38,7 @@ def main(global_config, **settings):
     config.add_route('snippet_mp3', '/snippet.mp3')
 
     config.add_route('rss_basic', '/rss/basic')
+    config.add_route('rss_completion', '/rss/completion')
     config.add_route('rss_kudos', '/rss/kudos')
 
     # Views.
