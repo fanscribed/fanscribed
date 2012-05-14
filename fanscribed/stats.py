@@ -354,7 +354,7 @@ def process_all_authors():
                         if first_repo_snippet_action.saved == lock.destroyed_at:
                             author_info.time_spent_transcribing += duration
                             author_info.total_bytes_transcribed += first_repo_snippet_action.bytes
-        if author_info.total_transcriptions:
+        if author_info.total_transcriptions and author_info.time_spent_transcribing:
             author_info.average_time_per_transcription = author_info.time_spent_transcribing / author_info.total_transcriptions
             author_info.average_wpm = (author_info.total_bytes_transcribed / 5.0) / (author_info.time_spent_transcribing / 60.0)
 
