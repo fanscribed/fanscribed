@@ -146,6 +146,7 @@
   % if custom_js_revision:
     <script type="text/javascript" src="${request.route_path('custom_js')}?${custom_js_revision}${'&rev={0}'.format(request.GET.get('rev')) if request.GET.get('rev') else ''}"></script>
   % endif
+  ${tracking_html | n}
 
 </body>
 </html>

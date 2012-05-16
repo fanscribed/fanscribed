@@ -178,6 +178,7 @@ def _standard_response(repo, commit):
         custom_css_revision=repos.most_recent_revision(repo, 'custom.css'),
         custom_js_revision=repos.most_recent_revision(repo, 'custom.js'),
         speakers=repos.file_at_commit(repo, 'speakers.txt', commit)[0],
+        tracking_html=repos.file_at_commit(repo, 'tracking.html', commit)[0],
         transcription_info=transcription_info,
         transcription_info_json=json.dumps(transcription_info),
     )
