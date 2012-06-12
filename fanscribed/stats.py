@@ -338,9 +338,11 @@ def process_all_authors():
                 author_info.total_actions += len(snippet_actions)
                 # Determine if the snippet action was a transcription.
                 repo_info = repo_infos_by_name[repo_name]
-                first_repo_snippet_action = repo_info.snippets[starting_point][0]
-                if first_repo_snippet_action in snippet_actions:
-                    author_info.total_transcriptions += 1
+                first_repo_snippet = repo_info.snippets.get(starting_point)
+                if first_repo_snippet:
+                    first_repo_snippet_action = first_repo_snippet[0]
+                    if first_repo_snippet_action in snippet_actions:
+                        author_info.total_transcriptions += 1
         # Process locks.
         for repo_name, locks_map in author_info.locks_created.iteritems():
             for lock in locks_map.itervalues():
