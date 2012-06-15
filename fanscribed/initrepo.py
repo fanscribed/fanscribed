@@ -132,8 +132,11 @@ class InitRepoCommand(Command):
             if template_filename in {'transcription.json', 'variables.txt'}:
                 # Skip special files.
                 continue
-            print ' - {0}'.format(template_filename)
             template_source = os.path.join(template_path, template_filename)
+            if os.path.isdir(template_source):
+                # Skip directories.
+                continue
+            print ' - {0}'.format(template_filename)
             with open(template_source, 'rb') as f:
                 template_content = f.read() % variables
             template_dest = os.path.join(repo_path, template_filename)
