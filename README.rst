@@ -45,7 +45,7 @@ Clone the Fanscribed repository, install prerequisites, then install
 Fanscribed in develop mode. Note: the pip command will download and
 install some dependencies, which could take a couple of minutes::
 
-    $ git clone git@github.com:fanscribed/fanscribed
+    $ git clone https://github.com/fanscribed/fanscribed.git
     $ cd fanscribed
     $ pip install .
     $ python setup.py develop
@@ -61,7 +61,7 @@ use as a testbed (instructions for creating new transcript repositories
 forthcoming)::
 
     $ cd repos
-    $ git clone git@github.com:readnoagenda/376 localhost:5000
+    $ git clone https://github.com/readnoagenda/376.git localhost:5000
 
 The name "localhost" is used for your local clone, because Fanscribed
 selects the repository to use based on the hostname you're connecting to
