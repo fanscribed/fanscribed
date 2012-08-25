@@ -512,7 +512,8 @@ def lock_snippet(request):
             # commit with identity
             os.environ['GIT_AUTHOR_NAME'] = identity_name
             os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-            index.commit('snippet: lock')
+            commit_message = 'snippet: %s, locked by %s' % (_label_from_ms(starting_point), identity_name)
+            index.commit(commit_message)
             # return snippet info and text
             snippet_text = repos.snippet_text(repo, index, starting_point)
             body = json.dumps({
@@ -560,7 +561,8 @@ def lock_review(request):
             # commit with identity
             os.environ['GIT_AUTHOR_NAME'] = identity_name
             os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-            index.commit('review: lock')
+            commit_message = 'review: %s, locked by %s' % (_label_from_ms(starting_point), identity_name)
+            index.commit(commit_message)
             # return review info and snippet texts
             review_text_1 = repos.snippet_text(repo, index, starting_point)
             review_text_2 = repos.snippet_text(repo, index, starting_point + _snippet_ms())
@@ -613,7 +615,7 @@ def save_snippet(request):
         # commit with identity
         os.environ['GIT_AUTHOR_NAME'] = identity_name
         os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-        commit_message = 'snippet: save'
+        commit_message = 'snippet: %s, saved by %s' % (_label_from_ms(starting_point), identity_name)
         if inline:
             commit_message += ' (inline)'
         index.commit(commit_message)
@@ -652,7 +654,8 @@ def save_review(request):
         # commit with identity
         os.environ['GIT_AUTHOR_NAME'] = identity_name
         os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-        index.commit('review: save')
+        commit_message = 'review: %s, saved by %s' % (_label_from_ms(starting_point), identity_name)
+        index.commit(commit_message)
     # return empty indicating success
     return Response('', content_type='text/plain')
 
@@ -680,7 +683,8 @@ def cancel_snippet(request):
         # commit with identity
         os.environ['GIT_AUTHOR_NAME'] = identity_name
         os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-        index.commit('snippet: cancel')
+        commit_message = 'snippet: %s, cancel by %s' % (_label_from_ms(starting_point), identity_name)
+        index.commit(commit_message)
     # return empty indicating success
     return Response('', content_type='text/plain')
 
@@ -708,7 +712,8 @@ def cancel_review(request):
         # commit with identity
         os.environ['GIT_AUTHOR_NAME'] = identity_name
         os.environ['GIT_AUTHOR_EMAIL'] = identity_email
-        index.commit('review: cancel')
+        commit_message = 'review: %s, cancel by %s' % (_label_from_ms(starting_point), identity_name)
+        index.commit(commit_message)
     # return empty indicating success
     return Response('', content_type='text/plain')
 
