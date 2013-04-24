@@ -7,7 +7,7 @@ fi
 
 TMP_INSTALL=$VIRTUAL_ENV/tmp-install-mp3splt
 mkdir -p $TMP_INSTALL
-cp -v patched-libmp3splt-0.7.1-plugins-mp3.h $TMP_INSTALL/
+cp -v patched-libmad-0.15.1b-configure $TMP_INSTALL/
 cd $TMP_INSTALL
 
 LIBDIR=${VIRTUAL_ENV}/lib
@@ -22,9 +22,10 @@ export PKG_CONFIG_PATH=${LIBDIR}/pkgconfig
     if ! [ -d libmad-0.15.1b ]; then
         tar xzvf libmad-0.15.1b.tar.gz
     fi
+    cp patched-libmad-0.15.1b-configure libmad-0.15.1b/configure
     cd libmad-0.15.1b
     ./configure --prefix=${VIRTUAL_ENV}
-    make -j2
+    make -j16
     make install
 )
 
@@ -37,7 +38,7 @@ export PKG_CONFIG_PATH=${LIBDIR}/pkgconfig
     fi
     cd libogg-1.3.0
     ./configure --prefix=${VIRTUAL_ENV}
-    make -j2
+    make -j16
     make install
 )
 
@@ -46,11 +47,11 @@ export PKG_CONFIG_PATH=${LIBDIR}/pkgconfig
         wget -O libvorbis-1.3.2.tar.bz2 http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.2.tar.bz2
     fi
     if ! [ -d libvorbis-1.3.2 ]; then
-        tar xjvf libvorbis-1.3.2.tar.gz
+        tar xjvf libvorbis-1.3.2.tar.bz2
     fi
     cd libvorbis-1.3.2
     ./configure --prefix=${VIRTUAL_ENV}
-    make -j2
+    make -j16
     make install
 )
 
@@ -63,7 +64,7 @@ export PKG_CONFIG_PATH=${LIBDIR}/pkgconfig
     fi
     cd libid3tag-0.15.1b
     ./configure --prefix=${VIRTUAL_ENV}
-    make -j2
+    make -j16
     make install
 )
 
@@ -76,34 +77,33 @@ export PKG_CONFIG_PATH=${LIBDIR}/pkgconfig
     fi
     cd pcre-8.21
     ./configure --prefix=${VIRTUAL_ENV}
-    make -j2
+    make -j16
     make install
 )
 
 (
-    if ! [ -f libmp3splt-0.7.1.tar.gz ]; then
-        wget -O libmp3splt-0.7.1.tar.gz http://prdownloads.sourceforge.net/mp3splt/libmp3splt-0.7.1.tar.gz
+    if ! [ -f libmp3splt-0.8.2.tar.gz ]; then
+        wget -O libmp3splt-0.8.2.tar.gz http://prdownloads.sourceforge.net/mp3splt/libmp3splt-0.8.2.tar.gz
     fi
-    if ! [ -d libmp3splt-0.7.1 ]; then
-        tar xzvf libmp3splt-0.7.1.tar.gz
+    if ! [ -d libmp3splt-0.8.2 ]; then
+        tar xzvf libmp3splt-0.8.2.tar.gz
     fi
-    cp patched-libmp3splt-0.7.1-plugins-mp3.h libmp3splt-0.7.1/plugins/mp3.h
-    cd libmp3splt-0.7.1
-    ./configure --prefix=${VIRTUAL_ENV} --with-mad=${VIRTUAL_ENV} --with-id3=${VIRTUAL_ENV} --with-ogg=${VIRTUAL_ENV} --with-vorbis=${VIRTUAL_ENV} --with-ltdl-lib=/usr/lib --with-ltdl-include=/usr/include
-    make -j2
+    cd libmp3splt-0.8.2
+    ./configure --prefix=${VIRTUAL_ENV} --with-mad=${VIRTUAL_ENV} --with-id3=${VIRTUAL_ENV} --with-ogg=${VIRTUAL_ENV} --with-vorbis=${VIRTUAL_ENV} --enable-ltdl-install
+    make -j16
     make install
 )
 
 (
-    if ! [ -f mp3splt-2.4.1.tar.gz ]; then
-        wget -O mp3splt-2.4.1.tar.gz http://prdownloads.sourceforge.net/mp3splt/mp3splt-2.4.1.tar.gz
+    if ! [ -f mp3splt-2.5.2.tar.gz ]; then
+        wget -O mp3splt-2.5.2.tar.gz http://prdownloads.sourceforge.net/mp3splt/mp3splt-2.5.2.tar.gz
     fi
-    if ! [ -d mp3splt-2.4.1 ]; then
-        tar xzvf mp3splt-2.4.1.tar.gz
+    if ! [ -d mp3splt-2.5.2 ]; then
+        tar xzvf mp3splt-2.5.2.tar.gz
     fi
-    cd mp3splt-2.4.1
-    ./configure --prefix=${VIRTUAL_ENV} --with-mp3splt=${VIRTUAL_ENV}
-    make -j2
+    cd mp3splt-2.5.2
+    ./configure --prefix=${VIRTUAL_ENV} CFLAGS=-I${VIRTUAL_ENV}/include
+    make -j16
     make install
 )
 
