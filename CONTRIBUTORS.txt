@@ -1,0 +1,4 @@
+Matthew Scott / @gldnspud
+
+Project bootstrapped using django-twoscoops-project.
+See https://github.com/twoscoops/django-twoscoops-project/blob/master/CONTRIBUTORS.txt

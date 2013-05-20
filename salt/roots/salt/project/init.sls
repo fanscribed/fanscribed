@@ -1,4 +1,4 @@
 include:
   - project.packages
   - project.user
-  - project.venv
+  - project.virtualenv
