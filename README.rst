@@ -3,9 +3,6 @@
 ============================
 
 
-(*) TODO
-
-
 One-time preparation
 ====================
 
@@ -49,11 +46,16 @@ Start the web server in foreground mode
 
       $ vagrant ssh
 
-3.  (*) Start the development web server::
+3.  Start the development web server::
 
       $ fanscribed runserver
 
-4.  (*) Visit `<http://localhost:8000/>`__.
+4.  Visit `<http://localhost:8000/>`__.
+
+    Or, if you have Zeroconf/Bonjour networking active,
+    visit `<http://fanscribed-dev.local:8000/>`__.
+    All Mac OSX systems support this.
+    Many Ubuntu desktop systems do via `Avahi <http://en.wikipedia.org/wiki/Avahi_(software)>`__.
 
 
 Updating the VM
