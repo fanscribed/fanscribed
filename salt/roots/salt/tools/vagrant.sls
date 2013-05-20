@@ -1,0 +1,2 @@
+avahi-daemon:
+  pkg.installed

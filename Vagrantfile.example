@@ -1,0 +1,32 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+    # Using Ubuntu 12.04 LTS
+    config.vm.box = "precise64"
+
+    # If using VMware, choose this URL:
+    # config.vm.box_url = "http://files.vagrantup.com/precise64_vmware.box"
+
+    # If using Virtualbox, choose this URL:
+    # config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+
+    config.vm.hostname = "fanscribed-dev"
+
+    config.vm.network :forwarded_port, guest: 8000, host: 8000
+
+    config.vm.synced_folder "salt/roots", "/srv"
+    config.vm.synced_folder ".", "/fanscribed"
+
+    config.vm.provision :salt do |salt|
+        # Turn this on if you need to upgrade to a newer version of salt:
+        # salt.always_install = true
+        salt.install_type = "git"
+        salt.install_args = "v0.15.1"  # Note: does not return proper exist code from state.highstate
+        salt.verbose = true
+        salt.minion_config = "salt/minion"
+        salt.run_highstate = true
+    end
+
+end
