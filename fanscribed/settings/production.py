@@ -20,6 +20,14 @@ def get_env_setting(setting):
 
 INSTALLED_APPS += ('gunicorn',)
 
+
+########## ALLOWED HOSTS CONFIGURATION
+ALLOWED_HOSTS = [
+    '2.fanscribed.com',
+]
+########## END ALLOWED HOSTS CONFIGURATION
+
+
 ########## EMAIL CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -48,13 +56,26 @@ SERVER_EMAIL = EMAIL_HOST_USER
 
 
 ########## DATABASE CONFIGURATION
-DATABASES = {}
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': get_env_setting('DATABASE_NAME'),
+        'USER': get_env_setting('DATABASE_USER'),
+        'PASSWORD': get_env_setting('DATABASE_PASSWORD'),
+        'HOST': get_env_setting('DATABASE_HOST'),
+        'PORT': None,
+    },
+}
 ########## END DATABASE CONFIGURATION
 
 
 ########## CACHE CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#caches
-CACHES = {}
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
 ########## END CACHE CONFIGURATION
 
 
