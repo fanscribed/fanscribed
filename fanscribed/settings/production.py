@@ -23,7 +23,6 @@ INSTALLED_APPS += ('gunicorn',)
 
 ########## ALLOWED HOSTS CONFIGURATION
 ALLOWED_HOSTS = [
-    '2.fanscribed.com',
 ]
 ########## END ALLOWED HOSTS CONFIGURATION
 
