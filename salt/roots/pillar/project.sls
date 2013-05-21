@@ -2,7 +2,7 @@ project:
 
   user: vagrant
 
-  path: /fanscribed
+  path: /src/fanscribed
 
   virtualenv: /home/vagrant/venv
 

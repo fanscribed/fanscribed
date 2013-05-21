@@ -17,7 +17,7 @@ Vagrant.configure("2") do |config|
     config.vm.network :forwarded_port, guest: 8000, host: 8000
 
     config.vm.synced_folder "salt/roots", "/srv"
-    config.vm.synced_folder ".", "/fanscribed"
+    config.vm.synced_folder "..", "/src"
 
     config.vm.provision :salt do |salt|
         # Turn this on if you need to upgrade to a newer version of salt:
