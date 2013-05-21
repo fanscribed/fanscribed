@@ -34,6 +34,18 @@ One-time preparation
       $ vagrant up --provider=vmware_fusion
       $ vagrant up --provider=vmware_workstation
 
+5.  Connect to the VM via SSH::
+
+      $ vagrant ssh
+
+6.  Synchronize the database::
+
+      $ fanscribed syncdb --migrate --noinput
+
+7.  Create a superuser::
+
+      $ fanscribed createsuperuser
+
 
 Start the web server in foreground mode
 =======================================
@@ -61,7 +73,13 @@ Start the web server in foreground mode
 Updating the VM
 ===============
 
-1.  When a requirements file changes, use Vagrant to reprovision::
+- When a requirements file changes, use Vagrant to reprovision::
 
-      $ vagrant provision
+    $ vagrant provision
+
+- After a schema migration, resync the db::
+
+    $ vagrant ssh
+        # ... after connecting ...
+    $ fanscribed syncdb --migrate --noinput
 

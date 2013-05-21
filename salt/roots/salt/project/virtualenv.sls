@@ -1,10 +1,11 @@
 include:
   - project.packages
 
-{% set path = pillar['project_path'] %}
-{% set user = pillar['project_user'] %}
+{% set project = pillar['project'] %}
+{% set path = project['path'] %}
+{% set user = project['user'] %}
 
-{{ pillar['project_venv'] }}:
+{{ project['virtualenv'] }}:
   virtualenv.managed:
     - requirements: {{ path }}/requirements/local.txt
     - runas: {{ user }}

@@ -1,4 +1,4 @@
-{% set user = pillar['project_user'] %}
+{% set user = pillar['project']['user'] %}
 
 {{ user }}:
   group:
