@@ -16,11 +16,13 @@ Developer Prerequisites
 
 - Linux, MacOSX, BSD, or similar POSIX environment.
 
-- Latest Python 2.7
+- Latest Python 2.7 and python2.7-dev
 
 - Latest git
 
-- Install virtualenv.  Recommended: also install virtualenvwrapper.
+- Install virtualenv 1.5.1 or higher.  Recommended: also install virtualenvwrapper.
+
+- Install mp3splt
 
 
 Initial environment setup
@@ -40,24 +42,26 @@ Or, using virtualenvwrapper::
     $ cdvirtualenv
 
 Clone the Fanscribed repository, install prerequisites, then install
-Fanscribed in develop mode::
+Fanscribed in develop mode. Note: the pip command will download and
+install some dependencies, which could take a couple of minutes::
 
-    $ git clone git@github.com:fanscribed/fanscribed
+    $ git clone https://github.com/fanscribed/fanscribed.git
     $ cd fanscribed
     $ pip install .
     $ python setup.py develop
 
 Create a sibling directory to hold transcript repositories used during
-development::
+development, and other needed directories::
 
     $ cd ..
-    $ mkdir repos
+    $ mkdir repos audio repo_templates
 
 Optional, but recommended: clone an existing transcript repository to
 use as a testbed (instructions for creating new transcript repositories
 forthcoming)::
 
-    $ git clone git@github.com:readnoagenda/376 localhost:5000
+    $ cd repos
+    $ git clone https://github.com/readnoagenda/376.git localhost:5000
 
 The name "localhost" is used for your local clone, because Fanscribed
 selects the repository to use based on the hostname you're connecting to
