@@ -1,5 +1,6 @@
 from django.conf.urls import patterns, include, url
-from django.views.generic import TemplateView
+
+from fanscribed.apps.core.views import CoreIndexView
 
 
 # Uncomment the next two lines to enable the admin:
@@ -12,8 +13,10 @@ base_urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
 )
 
-
 # URL patterns used by only this project.
-urlpatterns = base_urlpatterns + patterns('',
-    url(r'^$', TemplateView.as_view(template_name='index.html')),
+core_urlpatterns = patterns('',
+    url(r'^$', CoreIndexView.as_view()),
 )
+
+
+urlpatterns = base_urlpatterns + core_urlpatterns
