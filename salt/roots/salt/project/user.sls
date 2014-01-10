@@ -6,8 +6,13 @@
   user:
     - present
     - gid_from_name: {{ user }}
+    - groups:
+      - {{ user }}
+      - docker
+      - sudo
     - shell: /bin/bash
     - require:
+      - pkg: lxc-docker
       - group: {{ user }}
 
 /home/{{ user }}/.bashrc:
