@@ -1,7 +1,24 @@
 {% set db = pillar['project']['db'] %}
 
 postgresql:
-  pkg.installed
+  pkg.installed: []
+  service.running:
+    - require:
+      - pkg: postgresql
+
+/etc/postgresql/9.1/main/postgresql.conf:
+  file.append:
+    - text: |
+        listen_addresses = '*'
+    - watch_in:
+      - service: postgresql
+
+/etc/postgresql/9.1/main/pg_hba.conf:
+  file.append:
+    - text: |
+        host all all 0.0.0.0/0 md5
+    - watch_in:
+      - service: postgresql
 
 postgres user {{ db['user'] }}:
   postgres_user.present:
