@@ -8,6 +8,9 @@
 *.swp
 *~
 
+# OS files:
+.DS_Store
+
 # Sphinx docs:
 build
 
