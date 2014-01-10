@@ -8,7 +8,7 @@ include:
 {{ project['virtualenv'] }}:
   virtualenv.managed:
     - requirements: {{ path }}/requirements/local.txt
-    - runas: {{ user }}
+    - user: {{ user }}
     - cwd: {{ path }}
     - no_chown: True
     - require:
