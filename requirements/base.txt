@@ -1,13 +1,13 @@
-# Use fanscribed itself out of the working copy.
-# (Because of the way pip works,
-# make sure you're in the top level of your working copy.)
--e .
-
 # Third-party dependencies
-Django==1.5.1
-django-braces==1.0.0
-django-model-utils==1.3.1
-ipython==0.13.2
-logutils==0.3.3
-psycopg2==2.5
-South==0.7.6
+Django == 1.6.1
+django-braces == 1.3.1
+django-model-utils == 2.0
+logutils == 0.3.3
+psycopg2 == 2.5.2
+South == 0.8.4
+
+ipython == 1.1.0
+    pyzmq == 14.0.1
+    tornado == 3.1.1
+    Jinja2 == 2.7.2
+    Pygments == 1.6
