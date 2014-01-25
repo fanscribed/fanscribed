@@ -18,8 +18,6 @@ def get_env_setting(setting):
         error_msg = "Set the %s env variable" % setting
         raise ImproperlyConfigured(error_msg)
 
-INSTALLED_APPS += ('gunicorn',)
-
 
 ########## ALLOWED HOSTS CONFIGURATION
 ALLOWED_HOSTS = [
