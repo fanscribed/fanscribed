@@ -41,6 +41,10 @@ One-time preparation
 
       $ vagrant ssh
 
+    The virtualenv is already activated for you upon login.
+
+    The ``fanscribed`` command is an alias to Django admin.
+
 6.  Synchronize the database::
 
       $ fanscribed syncdb --migrate --noinput
