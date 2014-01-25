@@ -30,6 +30,13 @@ One-time preparation
       $ vagrant up --provider=vmware_fusion
       $ vagrant up --provider=vmware_workstation
 
+    If you run into problems during provisioning::
+
+      $ vagrant ssh
+      $ sudo salt-call --local state.highstate
+
+    If some states fail, run ``state.highstate`` again.
+
 5.  Connect to the VM via SSH::
 
       $ vagrant ssh
