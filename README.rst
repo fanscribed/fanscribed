@@ -9,16 +9,12 @@ One-time preparation
 1.  Download and install `Vagrant <http://vagrantup.com/>`__.
     Review the basics of Vagrant if you haven't used it recently.
 
-2.  Install the `vagrant-salt <http://www.vagrantup.com/vmware>`__ plugin::
-
-      $ vagrant plugin install vagrant-salt
-
-3.  Clone this repo and change to its directory::
+2.  Clone this repo and change to its directory::
 
       $ git clone git@bitbucket.org:fanscribed/fanscribed
       $ cd fanscribed
 
-4.  Make a ``Vagrantfile``, then edit it
+3.  Make a ``Vagrantfile``, then edit it
     to choose between Virtualbox or VMware::
 
       $ cp Vagrantfile.example Vagrantfile
