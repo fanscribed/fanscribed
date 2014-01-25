@@ -1,6 +1,6 @@
-============================
- Fanscribed Developer Setup
-============================
+==========================
+Fanscribed Developer Setup
+==========================
 
 
 One-time preparation
@@ -15,7 +15,7 @@ One-time preparation
 
 3.  Clone this repo and change to its directory::
 
-      $ git clone https://github.com/fanscribed/fanscribed
+      $ git clone git@bitbucket.org:fanscribed/fanscribed
       $ cd fanscribed
 
 4.  Make a ``Vagrantfile``, then edit it
