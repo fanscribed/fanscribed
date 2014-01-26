@@ -226,7 +226,6 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 THIRD_PARTY_APPS += (
-    # Database migration helpers:
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -255,7 +254,9 @@ DJANGO_APPS = (
 
     # Admin panel and documentation:
     'django.contrib.admin',
-    # 'django.contrib.admindocs',
+)
+THIRD_PARTY_APPS += (
+    'django_extensions',
 )
 # Apps specific for this project go here.
 LOCAL_APPS = (
