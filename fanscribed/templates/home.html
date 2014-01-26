@@ -5,15 +5,145 @@
 {% endblock %}
 
 {% block content %}
-  <ul>
-    {% if user.is_anonymous %}
-      <li><a class="btn btn-default" href="{% url 'admin:index' %}">Sign in</a> to an existing account</li>
-    {% else %}
-      <li><a class="btn btn-default" href="{% url 'admin:logout' %}">Sign out</a> from the site</li>
-    {% endif %}
-  </ul>
-{% endblock %}
 
-{% block extra_css %}
+  <div class="row">
+
+    <div class="col-sm-6 col-md-4 col-lg-3">
+      <h3 id="membership-heading">
+        Membership is free!
+      </h3>
+
+      <p>
+        Fill out the form below to sign up today.
+      </p>
+
+      <p>
+        <a href="#">Already a member? Sign in.</a>
+      </p>
+
+      <div class="form-group">
+        <label class="sr-only" for="email-input">Email</label>
+        <input type="email" class="form-control" id="email-input"
+               name="email"
+               placeholder="Enter email"/>
+      </div>
+
+      <div class="form-group">
+        <label class="sr-only" for="password-input">Password</label>
+        <input type="password" class="form-control" id="password-input"
+               name="password"
+               placeholder="Enter password"/>
+        <label class="sr-only" for="password-input">Password again (to verify)</label>
+        <input type="password" class="form-control" id="password2-input"
+               name="password2"
+               placeholder="Enter password again (to verify)"/>
+      </div>
+
+      <p>
+        By signing up, you agree to receive email related to account activity,
+        and to receive email about new features or service announcements.
+      </p>
+
+      <button type="submit" class="btn btn-primary">Sign Up</button>
+
+    </div>
+
+    <div class="col-sm-6 col-md-8 col-lg-9">
+
+      <div>
+        <h3>Our mission:</h3>
+
+        <p>
+          Help podcasts become more accessible
+          and reach a wider audience
+          via high-quality, free or low-cost,
+          crowd-sourced transcripts.
+        </p>
+
+        <div class="row">
+
+          <div class="col-md-6">
+            <h4>Podcasters</h4>
+            <p>
+              Register your podcast feed(s) with Fanscribed,
+              and get the benefits of transcription.
+            </p>
+            <p>
+              Your podcasts will become full-text searchable,
+              reach a wider audience than ever,
+              and will become easier for fans to share.
+            </p>
+            <p>
+              Already have existing transcripts?
+              Let us feature them in our directory!
+            </p>
+          </div>
+
+          <div class="col-md-6">
+            <h4>Podcast Fans</h4>
+            <p>
+              Tell us about the podcasts you love,
+              and we'll help get them transcribed..
+            </p>
+            <p>
+              With high-quality, attractive
+              transcripts of your favorite podcasts,
+              it's easier than ever to find and share
+              your favorite moments from them.
+            </p>
+            <p>
+              Share a podcast's text with Fanscribed,
+              and help bring the rich world of podcasts
+              to new audiences.
+            </p>
+          </div>
+
+          <div class="col-md-6">
+            <h4>Help Transcribe</h4>
+            <p>
+              You might think transcribing audio to text would be boring.
+              It can be, but only if you use the wrong tools.
+            </p>
+            <p>
+              Fanscribed makes it fun to transcribe!
+              You're in control,
+              and each task takes less than two minutes to complete.
+              We mix things up so you don't get bored, and
+              you can start and stop any time.
+            </p>
+            <p>
+              Transcription is currently volunteer work,
+              but we're working to create a marketplace
+              so you can earn money for helping with sponsored transcripts.
+            </p>
+          </div>
+
+          <div class="col-md-6">
+            <h4>Patrons</h4>
+            <p>
+              There will always be a place for volunteer work,
+              but some podcasters or fans like to
+              reward people for their efforts.
+            </p>
+            <p>
+              To help with that,
+              Fanscribed will be introducing a marketplace.
+              Patrons will pay toward completed transcripts.
+              Transcribers will receive money based on their share of work done.
+            </p>
+            <p>
+              Feeling adventurous?
+              Consider donating to the Fanscribed project.
+              To find out more, email
+              <a href="mailto:matthew@fanscribed.com">matthew@fanscribed.com</a>.
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
 
 {% endblock %}
