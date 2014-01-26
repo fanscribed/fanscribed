@@ -24,11 +24,13 @@ ALLOWED_HOSTS = environ['ALLOWED_HOSTS'].split(',')
 ########## END ALLOWED HOSTS CONFIGURATION
 
 
+########## ADMINS CONFIGURATION
 ADMINS = tuple(
     ('Fanscribed Admin', email)
     for email
     in environ['ADMIN_EMAILS'].split(','),
 )
+########## END ADMINS CONFIGURATION
 
 
 ########## EMAIL CONFIGURATION
@@ -55,6 +57,9 @@ EMAIL_USE_TLS = True
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#server-email
 SERVER_EMAIL = EMAIL_HOST_USER
+
+# See: https://docs.djangoproject.com/en/dev/ref/settings/#default-from-email
+DEFAULT_FROM_EMAIL = get_env_setting('DEFAULT_FROM_EMAIL')
 ########## END EMAIL CONFIGURATION
 
 
