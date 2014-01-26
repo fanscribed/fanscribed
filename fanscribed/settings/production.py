@@ -19,21 +19,25 @@ def get_env_setting(setting):
         raise ImproperlyConfigured(error_msg)
 
 
-########## ALLOWED HOSTS CONFIGURATION
+# ALLOWED HOSTS
+# -------------
+
 ALLOWED_HOSTS = environ['ALLOWED_HOSTS'].split(',')
-########## END ALLOWED HOSTS CONFIGURATION
 
 
-########## ADMINS CONFIGURATION
+# ADMINS
+# ------
+
 ADMINS = tuple(
     ('Fanscribed Admin', email)
     for email
     in environ['ADMIN_EMAILS'].split(','),
 )
-########## END ADMINS CONFIGURATION
 
 
-########## EMAIL CONFIGURATION
+# EMAIL
+# -----
+
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
@@ -60,10 +64,11 @@ SERVER_EMAIL = EMAIL_HOST_USER
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#default-from-email
 DEFAULT_FROM_EMAIL = get_env_setting('DEFAULT_FROM_EMAIL')
-########## END EMAIL CONFIGURATION
 
 
-########## DATABASE CONFIGURATION
+# DATABASE
+# --------
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -74,26 +79,29 @@ DATABASES = {
         'PORT': None,
     },
 }
-########## END DATABASE CONFIGURATION
 
 
-########## CACHE CONFIGURATION
+# CACHE
+# -----
+
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#caches
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
-########## END CACHE CONFIGURATION
 
 
-########## SECRET CONFIGURATION
+# SECRET
+# ------
+
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 SECRET_KEY = get_env_setting('SECRET_KEY')
-########## END SECRET CONFIGURATION
 
 
-########## RAVEN/SENTRY CONFIGURATION
+# RAVEN/SENTRY
+# ------------
+
 _DSN = environ.get('RAVEN_DSN')
 if _DSN:
     RAVEN_CONFIG = {
@@ -102,4 +110,10 @@ if _DSN:
     INSTALLED_APPS += (
         'raven.contrib.django.raven_compat',
     )
-########## END RAVEN/SENTRY CONFIGURATION
+
+
+# MAILCHIMP
+# ---------
+
+MAILCHIMP_API_KEY = get_env_setting('MAILCHIMP_API_KEY')
+MAILCHIMP_LIST_ID = get_env_setting('MAILCHIMP_LIST_ID')

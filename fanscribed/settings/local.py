@@ -6,22 +6,27 @@ from os.path import join, normpath
 from base import *
 
 
-########## DEBUG CONFIGURATION
+# DEBUG
+# -----
+
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#debug
 DEBUG = True
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#template-debug
 TEMPLATE_DEBUG = DEBUG
-########## END DEBUG CONFIGURATION
 
 
-########## EMAIL CONFIGURATION
+# EMAIL
+# -----
+
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 ########## END EMAIL CONFIGURATION
 
 
-########## DATABASE CONFIGURATION
+# DATABASE
+# --------
+
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {
     'default': {
@@ -33,20 +38,22 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-########## END DATABASE CONFIGURATION
 
 
-########## CACHE CONFIGURATION
+# CACHE
+# -----
+
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#caches
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
-########## END CACHE CONFIGURATION
 
 
-########## TOOLBAR CONFIGURATION
+# TOOLBAR
+# -------
+
 # See: https://github.com/django-debug-toolbar/django-debug-toolbar#installation
 INSTALLED_APPS += (
     'debug_toolbar',
@@ -59,4 +66,3 @@ INTERNAL_IPS = ('127.0.0.1',)
 MIDDLEWARE_CLASSES += (
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
-########## END TOOLBAR CONFIGURATION
