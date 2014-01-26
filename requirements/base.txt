@@ -17,3 +17,5 @@ django-allauth == 0.15.0
     requests == 2.2.1
     requests-oauthlib == 0.4.0
     oauthlib == 0.6.1
+
+raven == 4.0.3
