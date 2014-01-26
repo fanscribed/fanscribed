@@ -21,6 +21,7 @@ def get_env_setting(setting):
 
 ########## ALLOWED HOSTS CONFIGURATION
 ALLOWED_HOSTS = [
+    environ['ALLOWED_HOSTS'].split(','),
 ]
 ########## END ALLOWED HOSTS CONFIGURATION
 
