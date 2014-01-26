@@ -21,5 +21,5 @@ def add_user_email_to_mailchimp(email, user_id):
                 },
             ],
             update_existing=True,
-            relace_interests=False,
+            replace_interests=False,
         )
