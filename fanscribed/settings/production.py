@@ -117,3 +117,9 @@ if _DSN:
 
 MAILCHIMP_API_KEY = get_env_setting('MAILCHIMP_API_KEY')
 MAILCHIMP_LIST_ID = get_env_setting('MAILCHIMP_LIST_ID')
+
+
+# CELERY
+# ------
+
+BROKER_URL = get_env_setting('BROKER_URL')

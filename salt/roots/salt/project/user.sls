@@ -1,4 +1,5 @@
-{% set user = pillar['project']['user'] %}
+{% set settings = pillar.project.settings %}
+{% set user = pillar.project.user %}
 
 {{ user }}:
   group:
@@ -19,3 +20,4 @@
   file.append:
     - text: |
         source venv/bin/activate
+        export DJANGO_SETTINGS_MODULE={{ settings }}

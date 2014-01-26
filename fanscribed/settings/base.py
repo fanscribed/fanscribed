@@ -255,16 +255,20 @@ ACCOUNT_EMAIL_VERIFICATION = 'optional'
 ACCOUNT_EMAIL_SUBJECT_PREFIX = '[Fanscribed] '
 ACCOUNT_USERNAME_REQUIRED = False
 LOGIN_REDIRECT_URL = 'home'
-########## END ALLAUTH CONFIGURATION
 
 
-# SUPERVISOR
-# ----------
+# CELERY
+# ------
+
+THIRD_PARTY_APPS += (
+    'djcelery',
+)
+BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 
 
-
-# APP
-# ---
+# APPS
+# ----
 
 DJANGO_APPS = (
     # Default Django apps:

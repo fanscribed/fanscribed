@@ -6,6 +6,8 @@ project:
 
   virtualenv: /home/vagrant/venv
 
+  settings: fanscribed.settings.local
+
   db:
     name: fanscribed
     user: fanscribed
