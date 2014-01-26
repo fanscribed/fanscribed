@@ -26,6 +26,13 @@ ALLOWED_HOSTS = [
 ########## END ALLOWED HOSTS CONFIGURATION
 
 
+ADMINS = tuple(
+    ('Fanscribed Admin', email)
+    for email
+    in environ['ADMIN_EMAILS'].split(','),
+)
+
+
 ########## EMAIL CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
