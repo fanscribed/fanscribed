@@ -11,3 +11,9 @@ ipython == 1.1.0
     tornado == 3.1.1
     Jinja2 == 2.7.2
     Pygments == 1.6
+
+django-allauth == 0.15.0
+    python-openid == 2.2.5
+    requests == 2.2.1
+    requests-oauthlib == 0.4.0
+    oauthlib == 0.6.1

@@ -9,42 +9,46 @@
   <div class="row">
 
     <div class="col-sm-6 col-md-4 col-lg-3">
-      <h3 id="membership-heading">
-        Membership is free!
-      </h3>
 
-      <p>
-        Fill out the form below to sign up today.
-      </p>
+      {% if user.is_authenticated %}
+        <h3>Welcome, member!</h3>
+        <p>You are signed in.</p>
+      {% else %}
+        <h3>
+          Membership is free!
+        </h3>
+        <p>
+          Fill out the form below to sign up today.
+        </p>
+        <p>
+          <a href="#">Already a member? Sign in.</a>
+        </p>
+        <form action="{% url 'account_signup' %}" method="post">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="sr-only" for="email-input">Email</label>
+            <input type="email" class="form-control" id="email-input"
+                   name="email"
+                   placeholder="Enter email"/>
+          </div>
+          <div class="form-group">
+            <label class="sr-only" for="password-input">Password</label>
+            <input type="password" class="form-control" id="password1-input"
+                   name="password1"
+                   placeholder="Enter password"/>
+            <label class="sr-only" for="password-input">Password again (to verify)</label>
+            <input type="password" class="form-control" id="password2-input"
+                   name="password2"
+                   placeholder="Enter password again (to verify)"/>
+          </div>
+          <p>
+            By signing up, you agree to receive email related to account activity,
+            and to receive email about new features or service announcements.
+          </p>
+          <button type="submit" class="btn btn-primary">Sign Up</button>
+        </form>
+      {% endif %}
 
-      <p>
-        <a href="#">Already a member? Sign in.</a>
-      </p>
-
-      <div class="form-group">
-        <label class="sr-only" for="email-input">Email</label>
-        <input type="email" class="form-control" id="email-input"
-               name="email"
-               placeholder="Enter email"/>
-      </div>
-
-      <div class="form-group">
-        <label class="sr-only" for="password-input">Password</label>
-        <input type="password" class="form-control" id="password-input"
-               name="password"
-               placeholder="Enter password"/>
-        <label class="sr-only" for="password-input">Password again (to verify)</label>
-        <input type="password" class="form-control" id="password2-input"
-               name="password2"
-               placeholder="Enter password again (to verify)"/>
-      </div>
-
-      <p>
-        By signing up, you agree to receive email related to account activity,
-        and to receive email about new features or service announcements.
-      </p>
-
-      <button type="submit" class="btn btn-primary">Sign Up</button>
 
     </div>
 

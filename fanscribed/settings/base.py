@@ -6,6 +6,9 @@ from os.path import abspath, basename, dirname, join, normpath
 import fanscribed
 
 
+THIRD_PARTY_APPS = ()
+
+
 ########## PATH CONFIGURATION
 # Absolute filesystem path to the Django project directory:
 PACKAGE_ROOT = dirname(abspath(fanscribed.__file__))
@@ -48,6 +51,13 @@ DATABASES = {
     }
 }
 ########## END DATABASE CONFIGURATION
+
+
+########## DB MIGRATIONS CONFIGURATION
+THIRD_PARTY_APPS = (
+    'south',
+)
+########## END DB MIGRATIONS CONFIGURATION
 
 
 ########## GENERAL CONFIGURATION
@@ -167,39 +177,6 @@ ROOT_URLCONF = '%s.urls' % SITE_NAME
 ########## END URL CONFIGURATION
 
 
-########## APP CONFIGURATION
-DJANGO_APPS = (
-    # Default Django apps:
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.sites',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-
-    # Useful template tags:
-    # 'django.contrib.humanize',
-
-    # Admin panel and documentation:
-    'django.contrib.admin',
-    # 'django.contrib.admindocs',
-)
-
-THIRD_PARTY_APPS = (
-    # Database migration helpers:
-    'south',
-)
-
-# Apps specific for this project go here.
-LOCAL_APPS = (
-    'fanscribed',  # For PyCharm to find templates more easily.
-)
-
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
-########## END APP CONFIGURATION
-
-
 ########## LOGGING CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#logging
 # A sample logging configuration. The only tangible logging
@@ -237,3 +214,52 @@ LOGGING = {
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = 'fanscribed.wsgi.application'
 ########## END WSGI CONFIGURATION
+
+
+########## ALLAUTH CONFIGURATION
+TEMPLATE_CONTEXT_PROCESSORS += (
+    'allauth.account.context_processors.account',
+    'allauth.socialaccount.context_processors.socialaccount',
+)
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+THIRD_PARTY_APPS += (
+    # Database migration helpers:
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+)
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+ACCOUNT_EMAIL_SUBJECT_PREFIX = '[Fanscribed] '
+ACCOUNT_USERNAME_REQUIRED = False
+LOGIN_REDIRECT_URL = 'home'
+########## END ALLAUTH CONFIGURATION
+
+
+########## APP CONFIGURATION
+DJANGO_APPS = (
+    # Default Django apps:
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
+    # Useful template tags:
+    # 'django.contrib.humanize',
+
+    # Admin panel and documentation:
+    'django.contrib.admin',
+    # 'django.contrib.admindocs',
+)
+# Apps specific for this project go here.
+LOCAL_APPS = (
+    'fanscribed',  # For PyCharm to find templates more easily.
+)
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+########## END APP CONFIGURATION

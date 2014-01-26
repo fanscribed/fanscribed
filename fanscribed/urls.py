@@ -8,7 +8,15 @@ admin.autodiscover()
 
 
 # URL patterns used by all projects based on fanscribed core.
-urlpatterns = patterns('',
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^$', TemplateView.as_view(template_name='home.html'), name='home'),
+urlpatterns = patterns(
+    '',
+    url(r'^accounts/',
+        include('allauth.urls')),
+
+    url(r'^admin/',
+        include(admin.site.urls)),
+
+    url(r'^$',
+        name='home',
+        view=TemplateView.as_view(template_name='home.html')),
 )
