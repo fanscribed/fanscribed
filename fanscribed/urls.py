@@ -15,7 +15,7 @@ base_urlpatterns = patterns('',
 
 # URL patterns used by only this project.
 core_urlpatterns = patterns('',
-    url(r'^$', CoreIndexView.as_view()),
+    url(r'^$', CoreIndexView.as_view(), name='home'),
 )
 
 

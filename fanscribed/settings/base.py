@@ -192,6 +192,7 @@ THIRD_PARTY_APPS = (
 
 # Apps specific for this project go here.
 LOCAL_APPS = (
+    'fanscribed',  # For PyCharm to find templates more easily.
     'fanscribed.apps.core',
 )
 

@@ -7,9 +7,9 @@
 {% block content %}
   <ul>
     {% if user.is_anonymous %}
-      <li><a class="btn" href="{% url 'admin:index' %}">Sign in</a> to an existing account</li>
+      <li><a class="btn btn-default" href="{% url 'admin:index' %}">Sign in</a> to an existing account</li>
     {% else %}
-      <li><a class="btn" href="{% url 'admin:logout' %}">Sign out</a> from the site</li>
+      <li><a class="btn btn-default" href="{% url 'admin:logout' %}">Sign out</a> from the site</li>
     {% endif %}
   </ul>
 {% endblock %}
