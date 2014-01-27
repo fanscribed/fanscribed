@@ -2,7 +2,7 @@
 
 {% load url from future %}
 {% load i18n %}
-{% load bootstrap %}
+{% load bootstrap3 %}
 
 {% block head_title %}{% trans "Account" %}{% endblock %}
 
@@ -68,7 +68,7 @@
     
     <form method="post" action="">
         {% csrf_token %}
-        {{ add_email_form|bootstrap }}
+        {% bootstrap_form add_email_form %}
         <div class="form-actions">
           <button class="btn btn-primary" name="action_add" type="submit">{% trans "Add E-mail" %}</button>
         </div>
