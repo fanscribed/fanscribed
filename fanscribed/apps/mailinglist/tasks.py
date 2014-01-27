@@ -23,3 +23,4 @@ def add_user_email_to_mailchimp(email, user_id):
             update_existing=True,
             replace_interests=False,
         )
+        print 'Added {} to mailchimp.'.format(email)
