@@ -38,11 +38,11 @@ django-celery == 3.1.1
 django-bootstrap3 == 2.5.6
 
 django-waffle == 0.9.2
+    PyYAML == 3.10
 
 #django-supervisor == 0.3.2
 #    supervisor == 3.0
 #    watchdog == 0.7.0
 #    meld3 == 0.6.10
-#    PyYAML == 3.10
 #    argh == 0.24.1
 #    pathtools == 0.1.2
