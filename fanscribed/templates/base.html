@@ -1,3 +1,4 @@
+{% load bootstrap3 %}
 {% load staticfiles %}
 <!DOCTYPE html>
 <html lang="en">
@@ -10,11 +11,6 @@
 
     <!-- Le styles -->
     <link href="{% static 'vendor/bootstrap-3.0.3/css/bootstrap.min.css' %}" rel="stylesheet">
-    <style>
-      body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-      }
-    </style>
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -33,7 +29,7 @@
 
     {# Navbar #}
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar navbar-inverse navbar-static-top">
       <div class="container">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -48,6 +44,19 @@
             <li class="active"><a href="{% url 'home' %}">Home</a></li>
             <li><a href="http://blog.fanscribed.com/">Blog</a></li>
           </ul>
+          {% if user.is_authenticated %}
+            <ul class="nav navbar-nav navbar-right">
+              <li class="dropdown {% block nav_staff_class %}{% endblock %}">
+                <a class="dropdown-toggle" id="userDropdown" role="button" data-toggle="dropdown" href="#">{{ user.email }}<b class="caret"></b></a>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="userDropdown">
+                  {% if user.is_superuser %}
+                    {% include "_staff_menu_items.html" %}
+                    <li class="divider"></li>
+                  {% endif %}
+                  <li><a href="{% url 'account_logout' %}">Sign Out</a></li>
+                </ul>
+            </ul>
+          {% endif %}
         </div><!--/.nav-collapse -->
       </div>
     </div>
@@ -56,6 +65,8 @@
     {# Container #}
 
     <div class="container">
+
+      {% bootstrap_messages %}
 
       {% block content %}
         <p>Use this document as a way to quick start any new project.</p>
@@ -66,13 +77,13 @@
 
     {# Footer #}
 
-    <div class="navbar navbar-default">
+    <footer class="navbar navbar-default">
       <div class="container">
         <p class="navbar-text navbar-right">
           Copyright &copy; 2012-2014 Elevencraft Inc.
         </p>
       </div>
-    </div>
+    </footer>
 
 
     {# JavaScript #}
