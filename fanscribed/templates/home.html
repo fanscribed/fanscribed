@@ -8,6 +8,17 @@
 
   <div class="row">
 
+    <div class="col-xs-12">
+      <div class="jumbotron">
+        <h1>Accessible podcasts.</h1>
+        <p>
+          Our mission:
+          Help podcasts reach a wider audience
+          using high-quality transcripts.
+        </p>
+      </div>
+    </div>
+
     <div class="col-sm-6 col-md-4 col-lg-3">
 
       {% if user.is_authenticated %}
@@ -21,7 +32,7 @@
           Fill out the form below to sign up today.
         </p>
         <p>
-          <a href="#">Already a member? Sign in.</a>
+          <a href="{% url 'account_login' %}">Already a member? Sign in.</a>
         </p>
         <form action="{% url 'account_signup' %}" method="post">
           {% csrf_token %}
@@ -55,14 +66,6 @@
     <div class="col-sm-6 col-md-8 col-lg-9">
 
       <div>
-        <h3>Our mission:</h3>
-
-        <p>
-          Help podcasts become more accessible
-          and reach a wider audience
-          via high-quality, free or low-cost,
-          crowd-sourced transcripts.
-        </p>
 
         <div class="row">
 
@@ -101,6 +104,8 @@
               to new audiences.
             </p>
           </div>
+        </div>
+        <div class="row">
 
           <div class="col-md-6">
             <h4>Help Transcribe</h4>
