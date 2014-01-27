@@ -6,6 +6,7 @@ from os.path import abspath, basename, dirname, join, normpath
 import fanscribed
 
 
+LOCAL_APPS = ()
 THIRD_PARTY_APPS = ()
 
 
@@ -269,6 +270,21 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
 
+# WAFFLE
+# ------
+
+THIRD_PARTY_APPS += (
+    'waffle',
+)
+LOCAL_APPS += (
+    'fanscribed.apps.features',
+)
+FEATURES_YAML = join(PACKAGE_ROOT, '..', 'features.yaml')
+MIDDLEWARE_CLASSES += (
+    'waffle.middleware.WaffleMiddleware',
+)
+
+
 # APPS
 # ----
 
@@ -292,7 +308,7 @@ THIRD_PARTY_APPS += (
     'bootstrap3',
 )
 # Apps specific for this project go here.
-LOCAL_APPS = (
+LOCAL_APPS += (
     # For PyCharm to find templates and static files.
     'fanscribed',
 
