@@ -60,7 +60,7 @@ DATABASES = {
 # DB MIGRATIONS
 # -------------
 
-THIRD_PARTY_APPS = (
+THIRD_PARTY_APPS += (
     'south',
 )
 
