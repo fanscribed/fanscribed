@@ -41,22 +41,18 @@
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="{% url 'home' %}">Home</a></li>
+            <li class="{% block nav_class_home %}{% endblock %}"><a href="{% url 'home' %}">Home</a></li>
             <li><a href="http://blog.fanscribed.com/">Blog</a></li>
           </ul>
-          {% if user.is_authenticated %}
-            <ul class="nav navbar-nav navbar-right">
-              <li class="dropdown {% block nav_staff_class %}{% endblock %}">
-                <a class="dropdown-toggle" id="userDropdown" role="button" data-toggle="dropdown" href="#">{{ user.email }}<b class="caret"></b></a>
-                <ul class="dropdown-menu" role="menu" aria-labelledby="userDropdown">
-                  {% if user.is_superuser %}
-                    {% include "_staff_menu_items.html" %}
-                    <li class="divider"></li>
-                  {% endif %}
-                  <li><a href="{% url 'account_logout' %}">Sign Out</a></li>
-                </ul>
-            </ul>
-          {% endif %}
+          <ul class="nav navbar-nav navbar-right">
+            {% if user.is_authenticated %}
+              {% include "_nav_user_menu.html" %}
+            {% else %}
+              <li class="{% block nav_class_sign_in %}{% endblock %}">
+                <a href="{% url 'account_login' %}">Sign In</a>
+              </li>
+            {% endif %}
+          </ul>
         </div><!--/.nav-collapse -->
       </div>
     </div>

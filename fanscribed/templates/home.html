@@ -4,6 +4,10 @@
   Fanscribed - Landing
 {% endblock %}
 
+{% block nav_class_home %}
+  active
+{% endblock %}
+
 {% block content %}
 
   <div class="row">
@@ -32,7 +36,7 @@
           Fill out the form below to sign up today.
         </p>
         <p>
-          <a href="{% url 'account_login' %}">Already a member? Sign in.</a>
+          Already a member? <a href="{% url 'account_login' %}" class="btn btn-default">Sign in</a>
         </p>
         <form action="{% url 'account_signup' %}" method="post">
           {% csrf_token %}
