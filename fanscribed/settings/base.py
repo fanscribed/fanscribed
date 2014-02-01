@@ -280,7 +280,7 @@ THIRD_PARTY_APPS += (
 LOCAL_APPS += (
     'fanscribed.apps.features',
 )
-FEATURES_YAML = join(PACKAGE_ROOT, '..', 'features.yaml')
+FEATURES_YAML = join(PACKAGE_ROOT, '..', 'waffle.yaml')
 MIDDLEWARE_CLASSES += (
     'waffle.middleware.WaffleMiddleware',
 )
