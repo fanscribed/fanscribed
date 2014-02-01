@@ -234,8 +234,8 @@ LOGGING = {
 WSGI_APPLICATION = 'fanscribed.wsgi.application'
 
 
-# ALLAUTH
-# -------
+# AUTH / ACCOUNTS
+# ---------------
 
 TEMPLATE_CONTEXT_PROCESSORS += (
     'allauth.account.context_processors.account',
@@ -255,6 +255,7 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
 ACCOUNT_EMAIL_SUBJECT_PREFIX = '[Fanscribed] '
 ACCOUNT_USERNAME_REQUIRED = False
+AUTH_PROFILE_MODEL = 'profiles.Profile'
 LOGIN_REDIRECT_URL = 'home'
 
 
@@ -311,6 +312,9 @@ THIRD_PARTY_APPS += (
 LOCAL_APPS += (
     # For PyCharm to find templates and static files.
     'fanscribed',
+
+    # Accounts and profiles.
+    'fanscribed.apps.profiles',
 
     # Mailing list management.
     'fanscribed.apps.mailinglist',

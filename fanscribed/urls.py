@@ -13,6 +13,9 @@ urlpatterns = patterns(
     url(r'^accounts/',
         include('allauth.urls')),
 
+    url(r'^accounts/',
+        include('fanscribed.apps.profiles.urls', 'profiles', 'profiles')),
+
     url(r'^admin/',
         include(admin.site.urls)),
 

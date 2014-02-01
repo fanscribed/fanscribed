@@ -46,7 +46,20 @@
           </ul>
           <ul class="nav navbar-nav navbar-right">
             {% if user.is_authenticated %}
-              {% include "_nav_user_menu.html" %}
+
+              {# This must be in base.html due to containing a block. #}
+              <li class="dropdown {% block nav_class_user %}{% endblock %}">
+                <a class="dropdown-toggle" id="userDropdown" role="button" data-toggle="dropdown" href="#">{{ user.email }}<b class="caret"></b></a>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="userDropdown">
+                  {% if user.is_superuser %}
+                    {% include "_nav_staff_menu_items.html" %}
+                    <li class="divider"></li>
+                  {% endif %}
+                  <li><a href="{% url 'profiles:edit' %}">Your Profile</a></li>
+                  <li><a href="{% url 'account_logout' %}">Sign Out</a></li>
+                </ul>
+              </li>
+
             {% else %}
               <li class="{% block nav_class_sign_in %}{% endblock %}">
                 <a href="{% url 'account_login' %}">Sign In</a>
