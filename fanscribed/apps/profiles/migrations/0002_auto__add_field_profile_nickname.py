@@ -13,10 +13,26 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True),
                       keep_default=False)
 
+        # Adding field 'Profile.nickname_slug'
+        db.add_column(u'profiles_profile', 'nickname_slug',
+                      self.gf('django.db.models.fields.CharField')(db_index=True, max_length=100, null=True, blank=True),
+                      keep_default=False)
+
+        # Adding field 'Profile.nickname_state'
+        db.add_column(u'profiles_profile', 'nickname_state',
+                      self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='unset', max_length=50),
+                      keep_default=False)
+
 
     def backwards(self, orm):
         # Deleting field 'Profile.nickname'
         db.delete_column(u'profiles_profile', 'nickname')
+
+        # Deleting field 'Profile.nickname_slug'
+        db.delete_column(u'profiles_profile', 'nickname_slug')
+
+        # Deleting field 'Profile.nickname_state'
+        db.delete_column(u'profiles_profile', 'nickname_state')
 
 
     models = {
@@ -60,6 +76,8 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Profile'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'nickname': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'nickname_slug': ('django.db.models.fields.CharField', [], {'db_index': 'True', 'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'nickname_state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unset'", 'max_length': '50'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'unique': 'True'})
         }
     }
