@@ -10,6 +10,7 @@ from django.db import models
 class Profile(models.Model):
 
     user = models.ForeignKey(User, unique=True)
+    nickname = models.CharField(max_length=100, blank=True, null=True)
 
 
 # Add a property to User to always get-or-create a corresponding Profile.
