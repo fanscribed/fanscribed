@@ -18,7 +18,7 @@ class Profile(models.Model):
     nickname_slug = models.CharField(max_length=100, blank=True, null=True, db_index=True)
     nickname_state = FSMField(default='unset', protected=True)
 
-    @transition(nickname_state, 'unset', 'set-once')
+    @transition(nickname_state, 'unset', 'set')
     def set_nickname(self, new_nickname):
         new_nickname = u' '.join(new_nickname.strip().split())
         if new_nickname == u'':
