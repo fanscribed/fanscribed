@@ -2,7 +2,21 @@
 
 
 {% block profile_content %}
+  {% with profile=user.profile  %}
 
-  <p>TODO: profile editor here.</p>
+    <dl>
 
+      <dt>Nickname</dt>
+      <dd>
+        {% if profile.nickname_state == 'unset' %}
+          <i>(No nickname set)</i>
+        {% endif %}
+        {% if profile.nickname_state == 'set' %}
+          {{ profile.nickname }}
+        {% endif %}
+      </dd>
+
+    </dl>
+
+  {% endwith %}
 {% endblock %}
