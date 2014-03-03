@@ -31,5 +31,5 @@ class Profile(models.Model):
             self.nickname_slug = new_slug
 
 
-    # Add a property to User to always get-or-create a corresponding Profile.
+# Add a property to User to always get-or-create a corresponding Profile.
 User.profile = property(lambda u: Profile.objects.get_or_create(user=u)[0])
