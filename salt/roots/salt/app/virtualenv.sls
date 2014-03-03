@@ -33,3 +33,10 @@ include:
     - cwd: {{ path }}
     - require:
       - cmd: {{ virtualenv_path }}
+
+{{ virtualenv_path }}/bin/postactivate:
+  file.managed:
+    - contents: |
+        export DJANGO_SETTINGS_MODULE=fanscribed.settings.local
+    - require:
+      - cmd: {{ virtualenv_path }}
