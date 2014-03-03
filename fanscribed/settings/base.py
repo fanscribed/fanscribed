@@ -311,14 +311,10 @@ THIRD_PARTY_APPS += (
 )
 # Apps specific for this project go here.
 LOCAL_APPS += (
-    # For PyCharm to find templates and static files.
-    'fanscribed',
-
-    # Accounts and profiles.
-    'fanscribed.apps.profiles',
-
-    # Mailing list management.
-    'fanscribed.apps.mailinglist',
+    'fanscribed',                   # Templates and static files.
+    'fanscribed.apps.podcasts',     # Podcasts and episodes.
+    'fanscribed.apps.profiles',     # Accounts and profiles.
+    'fanscribed.apps.mailinglist',  # Mailing list subscriptions.
 )
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 

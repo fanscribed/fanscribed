@@ -1,0 +1,595 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:creativeCommons="http://backend.userland.com/creativeCommonsRssModule" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" version="2.0">
+<channel><title>This Week in Tech (MP3)</title>
+<link>http://twit.tv/twit</link>
+<generator>TWiT Feed Generator v2.3</generator>
+<docs>http://blogs.law.harvard.edu/tech/rss</docs>
+<language>en-US</language>
+<copyright>
+This work is licensed under a Creative Commons License - Attribution-NonCommercial-ShareAlike - http://creativecommons.org/licenses/by-nc-sa/3.0/
+</copyright>
+<creativeCommons:license>http://creativecommons.org/licenses/by-nc-sa/3.0/</creativeCommons:license>
+<managingEditor>leo@twit.tv (Leo Laporte)</managingEditor>
+<webMaster>leo@twit.tv (Leo Laporte)</webMaster>
+<ttl>720</ttl>
+<sy:updatePeriod>weekly</sy:updatePeriod>
+<sy:updateFrequency>1</sy:updateFrequency>
+<lastBuildDate>Sun, 2 Mar 2014 20:56:20 -0800</lastBuildDate>
+<pubDate>Sun, 2 Mar 2014 20:56:20 -0800</pubDate>
+<category>Tech News</category>
+<image>
+<title>This Week in Tech (MP3)</title>
+<url>http://feeds.twit.tv/podcasts/coverart/twit144audio.jpg</url>
+<link>http://twit.tv/twit</link>
+<width>144</width>
+<height>144</height>
+</image>
+<atom:link href="http://feeds.twit.tv/twit.xml" type="application/rss+xml" rel="self"/>
+<itunes:author>TWiT</itunes:author>
+<itunes:subtitle>Your first podcast of the week is the last word in tech. Join Leo Laporte, Patrick Norton, Kevin Rose, John C. Dvorak, and other tech luminaries in a roundtable discussion of the latest trends in digital tech. 2005 People's Choice Podcast Award winner.</itunes:subtitle>
+<itunes:summary>
+Your first podcast of the week is the last word in tech. Join Leo Laporte, Patrick Norton, Kevin Rose, John C. Dvorak, and other tech luminaries in a roundtable discussion of the latest trends in digital technology. Winner of the 2005 People's Choice Podcast Award for best overall podcast and Best Technology Podcast. Released every Sunday by midnight Pacific.
+</itunes:summary>
+<description>
+Your first podcast of the week is the last word in tech. Join Leo Laporte, Patrick Norton, Kevin Rose, John C. Dvorak, and other tech luminaries in a roundtable discussion of the latest trends in digital technology. Winner of the 2005 People's Choice Podcast Award for best overall podcast and Best Technology Podcast. Released every Sunday by midnight Pacific.
+</description>
+<itunes:keywords>
+TWiT, TechTV, Leo Laporte, Kevin Rose, Patrick Norton, John C. Dvorak
+</itunes:keywords>
+<itunes:explicit>no</itunes:explicit>
+<itunes:owner>
+<itunes:name>Leo Laporte</itunes:name>
+<itunes:email>leo@twit.tv</itunes:email>
+</itunes:owner>
+<itunes:block>no</itunes:block>
+<itunes:image href="http://feeds.twit.tv/podcasts/coverart/twit1400audio.jpg" />
+<itunes:category text="Technology">
+<itunes:category text="Tech News"/>
+</itunes:category>
+<itunes:category text="News &amp; Politics"/>
+<item>
+<title>TWiT 447: Anarchy Wins</title>
+<pubDate>Sun, 2 Mar 2014 19:30:07 -0800</pubDate>
+<comments>http://twit.tv/twit/447</comments>
+<itunes:author>TWiT</itunes:author>
+<author>leo@twit.tv (Leo Laporte)</author>
+<category>Tech News</category>
+<description>
+<![CDATA[
+<p><img src="http://feeds.twit.tv/podcasts/coverart/twit144audio.jpg" align="right" hspace="20" vspace="20" border="0" title="This Week in Tech" alt="This Week in Tech"/></p><p><strong>Hosts</strong>: <a href="http://www.leoville.com">Leo Laporte</a>, <a href="https://twitter.com/alexlindsay">Alex Lindsay</a>, <a href="https://twitter.com/larrymagid">Larry Magid</a>, and <a href="https://twitter.com/fmanjoo">Farhad Manjoo</a></p>
+ 
+<p>Nokia Android phones, Apple’s politics, buying “likes,” Uber secrets, and more.</p>
+ 
+<p>Download or subscribe to this show at <a href="http://twit.tv/twit">twit.tv/twit</a>.</p>
+ 
+<p>For additional show notes, visit <a href="http://wiki.twit.tv/wiki/TWiT_447">the wiki page for this episode</a>.</p>
+ 
+<p>Bandwidth for This Week in Tech is provided by <a href="http://www.cachefly.com">Cachefly</a>.</p>
+ 
+<p><strong>Running time:</strong> 1:43:11</p>
+]]>
+</description>
+<guid isPermaLink="false">http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0447/twit0447.mp3</guid>
+<itunes:subtitle>Nokia Android phones, Apple’s politics, buying “likes,” Uber secrets, and more.</itunes:subtitle>
+<itunes:summary>
+Hosts: Leo Laporte, Alex Lindsay, Larry Magid, and Farhad Manjoo
+ 
+Nokia Android phones, Apple’s politics, buying “likes,” Uber secrets, and more.
+ 
+Download or subscribe to this show at twit.tv/twit.
+ 
+For additional show notes, visit the wiki page for this episode.
+ 
+Bandwidth for This Week in Tech is provided by Cachefly.
+ 
+Running time: 1:43:11
+</itunes:summary>
+<itunes:explicit>no</itunes:explicit>
+<itunes:duration>1:43:11</itunes:duration>
+<link>http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0447/twit0447.mp3</link>
+<enclosure url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0447/twit0447.mp3" length="49794885" type="audio/mpeg"/>
+<media:content url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0447/twit0447.mp3" fileSize="49794885" type="audio/mpeg" medium="audio">
+<media:category scheme="tivogenres">News</media:category>
+<media:category scheme="tivogenres">Computers</media:category>
+<media:credit role="actor">Leo Laporte</media:credit>
+<media:credit role="actor">Alex Lindsay</media:credit>
+<media:credit role="producer">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="director">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="editor">Anthony Nielsen</media:credit>
+<media:rating scheme="urn:simple">nonadult</media:rating>
+<media:rating scheme="urn:icra">r (cz 1 lz 1 nz 1 vz 1 oz 1)</media:rating>
+</media:content>
+</item>
+<item>
+<title>TWiT 446: Go to Fail</title>
+<pubDate>Sun, 23 Feb 2014 19:40:48 -0800</pubDate>
+<comments>http://twit.tv/twit/446</comments>
+<itunes:author>TWiT</itunes:author>
+<author>leo@twit.tv (Leo Laporte)</author>
+<category>Tech News</category>
+<description>
+<![CDATA[
+<p><img src="http://feeds.twit.tv/podcasts/coverart/twit144audio.jpg" align="right" hspace="20" vspace="20" border="0" title="This Week in Tech" alt="This Week in Tech"/></p><p><strong>Hosts</strong>: <a href="http://www.leoville.com">Leo Laporte</a>, <a href="http://channeldvorak.com/shows">John C. Dvorak</a>, <a href="https://twitter.com/markmilian">Mark Milian</a>, and <a href="https://twitter.com/nateog">Nathan Olivarez-Giles</a></p>
+ 
+<p>Netflix to pay Comcast, Samsung Gear 2, Project Tango, router malware, and more.</p>
+ 
+<p>Download or subscribe to this show at <a href="http://twit.tv/twit">twit.tv/twit</a>.</p>
+ 
+<p>For additional show notes, visit <a href="http://wiki.twit.tv/wiki/TWiT_446">the wiki page for this episode</a>.</p>
+ 
+<p>Bandwidth for This Week in Tech is provided by <a href="http://www.cachefly.com">Cachefly</a>.</p>
+ 
+<p><strong>Running time:</strong> 1:27:49</p>
+]]>
+</description>
+<guid isPermaLink="false">http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0446/twit0446.mp3</guid>
+<itunes:subtitle>Netflix to pay Comcast, Samsung Gear 2, Project Tango, router malware, and more.</itunes:subtitle>
+<itunes:summary>
+Hosts: Leo Laporte, John C. Dvorak, Mark Milian, and Nathan Olivarez-Giles
+ 
+Netflix to pay Comcast, Samsung Gear 2, Project Tango, router malware, and more.
+ 
+Download or subscribe to this show at twit.tv/twit.
+ 
+For additional show notes, visit the wiki page for this episode.
+ 
+Bandwidth for This Week in Tech is provided by Cachefly.
+ 
+Running time: 1:27:49
+</itunes:summary>
+<itunes:explicit>no</itunes:explicit>
+<itunes:duration>1:27:49</itunes:duration>
+<link>http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0446/twit0446.mp3</link>
+<enclosure url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0446/twit0446.mp3" length="54793259" type="audio/mpeg"/>
+<media:content url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0446/twit0446.mp3" fileSize="54793259" type="audio/mpeg" medium="audio">
+<media:category scheme="tivogenres">News</media:category>
+<media:category scheme="tivogenres">Computers</media:category>
+<media:credit role="actor">Leo Laporte</media:credit>
+<media:credit role="actor">John C. Dvorak</media:credit>
+<media:credit role="producer">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="director">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="editor">Anthony Nielsen</media:credit>
+<media:rating scheme="urn:simple">nonadult</media:rating>
+<media:rating scheme="urn:icra">r (cz 1 lz 1 nz 1 vz 1 oz 1)</media:rating>
+</media:content>
+</item>
+<item>
+<title>TWiT 445: Shave My Dog</title>
+<pubDate>Sun, 16 Feb 2014 19:55:04 -0800</pubDate>
+<comments>http://twit.tv/twit/445</comments>
+<itunes:author>TWiT</itunes:author>
+<author>leo@twit.tv (Leo Laporte)</author>
+<category>Tech News</category>
+<description>
+<![CDATA[
+<p><img src="http://feeds.twit.tv/podcasts/coverart/twit144audio.jpg" align="right" hspace="20" vspace="20" border="0" title="This Week in Tech" alt="This Week in Tech"/></p><p><strong>Hosts</strong>: <a href="http://www.leoville.com">Leo Laporte</a>, <a href="http://macworld.com">Serenity Caldwell</a>, <a href="https://twitter.com/jgrahamc">John Graham-Cumming</a>, and <a href="http://gigaom.com">Om Malik</a></p>
+ 
+<p>Comcast/Time Warner, throttling Netflix, Google unease, amplification attacks, and more.</p>
+ 
+<p>Download or subscribe to this show at <a href="http://twit.tv/twit">twit.tv/twit</a>.</p>
+ 
+<p>For additional show notes, visit <a href="http://wiki.twit.tv/wiki/TWiT_445">the wiki page for this episode</a>.</p>
+ 
+<p>Bandwidth for This Week in Tech is provided by <a href="http://www.cachefly.com">Cachefly</a>.</p>
+ 
+<p><strong>Running time:</strong> 2:07:06</p>
+]]>
+</description>
+<guid isPermaLink="false">http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0445/twit0445.mp3</guid>
+<itunes:subtitle>Comcast/Time Warner, throttling Netflix, Google unease, amplification attacks, and more.</itunes:subtitle>
+<itunes:summary>
+Hosts: Leo Laporte, Serenity Caldwell, John Graham-Cumming, and Om Malik
+ 
+Comcast/Time Warner, throttling Netflix, Google unease, amplification attacks, and more.
+ 
+Download or subscribe to this show at twit.tv/twit.
+ 
+For additional show notes, visit the wiki page for this episode.
+ 
+Bandwidth for This Week in Tech is provided by Cachefly.
+ 
+Running time: 2:07:06
+</itunes:summary>
+<itunes:explicit>no</itunes:explicit>
+<itunes:duration>2:07:06</itunes:duration>
+<link>http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0445/twit0445.mp3</link>
+<enclosure url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0445/twit0445.mp3" length="61271208" type="audio/mpeg"/>
+<media:content url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0445/twit0445.mp3" fileSize="61271208" type="audio/mpeg" medium="audio">
+<media:category scheme="tivogenres">News</media:category>
+<media:category scheme="tivogenres">Computers</media:category>
+<media:credit role="actor">Leo Laporte</media:credit>
+<media:credit role="producer">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="director">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="editor">Anthony Nielsen</media:credit>
+<media:rating scheme="urn:simple">nonadult</media:rating>
+<media:rating scheme="urn:icra">r (cz 1 lz 1 nz 1 vz 1 oz 1)</media:rating>
+</media:content>
+</item>
+<item>
+<title>TWiT 444: Well Played Mr. Dong</title>
+<pubDate>Sun, 9 Feb 2014 19:10:41 -0800</pubDate>
+<comments>http://twit.tv/twit/444</comments>
+<itunes:author>TWiT</itunes:author>
+<author>leo@twit.tv (Leo Laporte)</author>
+<category>Tech News</category>
+<description>
+<![CDATA[
+<p><img src="http://feeds.twit.tv/podcasts/coverart/twit144audio.jpg" align="right" hspace="20" vspace="20" border="0" title="This Week in Tech" alt="This Week in Tech"/></p><p><strong>Hosts</strong>: <a href="http://www.leoville.com">Leo Laporte</a>, <a href="https://twitter.com/shwood">Brian Brushwood</a>, <a href="https://twitter.com/Jessicalessin">Jessica Lessin</a>, and <a href="https://twitter.com/jsnell">Jason Snell</a></p>
+ 
+<p>Sochi hacking scare, Chip and PIN coming to US, Bitcoin liquidity, secret quibble, and more.</p>
+ 
+<p>Download or subscribe to this show at <a href="http://twit.tv/twit">twit.tv/twit</a>.</p>
+ 
+<p>For additional show notes, visit <a href="http://wiki.twit.tv/wiki/TWiT_444">the wiki page for this episode</a>.</p>
+ 
+<p>Bandwidth for This Week in Tech is provided by <a href="http://www.cachefly.com">Cachefly</a>.</p>
+ 
+<p><strong>Running time:</strong> 2:05:30</p>
+]]>
+</description>
+<guid isPermaLink="false">http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0444/twit0444.mp3</guid>
+<itunes:subtitle>Sochi hacking scare, Chip and PIN coming to US, Bitcoin liquidity, secret quibble, and more.</itunes:subtitle>
+<itunes:summary>
+Hosts: Leo Laporte, Brian Brushwood, Jessica Lessin, and Jason Snell
+ 
+Sochi hacking scare, Chip and PIN coming to US, Bitcoin liquidity, secret quibble, and more.
+ 
+Download or subscribe to this show at twit.tv/twit.
+ 
+For additional show notes, visit the wiki page for this episode.
+ 
+Bandwidth for This Week in Tech is provided by Cachefly.
+ 
+Running time: 2:05:30
+</itunes:summary>
+<itunes:explicit>no</itunes:explicit>
+<itunes:duration>2:05:30</itunes:duration>
+<link>http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0444/twit0444.mp3</link>
+<enclosure url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0444/twit0444.mp3" length="60503208" type="audio/mpeg"/>
+<media:content url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0444/twit0444.mp3" fileSize="60503208" type="audio/mpeg" medium="audio">
+<media:category scheme="tivogenres">News</media:category>
+<media:category scheme="tivogenres">Computers</media:category>
+<media:credit role="actor">Leo Laporte</media:credit>
+<media:credit role="actor">Brian Brushwood</media:credit>
+<media:credit role="producer">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="director">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="editor">Anthony Nielsen</media:credit>
+<media:rating scheme="urn:simple">nonadult</media:rating>
+<media:rating scheme="urn:icra">r (cz 1 lz 1 nz 1 vz 1 oz 1)</media:rating>
+</media:content>
+</item>
+<item>
+<title>TWiT 443: Selfie in the City</title>
+<pubDate>Sun, 2 Feb 2014 18:19:22 -0800</pubDate>
+<comments>http://twit.tv/twit/443</comments>
+<itunes:author>TWiT</itunes:author>
+<author>leo@twit.tv (Leo Laporte)</author>
+<category>Tech News</category>
+<description>
+<![CDATA[
+<p><img src="http://feeds.twit.tv/podcasts/coverart/twit144audio.jpg" align="right" hspace="20" vspace="20" border="0" title="This Week in Tech" alt="This Week in Tech"/></p><p><strong>Hosts</strong>: <a href="http://www.leoville.com">Leo Laporte</a>, <a href="https://twitter.com/jasonhiner">Jason Hiner</a>, <a href="https://twitter.com/mathewi">Mathew Ingram</a>, and <a href="https://twitter.com/reneritchie">Rene Ritchie</a></p>
+ 
+<p>Motorola sale, Google's plans, Yahoo's secret search, Facebook's Paper, and more.</p>
+ 
+<p>Download or subscribe to this show at <a href="http://twit.tv/twit">twit.tv/twit</a>.</p>
+ 
+<p>For additional show notes, visit <a href="http://wiki.twit.tv/wiki/TWiT_443">the wiki page for this episode</a>.</p>
+ 
+<p>Bandwidth for This Week in Tech is provided by <a href="http://www.cachefly.com">Cachefly</a>.</p>
+ 
+<p><strong>Running time:</strong> 1:34:55</p>
+]]>
+</description>
+<guid isPermaLink="false">http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0443/twit0443.mp3</guid>
+<itunes:subtitle>Motorola sale, Google's plans, Yahoo's secret search, Facebook's Paper, and more.</itunes:subtitle>
+<itunes:summary>
+Hosts: Leo Laporte, Jason Hiner, Mathew Ingram, and Rene Ritchie
+ 
+Motorola sale, Google's plans, Yahoo's secret search, Facebook's Paper, and more.
+ 
+Download or subscribe to this show at twit.tv/twit.
+ 
+For additional show notes, visit the wiki page for this episode.
+ 
+Bandwidth for This Week in Tech is provided by Cachefly.
+ 
+Running time: 1:34:55
+</itunes:summary>
+<itunes:explicit>no</itunes:explicit>
+<itunes:duration>1:35:55</itunes:duration>
+<link>http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0443/twit0443.mp3</link>
+<enclosure url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0443/twit0443.mp3" length="45822183" type="audio/mpeg"/>
+<media:content url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0443/twit0443.mp3" fileSize="45822183" type="audio/mpeg" medium="audio">
+<media:category scheme="tivogenres">News</media:category>
+<media:category scheme="tivogenres">Computers</media:category>
+<media:credit role="actor">Leo Laporte</media:credit>
+<media:credit role="actor">Rene Ritchie</media:credit>
+<media:credit role="producer">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="director">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="editor">Anthony Nielsen</media:credit>
+<media:rating scheme="urn:simple">nonadult</media:rating>
+<media:rating scheme="urn:icra">r (cz 1 lz 1 nz 1 vz 1 oz 1)</media:rating>
+</media:content>
+</item>
+<item>
+<title>TWiT 442: You Won't Believe What Happens Next</title>
+<pubDate>Sun, 26 Jan 2014 19:18:43 -0800</pubDate>
+<comments>http://twit.tv/twit/442</comments>
+<itunes:author>TWiT</itunes:author>
+<author>leo@twit.tv (Leo Laporte)</author>
+<category>Tech News</category>
+<description>
+<![CDATA[
+<p><img src="http://feeds.twit.tv/podcasts/coverart/twit144audio.jpg" align="right" hspace="20" vspace="20" border="0" title="This Week in Tech" alt="This Week in Tech"/></p><p><strong>Hosts</strong>: <a href="http://www.leoville.com">Leo Laporte</a>, <a href="https://twitter.com/THErealDVORAK">John C. Dvorak</a>, <a href="https://twitter.com/ClaytonMorris">Clayton Morris</a>, and <a href="https://twitter.com/Tim_Stevens">Tim Stevens</a></p>
+ 
+<p>Introducing the Macintosh, native advertising, deletable bloatware, and more.</p>
+ 
+<p>Download or subscribe to this show at <a href="http://twit.tv/twit">twit.tv/twit</a>.</p>
+ 
+<p>For additional show notes, visit <a href="http://wiki.twit.tv/wiki/TWiT_442">the wiki page for this episode</a>.</p>
+ 
+<p>Bandwidth for This Week in Tech is provided by <a href="http://www.cachefly.com">Cachefly</a>.</p>
+ 
+<p><strong>Running time:</strong> 1:49:22</p>
+]]>
+</description>
+<guid isPermaLink="false">http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0442/twit0442.mp3</guid>
+<itunes:subtitle>Introducing the Macintosh, native advertising, deletable bloatware, and more.</itunes:subtitle>
+<itunes:summary>
+Hosts: Leo Laporte, John C. Dvorak, Clayton Morris, and Tim Stevens
+ 
+Introducing the Macintosh, native advertising, deletable bloatware, and more.
+ 
+Download or subscribe to this show at twit.tv/twit.
+ 
+For additional show notes, visit the wiki page for this episode.
+ 
+Bandwidth for This Week in Tech is provided by Cachefly.
+ 
+Running time: 1:49:22
+</itunes:summary>
+<itunes:explicit>no</itunes:explicit>
+<itunes:duration>1:49:22</itunes:duration>
+<link>http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0442/twit0442.mp3</link>
+<enclosure url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0442/twit0442.mp3" length="52756126" type="audio/mpeg"/>
+<media:content url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0442/twit0442.mp3" fileSize="52756126" type="audio/mpeg" medium="audio">
+<media:category scheme="tivogenres">News</media:category>
+<media:category scheme="tivogenres">Computers</media:category>
+<media:credit role="actor">Leo Laporte</media:credit>
+<media:credit role="actor">John C. Dvorak</media:credit>
+<media:credit role="producer">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="director">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="editor">Anthony Nielsen</media:credit>
+<media:rating scheme="urn:simple">nonadult</media:rating>
+<media:rating scheme="urn:icra">r (cz 1 lz 1 nz 1 vz 1 oz 1)</media:rating>
+</media:content>
+</item>
+<item>
+<title>TWiT 441: French for Entrepreneur</title>
+<pubDate>Sun, 19 Jan 2014 17:47:04 -0800</pubDate>
+<comments>http://twit.tv/twit/441</comments>
+<itunes:author>TWiT</itunes:author>
+<author>leo@twit.tv (Leo Laporte)</author>
+<category>Tech News</category>
+<description>
+<![CDATA[
+<p><img src="http://feeds.twit.tv/podcasts/coverart/twit144audio.jpg" align="right" hspace="20" vspace="20" border="0" title="This Week in Tech" alt="This Week in Tech"/></p><p><strong>Hosts</strong>: <a href="http://www.leoville.com">Leo Laporte</a>, <a href="https://twitter.com/NotPatrick">Patrick Beja</a>, <a href="http://www.bagandbaggage.com/">Denise Howell</a>, and <a href="https://twitter.com/tnkgrl">Myriam Joire</a></p>
+ 
+<p>Spying life, the real John Legere, net neutrality ruling, Amazon pre-delivery, and more.</p>
+ 
+<p>Download or subscribe to this show at <a href="http://twit.tv/twit">twit.tv/twit</a>.</p>
+ 
+<p>For additional show notes, visit <a href="http://wiki.twit.tv/wiki/TWiT_441">the wiki page for this episode</a>.</p>
+ 
+<p>Bandwidth for This Week in Tech is provided by <a href="http://www.cachefly.com">Cachefly</a>.</p>
+ 
+<p>Please take the TWiT Audience Survey at <a href="http://twit.tv/showsurvey">http://twit.tv/showsurvey</a>. It only takes a few minutes and we'd love to know what you think.</p>
+ 
+<p><strong>Running time:</strong> 1:45:57</p>
+]]>
+</description>
+<guid isPermaLink="false">http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0441/twit0441.mp3</guid>
+<itunes:subtitle>Spying life, the real John Legere, net neutrality ruling, Amazon pre-delivery, and more.</itunes:subtitle>
+<itunes:summary>
+Hosts: Leo Laporte, Patrick Beja, Denise Howell, and Myriam Joire
+ 
+Spying life, the real John Legere, net neutrality ruling, Amazon pre-delivery, and more.
+ 
+Download or subscribe to this show at twit.tv/twit.
+ 
+For additional show notes, visit the wiki page for this episode.
+ 
+Bandwidth for This Week in Tech is provided by Cachefly.
+ 
+Please take the TWiT Audience Survey at http://twit.tv/showsurvey. It only takes a few minutes and we'd love to know what you think.
+ 
+Running time: 1:45:57
+</itunes:summary>
+<itunes:explicit>no</itunes:explicit>
+<itunes:duration>1:45:57</itunes:duration>
+<link>http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0441/twit0441.mp3</link>
+<enclosure url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0441/twit0441.mp3" length="51118980" type="audio/mpeg"/>
+<media:content url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0441/twit0441.mp3" fileSize="51118980" type="audio/mpeg" medium="audio">
+<media:category scheme="tivogenres">News</media:category>
+<media:category scheme="tivogenres">Computers</media:category>
+<media:credit role="actor">Leo Laporte</media:credit>
+<media:credit role="actor">Denise Howell</media:credit>
+<media:credit role="producer">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="director">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="editor">Anthony Nielsen</media:credit>
+<media:rating scheme="urn:simple">nonadult</media:rating>
+<media:rating scheme="urn:icra">r (cz 1 lz 1 nz 1 vz 1 oz 1)</media:rating>
+</media:content>
+</item>
+<item>
+<title>TWiT 440: Sound by Steve</title>
+<pubDate>Sun, 12 Jan 2014 19:30:58 -0800</pubDate>
+<comments>http://twit.tv/twit/440</comments>
+<itunes:author>TWiT</itunes:author>
+<author>leo@twit.tv (Leo Laporte)</author>
+<category>Tech News</category>
+<description>
+<![CDATA[
+<p><img src="http://feeds.twit.tv/podcasts/coverart/twit144audio.jpg" align="right" hspace="20" vspace="20" border="0" title="This Week in Tech" alt="This Week in Tech"/></p><p><strong>Hosts</strong>: <a href="http://www.leoville.com">Leo Laporte</a>, <a href="http://www.youtube.com/user/marquesbrownlee">Marques Brownlee</a>, <a href="http://channeldvorak.com/shows">John C. Dvorak</a>, and <a href="http://natalimorris.com/">Natali Morris</a></p>
+ 
+<p>Baby wearables, Taft’s tub, Yahoo Tech, Coinye, Target leak, diaper tech, and more.</p>
+ 
+<p>Download or subscribe to this show at <a href="http://twit.tv/twit">twit.tv/twit</a>.</p>
+ 
+<p>For additional show notes, visit <a href="http://wiki.twit.tv/wiki/TWiT_440">the wiki page for this episode</a>.</p>
+ 
+<p>Bandwidth for This Week in Tech is provided by <a href="http://www.cachefly.com">Cachefly</a>.</p>
+ 
+<p>Please take the TWiT Audience Survey at <a href="http://twit.tv/showsurvey">http://twit.tv/showsurvey</a>. It only takes a few minutes and we'd love to know what you think.</p>
+ 
+<p><strong>Running time:</strong> 2:21:18</p>
+]]>
+</description>
+<guid isPermaLink="false">http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0440/twit0440.mp3</guid>
+<itunes:subtitle>Baby wearables, Taft’s tub, Yahoo Tech, Coinye, Target leak, diaper tech, and more.</itunes:subtitle>
+<itunes:summary>
+Hosts: Leo Laporte, Marques Brownlee, John C. Dvorak, and Natali Morris
+ 
+Baby wearables, Taft’s tub, Yahoo Tech, Coinye, Target leak, diaper tech, and more.
+ 
+Download or subscribe to this show at twit.tv/twit.
+ 
+For additional show notes, visit the wiki page for this episode.
+ 
+Bandwidth for This Week in Tech is provided by Cachefly.
+ 
+Please take the TWiT Audience Survey at http://twit.tv/showsurvey. It only takes a few minutes and we'd love to know what you think.
+ 
+Running time: 2:21:18
+</itunes:summary>
+<itunes:explicit>no</itunes:explicit>
+<itunes:duration>2:21:18</itunes:duration>
+<link>http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0440/twit0440.mp3</link>
+<enclosure url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0440/twit0440.mp3" length="68085615" type="audio/mpeg"/>
+<media:content url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0440/twit0440.mp3" fileSize="68085615" type="audio/mpeg" medium="audio">
+<media:category scheme="tivogenres">News</media:category>
+<media:category scheme="tivogenres">Computers</media:category>
+<media:credit role="actor">Leo Laporte</media:credit>
+<media:credit role="actor">John C. Dvorak</media:credit>
+<media:credit role="producer">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="director">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="editor">Anthony Nielsen</media:credit>
+<media:rating scheme="urn:simple">nonadult</media:rating>
+<media:rating scheme="urn:icra">r (cz 1 lz 1 nz 1 vz 1 oz 1)</media:rating>
+</media:content>
+</item>
+<item>
+<title>TWiT 439: Fist Like Monkey</title>
+<pubDate>Sun, 5 Jan 2014 19:26:54 -0800</pubDate>
+<comments>http://twit.tv/twit/439</comments>
+<itunes:author>TWiT</itunes:author>
+<author>leo@twit.tv (Leo Laporte)</author>
+<category>Tech News</category>
+<description>
+<![CDATA[
+<p><img src="http://feeds.twit.tv/podcasts/coverart/twit144audio.jpg" align="right" hspace="20" vspace="20" border="0" title="This Week in Tech" alt="This Week in Tech"/></p><p><strong>Hosts</strong>: <a href="http://www.leoville.com">Leo Laporte</a>, <a href="http://www.scamstuff.com/">Brian Brushwood</a>, <a href="http://tanookilabs.com/">Dan Patterson</a>, and <a href="http://www.stuckincustoms.com/">Trey Ratcliff</a></p>
+ 
+<p>Computational photography, transcendental meatsacks, Snapchat hack, Kanye coins, and more.</p>
+ 
+<p>Download or subscribe to this show at <a href="http://twit.tv/twit">twit.tv/twit</a>.</p>
+ 
+<p>For additional show notes, visit <a href="http://wiki.twit.tv/wiki/TWiT_439">the wiki page for this episode</a>.</p>
+ 
+<p>Bandwidth for This Week in Tech is provided by <a href="http://www.cachefly.com">Cachefly</a>.</p>
+ 
+<p>Please take the TWiT Audience Survey at <a href="http://twit.tv/showsurvey">http://twit.tv/showsurvey</a>. It only takes a few minutes and we'd love to know what you think.</p>
+ 
+<p><strong>Running time:</strong> 2:17:19</p>
+]]>
+</description>
+<guid isPermaLink="false">http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0439/twit0439.mp3</guid>
+<itunes:subtitle>Computational photography, transcendental meatsacks, Snapchat hack, Kanye coins, and more.</itunes:subtitle>
+<itunes:summary>
+Hosts: Leo Laporte, Brian Brushwood, Dan Patterson, and Trey Ratcliff
+ 
+Computational photography, transcendental meatsacks, Snapchat hack, Kanye coins, and more.
+ 
+Download or subscribe to this show at twit.tv/twit.
+ 
+For additional show notes, visit the wiki page for this episode.
+ 
+Bandwidth for This Week in Tech is provided by Cachefly.
+ 
+Please take the TWiT Audience Survey at http://twit.tv/showsurvey. It only takes a few minutes and we'd love to know what you think.
+ 
+Running time: 2:17:19
+</itunes:summary>
+<itunes:explicit>no</itunes:explicit>
+<itunes:duration>2:17:19</itunes:duration>
+<link>http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0439/twit0439.mp3</link>
+<enclosure url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0439/twit0439.mp3" length="66172825" type="audio/mpeg"/>
+<media:content url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0439/twit0439.mp3" fileSize="66172825" type="audio/mpeg" medium="audio">
+<media:category scheme="tivogenres">News</media:category>
+<media:category scheme="tivogenres">Computers</media:category>
+<media:credit role="actor">Leo Laporte</media:credit>
+<media:credit role="actor">Brian Brushwood</media:credit>
+<media:credit role="actor">Trey Ratcliff</media:credit>
+<media:credit role="producer">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="director">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="editor">Anthony Nielsen</media:credit>
+<media:rating scheme="urn:simple">nonadult</media:rating>
+<media:rating scheme="urn:icra">r (cz 1 lz 1 nz 1 vz 1 oz 1)</media:rating>
+</media:content>
+</item>
+<item>
+<title>TWiT 438: The Best of TWiT</title>
+<pubDate>Thu, 26 Dec 2013 17:01:42 -0800</pubDate>
+<comments>http://twit.tv/twit/438</comments>
+<itunes:author>TWiT</itunes:author>
+<author>leo@twit.tv (Leo Laporte)</author>
+<category>Tech News</category>
+<description>
+<![CDATA[
+<p><img src="http://feeds.twit.tv/podcasts/coverart/twit144audio.jpg" align="right" hspace="20" vspace="20" border="0" title="This Week in Tech" alt="This Week in Tech"/></p><p><strong>Host</strong>: <a href="http://www.leoville.com">Leo Laporte</a></p>
+ 
+<p>Memorable TWiT moments from 2013.</p>
+ 
+<p>Download or subscribe to this show at <a href="http://twit.tv/twit">twit.tv/twit</a>.</p>
+ 
+<p>For additional show notes, visit <a href="http://wiki.twit.tv/wiki/TWiT_438">the wiki page for this episode</a>.</p>
+ 
+<p>Bandwidth for This Week in Tech is provided by <a href="http://www.cachefly.com">Cachefly</a>.</p>
+ 
+<p>Please take the TWiT Audience Survey at <a href="http://twit.tv/showsurvey">http://twit.tv/showsurvey</a>. It only takes a few minutes and we'd love to know what you think.</p>
+ 
+<p><strong>Running time:</strong> 2:40:22</p>
+]]>
+</description>
+<guid isPermaLink="false">http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0438/twit0438.mp3</guid>
+<itunes:subtitle>Memorable TWiT moments from 2013.</itunes:subtitle>
+<itunes:summary>
+Host: Leo Laporte
+ 
+Memorable TWiT moments from 2013.
+ 
+Download or subscribe to this show at twit.tv/twit.
+ 
+For additional show notes, visit the wiki page for this episode.
+ 
+Bandwidth for This Week in Tech is provided by Cachefly.
+ 
+Please take the TWiT Audience Survey at http://twit.tv/showsurvey. It only takes a few minutes and we'd love to know what you think.
+ 
+Running time: 2:40:22
+</itunes:summary>
+<itunes:explicit>no</itunes:explicit>
+<itunes:duration>2:40:22</itunes:duration>
+<link>http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0438/twit0438.mp3</link>
+<enclosure url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0438/twit0438.mp3" length="77243519" type="audio/mpeg"/>
+<media:content url="http://www.podtrac.com/pts/redirect.mp3/twit.cachefly.net/audio/twit/twit0438/twit0438.mp3" fileSize="77243519" type="audio/mpeg" medium="audio">
+<media:category scheme="tivogenres">News</media:category>
+<media:category scheme="tivogenres">Computers</media:category>
+<media:credit role="actor">Leo Laporte</media:credit>
+<media:credit role="producer">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="director">Chad (OMGchad) Johnson</media:credit>
+<media:credit role="editor">Anthony Nielsen</media:credit>
+<media:rating scheme="urn:simple">nonadult</media:rating>
+<media:rating scheme="urn:icra">r (cz 1 lz 1 nz 1 vz 1 oz 1)</media:rating>
+</media:content>
+</item>
+</channel>
+</rss>
