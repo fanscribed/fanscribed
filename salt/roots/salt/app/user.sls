@@ -1,5 +1,5 @@
-{% set settings = pillar.project.settings %}
-{% set user = pillar.project.user %}
+{% set settings = pillar.app.settings %}
+{% set user = pillar.app.user %}
 
 {{ user }}:
   group:
@@ -19,5 +19,7 @@
 /home/{{ user }}/.bashrc:
   file.append:
     - text: |
-        source venv/bin/activate
-        export DJANGO_SETTINGS_MODULE={{ settings }}
+        source /usr/local/bin/virtualenvwrapper.sh
+        export WORKON_HOME=$HOME/.virtualenvs
+        export PROJECT_HOME=$HOME/proj
+        mkdir -p $PROJECT_HOME

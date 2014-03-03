@@ -1,10 +1,10 @@
-project:
+app:
 
   user: vagrant
 
   path: /vagrant/fanscribed
 
-  virtualenv: /home/vagrant/venv
+  virtualenv: /home/vagrant/.virtualenvs/app
 
   settings: fanscribed.settings.local
 

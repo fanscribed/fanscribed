@@ -1,4 +1,4 @@
-{% set db = pillar['project']['db'] %}
+{% set db = pillar['app']['db'] %}
 
 postgresql:
   pkg.installed: []

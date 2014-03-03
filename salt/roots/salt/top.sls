@@ -1,7 +1,8 @@
 base:
   '*':
     - docker
-    - project
+    - python.virtualenvwrapper
+    - app
     - redis
     - tools
     - tools.vagrant

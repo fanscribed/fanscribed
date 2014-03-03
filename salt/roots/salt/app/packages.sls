@@ -1,4 +1,4 @@
-project packages:
+app packages:
   pkg.installed:
     - names:
       - build-essential
