@@ -302,6 +302,7 @@ DJANGO_APPS = (
     # 'django.contrib.humanize',
 
     # Admin panel and documentation:
+    'suit',
     'django.contrib.admin',
 )
 THIRD_PARTY_APPS += (
