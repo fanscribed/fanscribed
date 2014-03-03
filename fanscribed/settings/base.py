@@ -312,9 +312,11 @@ THIRD_PARTY_APPS += (
 # Apps specific for this project go here.
 LOCAL_APPS += (
     'fanscribed',                   # Templates and static files.
+    'fanscribed.apps.mailinglist',  # Mailing list subscriptions.
+    'fanscribed.apps.media',        # Media file handling.
     'fanscribed.apps.podcasts',     # Podcasts and episodes.
     'fanscribed.apps.profiles',     # Accounts and profiles.
-    'fanscribed.apps.mailinglist',  # Mailing list subscriptions.
+    'fanscribed.apps.transcripts',  # The transcription engine.
 )
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
