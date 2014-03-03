@@ -40,8 +40,6 @@ django-bootstrap3 == 3.0.0
 django-waffle == 0.9.2
     PyYAML == 3.10
 
-django-fsm == 1.5.1
-
 #django-supervisor == 0.3.2
 #    supervisor == 3.0
 #    watchdog == 0.7.0
