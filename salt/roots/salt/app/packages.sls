@@ -5,3 +5,5 @@ app packages:
       - libpq-dev
       - python-dev
       - python-virtualenv
+      - mp3splt
+      - ffmpeg
