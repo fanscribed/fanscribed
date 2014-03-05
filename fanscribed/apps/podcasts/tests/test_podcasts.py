@@ -2,7 +2,7 @@ from django.test import TestCase
 
 from unipath import Path
 
-from .models import Podcast, RssFetch
+from ..models import Podcast, RssFetch
 
 
 TESTDATA = Path(__file__).parent.child('testdata')
