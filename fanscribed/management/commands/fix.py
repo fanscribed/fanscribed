@@ -6,6 +6,8 @@ from django.db import connection
 from allauth.account.models import EmailAddress, EmailConfirmation
 from allauth.socialaccount.models import SocialAccount, SocialToken
 
+from ...apps.media.models import MediaFile
+
 
 class Command(BaseCommand):
     args = '<fixture_name>'
@@ -49,6 +51,8 @@ class Command(BaseCommand):
             # waffle
             'waffle_flag_groups',
             'waffle_flag_users',
+            # media,
+            MediaFile,
         ])
 
     def truncate_tables(self, models_to_truncate):
