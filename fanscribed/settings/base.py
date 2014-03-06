@@ -326,3 +326,9 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MAILCHIMP_API_KEY = ''  # Set this in .production based on env vars
 MAILCHIMP_LIST_ID = ''  # Set this in .production based on env vars
+
+
+# MEDIA FILES
+# -----------
+
+MEDIAFILE_CACHE_PATH = join(PACKAGE_ROOT, '..', '.mediafile-cache')
