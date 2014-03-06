@@ -7,6 +7,7 @@ from allauth.account.models import EmailAddress, EmailConfirmation
 from allauth.socialaccount.models import SocialAccount, SocialToken
 
 from ...apps.media.models import MediaFile
+from ...apps.transcripts.models import Transcript
 
 
 class Command(BaseCommand):
@@ -53,6 +54,8 @@ class Command(BaseCommand):
             'waffle_flag_users',
             # media,
             MediaFile,
+            # transcripts,
+            Transcript,
         ])
 
     def truncate_tables(self, models_to_truncate):
