@@ -3,34 +3,11 @@
 from decimal import Decimal
 from subprocess import call, check_output
 
-from unipath import Path
+from django.conf import settings
 
 
-AVPROBE_PATH = '/usr/bin/avprobe'
-_avprobe_alternatives = [
-    '/usr/local/bin/avprobe',
-    '/usr/bin/ffprobe',
-    '/usr/local/bin/ffprobe',
-]
-for _candidate in _avprobe_alternatives:
-    _candidate = Path(_candidate)
-    # noinspection PyArgumentList
-    if _candidate.exists():
-        AVPROBE_PATH = _candidate
-
-
-AVCONV_PATH = '/usr/bin/avconv'
-_avconv_alternatives = [
-    '/usr/local/bin/avconv',
-    '/usr/bin/ffmpeg',
-    '/usr/local/bin/ffmpeg',
-]
-for _candidate in _avconv_alternatives:
-    _candidate = Path(_candidate)
-    # noinspection PyArgumentList
-    if _candidate.exists():
-        AVCONV_PATH = _candidate
-
+AVPROBE_PATH = getattr(settings, 'AVPROBE_PATH', '/usr/bin/avprobe')
+AVCONV_PATH = getattr(settings, 'AVCONV_PATH', '/usr/bin/avconv')
 
 QUANTIZE_EXPONENT = Decimal('0.01')
 

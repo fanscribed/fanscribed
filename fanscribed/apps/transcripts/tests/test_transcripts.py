@@ -9,7 +9,7 @@ from ..models import Transcript, TranscriptMedia
 MEDIA_TESTDATA_PATH = Path(tests.__file__).parent.child('testdata')
 
 RAW_MEDIA_PATH = MEDIA_TESTDATA_PATH.child('raw').child(
-    'NA-472-2012-12-23-Final-excerpt.mp3')
+    'NA-472-2012-12-23-Final-excerpt.mp3').absolute()
 
 
 class TranscriptsTestCase(TestCase):
@@ -17,9 +17,8 @@ class TranscriptsTestCase(TestCase):
     def test_transcript_starts_out_with_unknown_length(self):
         transcript = Transcript(name='test transcript')
         self.assertEqual(transcript.length, None)
-        self.assertEqual(transcript.length_state, 'unknown')
 
-    def test_transcriptmedia_starts_out_with_unknown_length(self):
+    def test_transcript_with_processed_media_has_length(self):
         media_file = MediaFile.objects.create(
             data_url='file://{}'.format(RAW_MEDIA_PATH),
         )
@@ -29,9 +28,14 @@ class TranscriptsTestCase(TestCase):
         transcript_media = TranscriptMedia.objects.create(
             transcript=transcript,
             media_file=media_file,
-            is_raw_media=True,
+            is_processed=False,
             is_full_length=True,
         )
-        self.assertEqual(transcript_media.start, None)
-        self.assertEqual(transcript_media.end, None)
-        self.assertEqual(transcript_media.timecode_state, 'unknown')
+        transcript_media.create_processed()
+
+        # Reload changed objects.
+        transcript = Transcript.objects.get(pk=transcript.pk)
+
+        # Check length.
+        expected_length = 5 * 60  # 5 minutes.
+        self.assertAlmostEqual(transcript.length, expected_length, delta=0.2)

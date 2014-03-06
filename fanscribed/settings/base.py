@@ -332,3 +332,14 @@ MAILCHIMP_LIST_ID = ''  # Set this in .production based on env vars
 # -----------
 
 MEDIAFILE_CACHE_PATH = join(PACKAGE_ROOT, '..', '.mediafile-cache')
+MEDIAFILE_STORAGE_PATH = join(PACKAGE_ROOT, '..', '.mediafile-storage')
+
+
+# SHELL_PLUS
+# ==========
+
+IPYTHON_ARGUMENTS = [
+    '--ext', 'django_extensions.management.notebook_extension',
+    '--ip=0.0.0.0',
+    '--no-browser',
+]

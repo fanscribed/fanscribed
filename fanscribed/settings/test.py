@@ -1,16 +1,15 @@
-from base import *
+from .base import *
 
-
-# IN-MEMORY TEST DATABASE
-# -----------------------
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": ":memory:",
-        "USER": "",
-        "PASSWORD": "",
-        "HOST": "",
-        "PORT": "",
-    },
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'fanscribed',
+        'USER': 'fanscribed',
+        'PASSWORD': 'fanscribed',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
 }
+
+CELERY_ALWAYS_EAGER = True

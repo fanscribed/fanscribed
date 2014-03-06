@@ -6,4 +6,5 @@ app packages:
       - python-dev
       - python-virtualenv
       - mp3splt
-      - ffmpeg
+      - libav-tools
+      - libavcodec-extra-53
