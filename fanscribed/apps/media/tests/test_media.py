@@ -1,5 +1,3 @@
-import hashlib
-
 from django.test import TestCase
 
 from unipath import Path
@@ -15,17 +13,17 @@ MEDIA_PATH = TESTDATA_PATH.child('converted').child(
 
 class MediaTestCase(TestCase):
 
-    def test_local_cache_path(self):
+    def test_local_cache_path_differs_from_original(self):
         media_file = MediaFile.objects.create(
             data_url='file://{}'.format(MEDIA_PATH))
         # Read original file data.
         with open(MEDIA_PATH, 'rb') as f:
             original_data = f.read()
         # Read cached file data.
-        cached_path = media_file.local_cache_path()
-        with open(cached_path, 'rb') as f:
+        cache_path = media_file.local_cache_path()
+        with open(cache_path, 'rb') as f:
             cached_data = f.read()
         # Make sure the path is different from original path.
-        self.assertNotEqual(MEDIA_PATH, cached_path)
+        self.assertNotEqual(MEDIA_PATH, cache_path)
         # Make sure contents are equal.
         self.assertEqual(original_data, cached_data)
