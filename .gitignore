@@ -23,3 +23,6 @@ build
 # Vagrant:
 .vagrant
 Vagrantfile
+
+# Media cache:
+.mediafile-cache/*
