@@ -27,3 +27,7 @@ Vagrantfile
 # Media cache:
 .mediafile-cache/
 .mediafile-storage/
+
+# Ipython notebook:
+.ipynb_checkpoints/
+Untitled*.ipynb
