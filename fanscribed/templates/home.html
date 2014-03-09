@@ -13,148 +13,31 @@
   <div class="row">
 
     <div class="col-xs-12">
-      <div class="jumbotron">
+      <div class="jumbotron text-center">
         <h1>Accessible podcasts.</h1>
         <p>
-          Our mission:
-          Help podcasts reach a wider audience
+          We help podcasts reach a wider audience
           using high-quality transcripts.
         </p>
       </div>
     </div>
 
-    <div class="col-sm-6 col-md-4 col-lg-3">
-
-      {% if user.is_authenticated %}
-        <h3>Welcome, member!</h3>
-        <p>You are signed in.</p>
-      {% else %}
-        <h3>
-          Membership is free!
-        </h3>
-        <p>
-          Fill out the form below to sign up today.
-        </p>
-        <p>
-          Already a member? <a href="{% url 'account_login' %}" class="btn btn-default">Sign in</a>
-        </p>
-        <form action="{% url 'account_signup' %}" method="post">
-          {% csrf_token %}
-          <div class="form-group">
-            <label class="sr-only" for="email-input">Email</label>
-            <input type="email" class="form-control" id="email-input"
-                   name="email"
-                   placeholder="Enter email"/>
-          </div>
-          <div class="form-group">
-            <label class="sr-only" for="password-input">Password</label>
-            <input type="password" class="form-control" id="password1-input"
-                   name="password1"
-                   placeholder="Enter password"/>
-            <label class="sr-only" for="password-input">Password again (to verify)</label>
-            <input type="password" class="form-control" id="password2-input"
-                   name="password2"
-                   placeholder="Enter password again (to verify)"/>
-          </div>
-          <p>
-            By signing up, you agree to receive email related to account activity,
-            and to receive email about new features or service announcements.
-          </p>
-          <button type="submit" class="btn btn-primary">Sign Up</button>
-        </form>
-      {% endif %}
-
-
+    <div class="col-xs-12 col-sm-4 text-center">
+      <p>
+        <a class="btn btn-primary btn-lg" href="{% url 'podcasts:index' %}">Read Podcasts</a>
+      </p>
     </div>
 
-    <div class="col-sm-6 col-md-8 col-lg-9">
+    <div class="col-xs-12 col-sm-4 text-center">
+      <p>
+        <a class="btn btn-primary btn-lg" href="{% url 'transcripts:index' %}">Help Transcribe</a>
+      </p>
+    </div>
 
-      <div>
-
-        <div class="row">
-
-          <div class="col-md-6">
-            <h4>Podcasters</h4>
-            <p>
-              Register your podcast feed(s) with Fanscribed,
-              and get the benefits of transcription.
-            </p>
-            <p>
-              Your podcasts will become full-text searchable,
-              reach a wider audience than ever,
-              and will become easier for fans to share.
-            </p>
-            <p>
-              Already have existing transcripts?
-              Let us feature them in our directory!
-            </p>
-          </div>
-
-          <div class="col-md-6">
-            <h4>Podcast Fans</h4>
-            <p>
-              Tell us about the podcasts you love,
-              and we'll help get them transcribed..
-            </p>
-            <p>
-              With high-quality, attractive
-              transcripts of your favorite podcasts,
-              it's easier than ever to find and share
-              your favorite moments from them.
-            </p>
-            <p>
-              Share a podcast's text with Fanscribed,
-              and help bring the rich world of podcasts
-              to new audiences.
-            </p>
-          </div>
-        </div>
-        <div class="row">
-
-          <div class="col-md-6">
-            <h4>Help Transcribe</h4>
-            <p>
-              You might think transcribing audio to text would be boring.
-              It can be, but only if you use the wrong tools.
-            </p>
-            <p>
-              Fanscribed makes it fun to transcribe!
-              You're in control,
-              and each task takes less than two minutes to complete.
-              We mix things up so you don't get bored, and
-              you can start and stop any time.
-            </p>
-            <p>
-              Transcription is currently volunteer work,
-              but we're working to create a marketplace
-              so you can earn money for helping with sponsored transcripts.
-            </p>
-          </div>
-
-          <div class="col-md-6">
-            <h4>Become a Patron</h4>
-            <p>
-              There will always be a place for volunteer work,
-              but some podcasters or fans like to
-              reward people for their efforts.
-            </p>
-            <p>
-              To help with that,
-              Fanscribed will be introducing a marketplace.
-              Patrons will pay toward completed transcripts.
-              Transcribers will receive money based on their share of work done.
-            </p>
-            <p>
-              Feeling adventurous?
-              Consider donating to the Fanscribed project.
-              To find out more, email
-              <a href="mailto:matthew@fanscribed.com">matthew@fanscribed.com</a>.
-            </p>
-          </div>
-
-        </div>
-      </div>
-
+    <div class="col-xs-12 col-sm-4 text-center">
+      <p>
+        <a class="btn btn-default btn-lg" href="{% url 'podcasts:register' %}">Register a Podcast</a>
+      </p>
     </div>
 
   </div>

@@ -10,14 +10,21 @@ admin.autodiscover()
 # URL patterns used by all projects based on fanscribed core.
 urlpatterns = patterns(
     '',
+
     url(r'^accounts/',
         include('allauth.urls')),
 
     url(r'^admin/',
         include(admin.site.urls)),
 
+    url(r'^podcasts/',
+        include('fanscribed.apps.podcasts.urls', 'podcasts')),
+
     url(r'^profiles/',
-        include('fanscribed.apps.profiles.urls', 'profiles', 'profiles')),
+        include('fanscribed.apps.profiles.urls', 'profiles')),
+
+    url(r'^transcripts/',
+        include('fanscribed.apps.transcripts.urls', 'transcripts')),
 
     url(r'^$',
         name='home',

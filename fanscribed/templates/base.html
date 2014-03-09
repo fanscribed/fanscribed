@@ -41,8 +41,8 @@
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li class="{% block nav_class_home %}{% endblock %}"><a href="{% url 'home' %}">Home</a></li>
-            <li><a href="http://blog.fanscribed.com/">Blog</a></li>
+            <li class="{% block nav_class_read %}{% endblock %}"><a href="#">Read Podcasts</a></li>
+            <li class="{% block nav_class_ %}{% endblock %}"><a href="#">Help Transcribe</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             {% if user.is_authenticated %}
