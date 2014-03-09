@@ -125,3 +125,15 @@ class RssFetch(models.Model):
     @transition(state, 'fetching', 'failed')
     def fail(self):
         pass
+
+
+@receiver(post_transition, sender=RssFetch)
+def update_podcast_title_from_rssfetch(sender, instance, target, **kwargs):
+    """
+    :type instance: RssFetch
+    """
+    if target == 'fetched':
+        d = feedparser.parse(instance.body)
+        podcast = instance.podcast
+        podcast.title = d['feed']['title']
+        podcast.save()
