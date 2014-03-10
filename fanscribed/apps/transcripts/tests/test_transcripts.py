@@ -1,3 +1,5 @@
+import os
+
 from django.test import TestCase
 
 from unipath import Path
@@ -18,24 +20,25 @@ class TranscriptsTestCase(TestCase):
         transcript = Transcript(name='test transcript')
         self.assertEqual(transcript.length, None)
 
-    def test_transcript_with_processed_media_has_length(self):
-        media_file = MediaFile.objects.create(
-            data_url='file://{}'.format(RAW_MEDIA_PATH),
-        )
-        transcript = Transcript.objects.create(
-            name='test transcript',
-        )
-        transcript_media = TranscriptMedia.objects.create(
-            transcript=transcript,
-            media_file=media_file,
-            is_processed=False,
-            is_full_length=True,
-        )
-        transcript_media.create_processed()
+    if os.environ.get('FAST_TEST') != '1':
+        def test_transcript_with_processed_media_has_length(self):
+            media_file = MediaFile.objects.create(
+                data_url='file://{}'.format(RAW_MEDIA_PATH),
+            )
+            transcript = Transcript.objects.create(
+                name='test transcript',
+            )
+            transcript_media = TranscriptMedia.objects.create(
+                transcript=transcript,
+                media_file=media_file,
+                is_processed=False,
+                is_full_length=True,
+            )
+            transcript_media.create_processed()
 
-        # Reload changed objects.
-        transcript = Transcript.objects.get(pk=transcript.pk)
+            # Reload changed objects.
+            transcript = Transcript.objects.get(pk=transcript.pk)
 
-        # Check length.
-        expected_length = 5 * 60  # 5 minutes.
-        self.assertAlmostEqual(transcript.length, expected_length, delta=0.2)
+            # Check length.
+            expected_length = 5 * 60  # 5 minutes.
+            self.assertAlmostEqual(transcript.length, expected_length, delta=0.2)
