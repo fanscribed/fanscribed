@@ -12,5 +12,6 @@ urlpatterns = patterns(
 
     url(r'^register/$',
         name='register',
-        view=TemplateView.as_view(template_name='placeholder.html')),
+        view=TemplateView.as_view(template_name='placeholder.html'),
+        kwargs={'login_required': True}),
 )
