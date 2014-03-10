@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Transcript, TranscriptMedia
+from . import models as m
 
 
 class TranscriptAdmin(admin.ModelAdmin):
@@ -9,8 +9,9 @@ class TranscriptAdmin(admin.ModelAdmin):
 
 
 class TranscriptMediaAdmin(admin.ModelAdmin):
+
     pass
 
 
-admin.site.register(Transcript, TranscriptAdmin)
-admin.site.register(TranscriptMedia, TranscriptMediaAdmin)
+admin.site.register(m.Transcript, TranscriptAdmin)
+admin.site.register(m.TranscriptMedia, TranscriptMediaAdmin)

@@ -1,6 +1,7 @@
 import datetime
 
 from django.db import models
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from django_extensions.db.models import CreationDateTimeField
@@ -9,6 +10,11 @@ from django_fsm.signals import post_transition
 from django_fsm.db.fields import FSMField, transition
 
 import feedparser
+
+from . import tasks
+
+
+# ------------------------------------------------------------------------------
 
 
 class Podcast(models.Model):
@@ -72,21 +78,27 @@ class Podcast(models.Model):
         )
 
 
-APPROVAL_TYPE_CHOICES = [
-    ('user', 'User'),
-    ('staff', 'Staff'),
-    ('owner', 'Onwer'),
-]
+# ------------------------------------------------------------------------------
+
 
 class TranscriptionApproval(models.Model):
     """
     A record of a user indicating we are allowed to transcribe the podcast.
     """
 
+    APPROVAL_TYPE_CHOICES = [
+        ('user', 'User'),
+        ('staff', 'Staff'),
+        ('owner', 'Onwer'),
+    ]
+
     podcast = models.ForeignKey('Podcast')
     user = models.ForeignKey('auth.User')
     approval_type = models.CharField(max_length=5, choices=APPROVAL_TYPE_CHOICES)
     notes = models.TextField(blank=True, null=True)
+
+
+# ------------------------------------------------------------------------------
 
 
 class RssFetch(models.Model):
@@ -109,26 +121,35 @@ class RssFetch(models.Model):
     body = models.BinaryField(blank=True, null=True)
     state = FSMField(default='not_fetched', protected=True)
 
-    @transition(state, 'not_fetched', 'fetched')
+    @transition(state, 'not_fetched', 'fetched', save=True)
     def load_rss(self, body):
         self.body = body
         self.fetched = datetime.datetime.now()
 
-    @transition(state, 'not_fethed', 'fetching')
+    @transition(state, 'not_fetched', 'fetching', save=True)
     def start(self):
         self.fetched = datetime.datetime.now()
 
-    @transition(state, 'fetching', 'fetched')
+    @transition(state, 'fetching', 'fetched', save=True)
     def finish(self, body):
         self.body = body
 
-    @transition(state, 'fetching', 'failed')
+    @transition(state, 'fetching', 'failed', save=True)
     def fail(self):
         pass
 
 
 @receiver(post_transition, sender=RssFetch)
-def update_podcast_title_from_rssfetch(sender, instance, target, **kwargs):
+def fetch_when_rssfetch_started(instance, target, **kwargs):
+    """
+    :type instance: RssFetch
+    """
+    if target == 'fetching':
+        tasks.fetch_rss.delay(instance.pk)
+
+
+@receiver(post_transition, sender=RssFetch)
+def update_podcast_title_from_rssfetch(instance, target, **kwargs):
     """
     :type instance: RssFetch
     """

@@ -7,7 +7,8 @@ from allauth.account.models import EmailAddress, EmailConfirmation
 from allauth.socialaccount.models import SocialAccount, SocialToken
 
 from ...apps.media.models import MediaFile
-from ...apps.transcripts.models import Transcript
+from ...apps.podcasts.models import Podcast, RssFetch, TranscriptionApproval
+from ...apps.transcripts.models import Transcript, TranscriptMedia
 
 
 class Command(BaseCommand):
@@ -36,12 +37,14 @@ class Command(BaseCommand):
         self.truncate_tables([
             # admin
             'django_admin_log',
+
             # auth
             User,
             Group,
             'auth_group_permissions',
             'auth_user_groups',
             'auth_user_user_permissions',
+
             # allauth
             EmailAddress,
             EmailConfirmation,
@@ -49,13 +52,22 @@ class Command(BaseCommand):
             SocialToken,
             'account_emailaddress',
             'account_emailconfirmation',
+
             # waffle
             'waffle_flag_groups',
             'waffle_flag_users',
+
             # media,
             MediaFile,
+
+            # podcasts,
+            Podcast,
+            RssFetch,
+            TranscriptionApproval,
+
             # transcripts,
             Transcript,
+            TranscriptMedia,
         ])
 
     def truncate_tables(self, models_to_truncate):

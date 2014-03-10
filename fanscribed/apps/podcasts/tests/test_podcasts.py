@@ -1,3 +1,5 @@
+"""RSS fetching test cases."""
+
 import datetime
 
 from django.test import TestCase
@@ -11,6 +13,8 @@ TESTDATA = Path(__file__).parent.child('testdata')
 
 
 class RssFetchTestCase(TestCase):
+
+    # TODO: Fetch against self-hosted sample podcast.
 
     def test_fetch_state_and_timestamp(self):
         podcast = Podcast.objects.create(rss_url='http://example.com/dummy.xml')
