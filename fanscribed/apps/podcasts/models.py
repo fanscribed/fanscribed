@@ -81,26 +81,6 @@ class Podcast(models.Model):
 # ------------------------------------------------------------------------------
 
 
-class TranscriptionApproval(models.Model):
-    """
-    A record of a user indicating we are allowed to transcribe the podcast.
-    """
-
-    APPROVAL_TYPE_CHOICES = [
-        ('user', 'User'),
-        ('staff', 'Staff'),
-        ('owner', 'Onwer'),
-    ]
-
-    podcast = models.ForeignKey('Podcast')
-    user = models.ForeignKey('auth.User')
-    approval_type = models.CharField(max_length=5, choices=APPROVAL_TYPE_CHOICES)
-    notes = models.TextField(blank=True, null=True)
-
-
-# ------------------------------------------------------------------------------
-
-
 class RssFetch(models.Model):
     """A fetch of the RSS feed of a podcast.
 
@@ -158,3 +138,23 @@ def update_podcast_title_from_rssfetch(instance, target, **kwargs):
         podcast = instance.podcast
         podcast.title = d['feed']['title']
         podcast.save()
+
+
+# ------------------------------------------------------------------------------
+
+
+class TranscriptionApproval(models.Model):
+    """
+    A record of a user indicating we are allowed to transcribe the podcast.
+    """
+
+    APPROVAL_TYPE_CHOICES = [
+        ('user', 'User'),
+        ('staff', 'Staff'),
+        ('owner', 'Onwer'),
+    ]
+
+    podcast = models.ForeignKey('Podcast')
+    user = models.ForeignKey('auth.User')
+    approval_type = models.CharField(max_length=5, choices=APPROVAL_TYPE_CHOICES)
+    notes = models.TextField(blank=True, null=True)
