@@ -237,6 +237,9 @@ WSGI_APPLICATION = 'fanscribed.wsgi.application'
 # AUTH / ACCOUNTS
 # ---------------
 
+MIDDLEWARE_CLASSES += (
+    'fanscribed.middleware.LoginRequiredMiddleware',
+)
 TEMPLATE_CONTEXT_PROCESSORS += (
     'allauth.account.context_processors.account',
     'allauth.socialaccount.context_processors.socialaccount',
@@ -336,7 +339,7 @@ MEDIAFILE_STORAGE_PATH = join(PACKAGE_ROOT, '..', '.mediafile-storage')
 
 
 # SHELL_PLUS
-# ==========
+# ----------
 
 IPYTHON_ARGUMENTS = [
     '--ext', 'django_extensions.management.notebook_extension',
