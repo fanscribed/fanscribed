@@ -3,6 +3,12 @@ from django.contrib import admin
 from . import models as m
 
 
+class EpisodeAdmin(admin.ModelAdmin):
+
+    list_display = ('podcast', 'title', 'published')
+    ordering = ('podcast', '-published')
+
+
 class PodcastAdmin(admin.ModelAdmin):
 
     actions = ['fetch']
@@ -39,5 +45,6 @@ class RssFetchAdmin(admin.ModelAdmin):
     start_fetch.short_description = 'Start selected RSS fetches'
 
 
+admin.site.register(m.Episode, EpisodeAdmin)
 admin.site.register(m.Podcast, PodcastAdmin)
 admin.site.register(m.RssFetch, RssFetchAdmin)

@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from unipath import Path
 
-from ..models import Podcast, RssFetch
+from ..models import Episode, Podcast, RssFetch
 
 
 TESTDATA = Path(__file__).parent.child('testdata')
@@ -18,11 +18,8 @@ class RssFetchTestCase(TestCase):
 
     def test_fetch_state_and_timestamp(self):
         podcast = Podcast.objects.create(rss_url='http://example.com/dummy.xml')
-        with open(TESTDATA.child('dtfh.xml'), 'rb') as f:
-            raw = f.read()
         fetch = RssFetch.objects.create(podcast=podcast)
-        fetch.load_rss(raw)
-        fetch.save()
+        fetch.load_rss(filename=TESTDATA.child('dtfh.xml'))
         self.assertEqual(fetch.state, 'fetched')
         self.assertIsInstance(fetch.fetched, datetime.datetime)
 
@@ -36,9 +33,30 @@ class RssFetchTestCase(TestCase):
         for filename, expected_title in filename_title_map:
             podcast = Podcast.objects.create(
                 rss_url='http://example.com/{filename}'.format(**locals()))
-            with open(TESTDATA.child(filename), 'rb') as f:
-                raw = f.read()
             fetch = RssFetch.objects.create(podcast=podcast)
-            fetch.load_rss(raw)
-            fetch.save()
+            fetch.load_rss(filename=TESTDATA.child(filename))
             self.assertEqual(podcast.title, expected_title)
+
+    def test_create_episodes_on_first_fetch(self):
+        podcast = Podcast.objects.create(
+            rss_url='http://example.com/noagenda.xml')
+
+        fetch = RssFetch.objects.create(podcast=podcast)
+        fetch.load_rss(filename=TESTDATA.child('noagenda.xml'))
+
+        episodes = Episode.objects.filter(podcast=podcast)
+        expected_count = 18
+        self.assertEqual(episodes.count(), expected_count)
+
+    def test_update_episodes_on_second_fetch(self):
+        podcast = Podcast.objects.create(
+            rss_url='http://example.com/noagenda.xml')
+
+        fetch1 = RssFetch.objects.create(podcast=podcast)
+        fetch1.load_rss(filename=TESTDATA.child('noagenda.xml'))
+        fetch2 = RssFetch.objects.create(podcast=podcast)
+        fetch2.load_rss(filename=TESTDATA.child('noagenda2.xml'))
+
+        episodes = Episode.objects.filter(podcast=podcast)
+        expected_count = 20
+        self.assertEqual(episodes.count(), expected_count)

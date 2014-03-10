@@ -8,24 +8,29 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding model 'Episode'
+        db.create_table(u'podcasts_episode', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('podcast', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['podcasts.Podcast'])),
+            ('guid', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('title', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('published', self.gf('django.db.models.fields.DateTimeField')()),
+            ('media_url', self.gf('django.db.models.fields.URLField')(max_length=200)),
+            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+        ))
+        db.send_create_signal(u'podcasts', ['Episode'])
+
+        # Adding unique constraint on 'Episode', fields ['podcast', 'guid']
+        db.create_unique(u'podcasts_episode', ['podcast_id', 'guid'])
+
         # Adding model 'Podcast'
         db.create_table(u'podcasts_podcast', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('rss_url', self.gf('django.db.models.fields.URLField')(unique=True, max_length=512)),
+            ('rss_url', self.gf('django.db.models.fields.URLField')(unique=True, max_length=200)),
             ('title', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
             ('approval_state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='not_approved', max_length=50)),
         ))
         db.send_create_signal(u'podcasts', ['Podcast'])
-
-        # Adding model 'TranscriptionApproval'
-        db.create_table(u'podcasts_transcriptionapproval', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('podcast', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['podcasts.Podcast'])),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('approval_type', self.gf('django.db.models.fields.CharField')(max_length=5)),
-            ('notes', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal(u'podcasts', ['TranscriptionApproval'])
 
         # Adding model 'RssFetch'
         db.create_table(u'podcasts_rssfetch', (
@@ -38,16 +43,32 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'podcasts', ['RssFetch'])
 
+        # Adding model 'TranscriptionApproval'
+        db.create_table(u'podcasts_transcriptionapproval', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('podcast', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['podcasts.Podcast'])),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('approval_type', self.gf('django.db.models.fields.CharField')(max_length=5)),
+            ('notes', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+        ))
+        db.send_create_signal(u'podcasts', ['TranscriptionApproval'])
+
 
     def backwards(self, orm):
+        # Removing unique constraint on 'Episode', fields ['podcast', 'guid']
+        db.delete_unique(u'podcasts_episode', ['podcast_id', 'guid'])
+
+        # Deleting model 'Episode'
+        db.delete_table(u'podcasts_episode')
+
         # Deleting model 'Podcast'
         db.delete_table(u'podcasts_podcast')
 
-        # Deleting model 'TranscriptionApproval'
-        db.delete_table(u'podcasts_transcriptionapproval')
-
         # Deleting model 'RssFetch'
         db.delete_table(u'podcasts_rssfetch')
+
+        # Deleting model 'TranscriptionApproval'
+        db.delete_table(u'podcasts_transcriptionapproval')
 
 
     models = {
@@ -87,11 +108,21 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
+        u'podcasts.episode': {
+            'Meta': {'unique_together': "[('podcast', 'guid')]", 'object_name': 'Episode'},
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'guid': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'media_url': ('django.db.models.fields.URLField', [], {'max_length': '200'}),
+            'podcast': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['podcasts.Podcast']"}),
+            'published': ('django.db.models.fields.DateTimeField', [], {}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
+        },
         u'podcasts.podcast': {
             'Meta': {'object_name': 'Podcast'},
             'approval_state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'not_approved'", 'max_length': '50'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'rss_url': ('django.db.models.fields.URLField', [], {'unique': 'True', 'max_length': '512'}),
+            'rss_url': ('django.db.models.fields.URLField', [], {'unique': 'True', 'max_length': '200'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'})
         },
         u'podcasts.rssfetch': {
