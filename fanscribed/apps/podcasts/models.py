@@ -125,7 +125,7 @@ class RssFetch(models.Model):
 
     podcast = models.ForeignKey(Podcast)
     created = CreationDateTimeField()
-    fetched = models.DateField(blank=True, null=True)
+    fetched = models.DateTimeField(blank=True, null=True)
     body = models.BinaryField(blank=True, null=True)
     state = FSMField(default='not_fetched', protected=True)
 

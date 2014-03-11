@@ -37,7 +37,7 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('podcast', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['podcasts.Podcast'])),
             ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
-            ('fetched', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
+            ('fetched', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
             ('body', self.gf('django.db.models.fields.BinaryField')(null=True, blank=True)),
             ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='not_fetched', max_length=50)),
         ))
@@ -129,7 +129,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'RssFetch'},
             'body': ('django.db.models.fields.BinaryField', [], {'null': 'True', 'blank': 'True'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
-            'fetched': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
+            'fetched': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'podcast': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['podcasts.Podcast']"}),
             'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'not_fetched'", 'max_length': '50'})
