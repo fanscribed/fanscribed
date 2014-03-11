@@ -55,7 +55,7 @@ class Command(BaseCommand):
             'http://feed.nashownotes.com/rss.xml',
             'http://lavenderhour.libsyn.com/rss',
             'http://feeds.feedburner.com/matrixmasters/iGAG',
-            'http://feeds.twit.tv/twit.xml',
+            'http://feeds.twit.tv/twiet.xml',
         ]:
             Podcast.objects.create(rss_url=rss_url)
 
