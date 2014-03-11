@@ -35,6 +35,9 @@ class Episode(models.Model):
             ('podcast', 'guid'),
         ]
 
+    def __unicode__(self):
+        return u'self.title ({self.podcast})'.format(**locals())
+
 
 # ------------------------------------------------------------------------------
 
@@ -59,6 +62,9 @@ class Podcast(models.Model):
     rss_url = models.URLField(unique=True)
     title = models.CharField(max_length=200, blank=True, null=True)
     approval_state = FSMField(default='not_approved', protected=True)
+
+    def __unicode__(self):
+        return self.title or self.rss_url
 
     # approval_state
     # --------------
