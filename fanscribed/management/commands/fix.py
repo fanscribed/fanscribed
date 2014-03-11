@@ -7,6 +7,7 @@ from allauth.account.models import EmailAddress, EmailConfirmation
 from allauth.socialaccount.models import SocialAccount, SocialToken
 
 from ...apps.media.models import MediaFile
+from ...apps.media.tests.base import RAW_NOAGENDA_MEDIA_PATH
 from ...apps.podcasts.models import Podcast, RssFetch, TranscriptionApproval
 from ...apps.transcripts.models import Transcript, TranscriptMedia
 
@@ -45,9 +46,10 @@ class Command(BaseCommand):
         self.fix_zero()
         self.fix_su()
         self.fix_u()
-        self.fix_podcasts()
+        self.fix_samplepodcasts()
+        self.fix_sampletranscript()
 
-    def fix_podcasts(self):
+    def fix_samplepodcasts(self):
         self.verbose_write('Creating sample podcasts.')
         for rss_url in [
             'http://feed.nashownotes.com/rss.xml',
@@ -56,6 +58,20 @@ class Command(BaseCommand):
             'http://feeds.twit.tv/twit.xml',
         ]:
             Podcast.objects.create(rss_url=rss_url)
+
+    def fix_sampletranscript(self):
+        self.verbose_write('Creating sample transcript with media.')
+        transcript = Transcript.objects.create(
+            name='Sample No Agenda Transcript')
+        data_url = 'file://{}'.format(RAW_NOAGENDA_MEDIA_PATH)
+        media_file = MediaFile.objects.create(data_url=data_url)
+        transcript_media = TranscriptMedia.objects.create(
+            transcript=transcript,
+            media_file=media_file,
+            is_processed=False,
+            is_full_length=True,
+        )
+        transcript_media.create_processed()
 
     def fix_su(self):
         """Create superuser account (creds are su:su)"""
