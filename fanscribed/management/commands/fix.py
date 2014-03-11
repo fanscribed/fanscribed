@@ -12,29 +12,69 @@ from ...apps.transcripts.models import Transcript, TranscriptMedia
 
 
 class Command(BaseCommand):
-    args = '<fixture_name>'
+    args = '<fixture_name> ...'
     help = "Builds a test data set"
 
     def handle(self, *args, **options):
-        if len(args) != 0:
-            raise CommandError('Wrong arguments.')
 
-        self.truncate_relevant_tables()
+        self.verbosity = options.get('verbosity', 0)
 
-        call_command('load_initial_data',
-                     verbosity=options['verbosity'], interactive=False)
+        if len(args) == 0:
+            self.stdout.write('Available fixtures:')
+            for name in sorted(dir(self)):
+                if name.startswith('fix_'):
+                    method = getattr(self, name)
+                    short_name = name[4:]
+                    if method.__doc__:
+                        self.stdout.write(
+                            '- {short_name} ({docstring})'.format(**locals()))
+                    else:
+                        self.stdout.write('- {short_name}'.format(**locals()))
+        else:
+            for name in args:
+                method_name = 'fix_{name}'.format(**locals())
+                method = getattr(self, method_name)
+                method()
 
-        if options['verbosity'] > 0:
-            self.stdout.write('Creating superuser "su".')
+    def verbose_write(self, str):
+        if self.verbosity > 0:
+            self.stdout.write(str)
+
+    def fix_demo(self):
+        """Demo data: zero su u podcasts"""
+        self.fix_zero()
+        self.fix_su()
+        self.fix_u()
+        self.fix_podcasts()
+
+    def fix_podcasts(self):
+        self.verbose_write('Creating sample podcasts.')
+        for rss_url in [
+            'http://feed.nashownotes.com/rss.xml',
+            'http://lavenderhour.libsyn.com/rss',
+            'http://feeds.feedburner.com/matrixmasters/iGAG',
+            'http://feeds.twit.tv/twit.xml',
+        ]:
+            Podcast.objects.create(rss_url=rss_url)
+
+    def fix_su(self):
+        """Create superuser account (creds are su:su)"""
+        self.verbose_write('Creating superuser "su".')
         superuser = User.objects.create_superuser(
             'su', 'superuser@example.com', 'su',
             first_name='Super', last_name='User')
 
-        if options['verbosity'] > 0:
-            self.stdout.write('Built test fixture.')
+    def fix_u(self):
+        """Create regular user account (creds are user:password)"""
+        self.verbose_write('Creating user "user".')
+        user = User.objects.create_user(
+            'user', 'user@example.com', 'password',
+            first_name='Regular', last_name='User')
 
-    def truncate_relevant_tables(self):
-        self.truncate_tables([
+    def fix_zero(self):
+        """Truncate all database tables; reload initial data."""
+        self.verbose_write('Truncating all tables.')
+        self._truncate_tables([
             # admin
             'django_admin_log',
 
@@ -69,14 +109,16 @@ class Command(BaseCommand):
             Transcript,
             TranscriptMedia,
         ])
+        call_command('load_initial_data', verbosity=self.verbosity,
+                     interactive=False)
 
-    def truncate_tables(self, models_to_truncate):
+    def _table_name(self, model):
+        return model if isinstance(model, basestring) else model._meta.db_table
+
+    def _truncate_tables(self, models_to_truncate):
         # http://stackoverflow.com/questions/2988997/
         cursor = connection.cursor()
-        tables = [self.table_name(model) for model in models_to_truncate]
+        tables = [self._table_name(model) for model in models_to_truncate]
         tables_in_quotes = ['"{0}"'.format(table) for table in tables]
         sql = 'TRUNCATE TABLE {0} CASCADE'.format(','.join(tables_in_quotes))
         cursor.execute(sql)
-
-    def table_name(self, model):
-        return model if isinstance(model, basestring) else model._meta.db_table
