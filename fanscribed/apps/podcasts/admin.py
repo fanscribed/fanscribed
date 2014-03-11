@@ -29,7 +29,7 @@ class PodcastAdmin(admin.ModelAdmin):
 class RssFetchAdmin(admin.ModelAdmin):
 
     actions = ['start_fetch']
-    list_display = ('podcast', 'state')
+    list_display = ('podcast', 'fetched', 'state')
 
     def start_fetch(self, request, queryset):
         started = 0
