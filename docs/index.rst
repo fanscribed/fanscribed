@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to fanscribed's documentation!
-====================================
+======================================
 
 Contents:
 
@@ -14,7 +14,7 @@ Contents:
    install
    deploy
    tests
-
+   api
 
 
 Indices and tables
