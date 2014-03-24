@@ -309,8 +309,9 @@ DJANGO_APPS = (
     'django.contrib.admin',
 )
 THIRD_PARTY_APPS += (
-    'django_extensions',
     'bootstrap3',
+    'django_extensions',
+    'djsupervisor',
 )
 # Apps specific for this project go here.
 LOCAL_APPS += (
