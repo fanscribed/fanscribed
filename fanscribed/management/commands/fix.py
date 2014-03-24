@@ -28,7 +28,7 @@ class Command(BaseCommand):
                     short_name = name[4:]
                     if method.__doc__:
                         self.stdout.write(
-                            '- {short_name} ({docstring})'.format(**locals()))
+                            '- {short_name}: {method.__doc__}'.format(**locals()))
                     else:
                         self.stdout.write('- {short_name}'.format(**locals()))
         else:
