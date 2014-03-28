@@ -38,5 +38,8 @@ include:
   file.managed:
     - contents: |
         export DJANGO_SETTINGS_MODULE=fanscribed.settings.local
+        alias da='django-admin.py'
+        alias s='da shell_plus'
+        alias sup='da supervisor'
     - require:
       - cmd: {{ virtualenv_path }}
