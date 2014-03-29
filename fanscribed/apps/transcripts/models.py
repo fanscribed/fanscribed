@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.db import models
 
 from model_utils.models import AutoCreatedField, TimeStampedModel
@@ -59,13 +60,51 @@ class Task(TimeStampedModel):
         abstract = True
 
     transcript = models.ForeignKey('Transcript', related_name='tasks')
-    state = FSMField(default='unassigned')
     is_review = models.BooleanField()
+    state = FSMField(default='unassigned', protected=True)
+    assignee = models.ForeignKey('auth.User', blank=True, null=True,
+                                 related_name='transcription_tasks')
+
+    def get_absolute_url(self):
+        return reverse('transcripts:task_perform', kwargs=dict(
+            transcript_pk=self.transcript.pk,
+            type=self.TASK_TYPE,
+            pk=self.pk,
+        ))
+
+    @transition(state, 'unassigned', 'assigned', save=True)
+    def assign_to(self, user):
+        self.assignee = user
+        self._finish_assign_to()
+
+    def _finish_assign_to(self):
+        raise NotImplementedError()
+
+    @transition(state, 'assigned', 'presented', save=True)
+    def present(self):
+        pass
+
+    @transition(state, 'presented', 'submitted', save=True)
+    def submit(self):
+        pass
 
 
 class TranscriptionTask(Task):
 
+    TASK_TYPE = 'transcribe'
+
     revision = models.ForeignKey('TranscriptFragmentRevision')
+    text = models.TextField(blank=True, null=True)
+
+    def _finish_assign_to(self):
+        self.revision.fragment.lock()
+
+
+# Mapping of task types to model classes
+TASK_MODEL = {
+    # task_type: model_class,
+    'transcribe': TranscriptionTask,
+}
 
 
 # ---------------------
@@ -152,8 +191,8 @@ class TranscriptFragment(models.Model):
     -----
 
     @startuml
-    [*] --> empty
-    empty --> transcribed
+    [*] --> not_transcribed
+    not_transcribed --> transcribed
     transcribed --> reviewed
     reviewed --> [*]
     @enduml
@@ -171,10 +210,8 @@ class TranscriptFragment(models.Model):
     transcript = models.ForeignKey('Transcript', related_name='fragments')
     start = models.DecimalField(max_digits=8, decimal_places=2)
     end = models.DecimalField(max_digits=8, decimal_places=2)
-    state = FSMField(default='empty')
-    locked_by = models.ForeignKey('auth.User', blank=True, null=True)
-    locked_at = models.DateTimeField(blank=True, null=True)
-    locked_state = FSMField(default='unlocked')
+    state = FSMField(default='not_transcribed', protected=True)
+    locked_state = FSMField(default='unlocked', protected=True)
 
     objects = TranscriptFragmentManager()
 
@@ -183,11 +220,15 @@ class TranscriptFragment(models.Model):
             ('transcript', 'start', 'end'),
         ]
 
+    @transition(locked_state, 'unlocked', 'locked', save=True)
+    def lock(self):
+        pass
+
 
 # ---------------------
 
 
-class TranscriptFragmentRevision(models.Model):
+class TranscriptFragmentRevision(TimeStampedModel):
     """A revision of a TranscriptFragment.
 
     state
@@ -205,14 +246,13 @@ class TranscriptFragmentRevision(models.Model):
     """
 
     fragment = models.ForeignKey('TranscriptFragment', related_name='revisions')
-    revision = models.PositiveIntegerField()
+    sequence = models.PositiveIntegerField()
     editor = models.ForeignKey('auth.User')
-    created = AutoCreatedField()
-    state = FSMField(default='editing')
+    state = FSMField(default='editing', protected=True)
 
     class Meta:
         unique_together = [
-            ('fragment', 'revision'),
+            ('fragment', 'sequence'),
         ]
 
 

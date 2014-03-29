@@ -26,9 +26,11 @@ class Migration(SchemaMigration):
             ('created', self.gf('model_utils.fields.AutoCreatedField')(default=datetime.datetime.now)),
             ('modified', self.gf('model_utils.fields.AutoLastModifiedField')(default=datetime.datetime.now)),
             ('transcript', self.gf('django.db.models.fields.related.ForeignKey')(related_name='tasks', to=orm['transcripts.Transcript'])),
-            ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='unassigned', max_length=50)),
             ('is_review', self.gf('django.db.models.fields.BooleanField')()),
+            ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='unassigned', max_length=50)),
+            ('assignee', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='transcription_tasks', null=True, to=orm['auth.User'])),
             ('revision', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['transcripts.TranscriptFragmentRevision'])),
+            ('text', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
         ))
         db.send_create_signal(u'transcripts', ['TranscriptionTask'])
 
@@ -49,9 +51,7 @@ class Migration(SchemaMigration):
             ('transcript', self.gf('django.db.models.fields.related.ForeignKey')(related_name='fragments', to=orm['transcripts.Transcript'])),
             ('start', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
             ('end', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
-            ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='empty', max_length=50)),
-            ('locked_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True, blank=True)),
-            ('locked_at', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
+            ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='not_transcribed', max_length=50)),
             ('locked_state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='unlocked', max_length=50)),
         ))
         db.send_create_signal(u'transcripts', ['TranscriptFragment'])
@@ -62,16 +62,17 @@ class Migration(SchemaMigration):
         # Adding model 'TranscriptFragmentRevision'
         db.create_table(u'transcripts_transcriptfragmentrevision', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('fragment', self.gf('django.db.models.fields.related.ForeignKey')(related_name='revisions', to=orm['transcripts.TranscriptFragment'])),
-            ('revision', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('editor', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
             ('created', self.gf('model_utils.fields.AutoCreatedField')(default=datetime.datetime.now)),
+            ('modified', self.gf('model_utils.fields.AutoLastModifiedField')(default=datetime.datetime.now)),
+            ('fragment', self.gf('django.db.models.fields.related.ForeignKey')(related_name='revisions', to=orm['transcripts.TranscriptFragment'])),
+            ('sequence', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('editor', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
             ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='editing', max_length=50)),
         ))
         db.send_create_signal(u'transcripts', ['TranscriptFragmentRevision'])
 
-        # Adding unique constraint on 'TranscriptFragmentRevision', fields ['fragment', 'revision']
-        db.create_unique(u'transcripts_transcriptfragmentrevision', ['fragment_id', 'revision'])
+        # Adding unique constraint on 'TranscriptFragmentRevision', fields ['fragment', 'sequence']
+        db.create_unique(u'transcripts_transcriptfragmentrevision', ['fragment_id', 'sequence'])
 
         # Adding model 'TranscriptMedia'
         db.create_table(u'transcripts_transcriptmedia', (
@@ -94,8 +95,8 @@ class Migration(SchemaMigration):
         # Removing unique constraint on 'TranscriptMedia', fields ['transcript', 'is_processed', 'is_full_length', 'start', 'end']
         db.delete_unique(u'transcripts_transcriptmedia', ['transcript_id', 'is_processed', 'is_full_length', 'start', 'end'])
 
-        # Removing unique constraint on 'TranscriptFragmentRevision', fields ['fragment', 'revision']
-        db.delete_unique(u'transcripts_transcriptfragmentrevision', ['fragment_id', 'revision'])
+        # Removing unique constraint on 'TranscriptFragmentRevision', fields ['fragment', 'sequence']
+        db.delete_unique(u'transcripts_transcriptfragmentrevision', ['fragment_id', 'sequence'])
 
         # Removing unique constraint on 'TranscriptFragment', fields ['transcript', 'start', 'end']
         db.delete_unique(u'transcripts_transcriptfragment', ['transcript_id', 'start', 'end'])
@@ -184,30 +185,31 @@ class Migration(SchemaMigration):
             'Meta': {'unique_together': "[('transcript', 'start', 'end')]", 'object_name': 'TranscriptFragment'},
             'end': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'locked_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'locked_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'null': 'True', 'blank': 'True'}),
             'locked_state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unlocked'", 'max_length': '50'}),
             'start': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
-            'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'empty'", 'max_length': '50'}),
+            'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'not_transcribed'", 'max_length': '50'}),
             'transcript': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'fragments'", 'to': u"orm['transcripts.Transcript']"})
         },
         u'transcripts.transcriptfragmentrevision': {
-            'Meta': {'unique_together': "[('fragment', 'revision')]", 'object_name': 'TranscriptFragmentRevision'},
+            'Meta': {'unique_together': "[('fragment', 'sequence')]", 'object_name': 'TranscriptFragmentRevision'},
             'created': ('model_utils.fields.AutoCreatedField', [], {'default': 'datetime.datetime.now'}),
             'editor': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
             'fragment': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'revisions'", 'to': u"orm['transcripts.TranscriptFragment']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'revision': ('django.db.models.fields.PositiveIntegerField', [], {}),
+            'modified': ('model_utils.fields.AutoLastModifiedField', [], {'default': 'datetime.datetime.now'}),
+            'sequence': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'editing'", 'max_length': '50'})
         },
         u'transcripts.transcriptiontask': {
             'Meta': {'object_name': 'TranscriptionTask'},
+            'assignee': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'transcription_tasks'", 'null': 'True', 'to': u"orm['auth.User']"}),
             'created': ('model_utils.fields.AutoCreatedField', [], {'default': 'datetime.datetime.now'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_review': ('django.db.models.fields.BooleanField', [], {}),
             'modified': ('model_utils.fields.AutoLastModifiedField', [], {'default': 'datetime.datetime.now'}),
             'revision': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.TranscriptFragmentRevision']"}),
             'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unassigned'", 'max_length': '50'}),
+            'text': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'transcript': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'tasks'", 'to': u"orm['transcripts.Transcript']"})
         },
         u'transcripts.transcriptmedia': {
