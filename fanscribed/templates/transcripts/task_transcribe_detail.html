@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% load bootstrap3 %}
 
+{% block nav_class_transcribe %}
+  active
+{% endblock %}
+
 {% block content %}
   <h1>{{ task.transcript }}</h1>
 
@@ -33,6 +37,16 @@
         <button class="btn btn-primary" type="submit">Submit</button>
       {% endbuttons %}
     </form>
+
+  {% elif task.state == 'valid' %}
+
+    <h3>Sentence Fragments</h3>
+
+    <ul>
+      {% for sentence_fragment in task.revision.sentence_fragments.all %}
+        <li>{{ sentence_fragment.text }}</li>
+      {% endfor %}
+    </ul>
 
   {% else %}
 

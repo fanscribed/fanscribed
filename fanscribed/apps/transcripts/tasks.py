@@ -70,4 +70,27 @@ def create_processed_transcript_media(transcript_media_pk):
 
     # Set transcript's length based on processed media.
     transcript.set_length(processed_transcript_media.end)
-    transcript.save()
+
+
+@shared_task
+def process_transcribe_task(transcription_task_pk):
+
+    from .models import TranscriptionTask, SentenceFragment
+
+    task = TranscriptionTask.objects.get(pk=transcription_task_pk)
+
+    # Require text.
+    if task.text is None or task.text.strip() == u'':
+        task.invalidate()
+        return
+
+    # Clean up text.
+    lines = [L.strip() for L in task.text.strip().split(u'\n') if L.strip()]
+    for sequence, line in enumerate(lines, 1):
+        SentenceFragment.objects.create(
+            revision=task.revision,
+            sequence=sequence,
+            text=line,
+        )
+
+    task.validate()

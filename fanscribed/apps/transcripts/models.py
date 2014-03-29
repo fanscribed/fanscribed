@@ -17,7 +17,8 @@ from .tasks import create_processed_transcript_media
 class SentenceFragment(models.Model):
     """A sentence fragment from within a transcript fragment."""
 
-    revision = models.ForeignKey('TranscriptFragmentRevision')
+    revision = models.ForeignKey('TranscriptFragmentRevision',
+                                 related_name='sentence_fragments')
     sequence = models.PositiveIntegerField()
     text = models.TextField()
 
@@ -42,8 +43,8 @@ class Task(TimeStampedModel):
     unassigned --> assigned
     assigned --> presented
     presented --> submitted
-    submitted --> processed
-    processed --> [*]
+    submitted --> valid
+    valid --> [*]
 
     submitted --> invalid
     invalid --> presented
@@ -86,6 +87,15 @@ class Task(TimeStampedModel):
 
     @transition(state, 'presented', 'submitted', save=True)
     def submit(self):
+        from .tasks import process_transcribe_task
+        process_transcribe_task.delay(self.pk)
+
+    @transition(state, 'submitted', 'valid', save=True)
+    def validate(self):
+        pass
+
+    @transition(state, 'submitted', 'invalid', save=True)
+    def invalidate(self):
         pass
 
 
