@@ -10,52 +10,83 @@
 
   <h1>{{ transcript.name }}</h1>
 
-  <form action="{% url 'transcripts:task_assign' pk=transcript.pk %}" method="post">
-    {% csrf_token %}
-    <button class="btn btn-primary" type="submit" name="type" value="any">
-      Any Task
-    </button>
-    <button class="btn btn-default" type="submit" name="type" value="transcribe">
-      Transcribe
-    </button>
-    <button class="btn btn-disabled" disabled type="submit" name="type" value="transcribe_review">
-      Review Transcription
-    </button>
-    <button class="btn btn-disabled" disabled type="submit" name="type" value="stitch">
-      Stitch
-    </button>
-    <button class="btn btn-disabled" disabled type="submit" name="type" value="stitch_review">
-      Review Stitch
-    </button>
-    <button class="btn btn-disabled" disabled type="submit" name="type" value="boundary">
-      Identify Boundary
-    </button>
-    <button class="btn btn-disabled" disabled type="submit" name="type" value="boundary_review">
-      Review Boundary
-    </button>
-    <button class="btn btn-disabled" disabled type="submit" name="type" value="speaker">
-      Identify Speaker
-    </button>
-    <button class="btn btn-disabled" disabled type="submit" name="type" value="speaker_review">
-      Review Speaker
-    </button>
-  </form>
+  {% if user.is_authenticated %}
+
+    {% url 'transcripts:task_assign' pk=transcript.pk as task_assign_url %}
+
+    <form action="{{ task_assign_url }}" method="post">
+      {% csrf_token %}
+      <button class="btn btn-primary" type="submit" name="type" value="any">
+        Any Task
+      </button>
+      <div class="btn-group">
+        <button class="btn btn-default" type="submit" name="type" value="transcribe">
+          Transcribe
+        </button>
+        <button class="btn btn-disabled" disabled type="submit" name="type" value="transcribe_review">
+          Review Transcription
+        </button>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-disabled" disabled type="submit" name="type" value="stitch">
+          Stitch
+        </button>
+        <button class="btn btn-disabled" disabled type="submit" name="type" value="stitch_review">
+          Review Stitch
+        </button>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-disabled" disabled type="submit" name="type" value="boundary">
+          Identify Boundary
+        </button>
+        <button class="btn btn-disabled" disabled type="submit" name="type" value="boundary_review">
+          Review Boundary
+        </button>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-disabled" disabled type="submit" name="type" value="speaker">
+          Identify Speaker
+        </button>
+        <button class="btn btn-disabled" disabled type="submit" name="type" value="speaker_review">
+          Review Speaker
+        </button>
+      </div>
+    </form>
+
+  {% else %}
+
+    {% url 'transcripts:detail' pk=transcript.pk as detail_url %}
+
+    <a class="btn btn-primary"
+       href="{% url 'account_login' %}?next={{ detail_url }}">
+      Sign In
+    </a>
+
+  {% endif %}
 
   <h2>Fragments</h2>
 
   <dl class="dl-horizontal">
 
+    {# TODO: turn these into little bar charts #}
+
+    <dt>Total</dt>
+    <dd>{{ transcript.fragments.count }}</dd>
+
     <dt>Empty</dt>
     <dd>{{ transcript.fragments.empty.count }}</dd>
 
     <dt>Transcribed</dt>
-    <dd>{{ transcript.fragments.empty.count }}</dd>
+    <dd>{{ transcript.fragments.transcribed.count }}</dd>
+
+    <dt>Reviewed</dt>
+    <dd>{{ transcript.fragments.reviewed.count }}</dd>
 
     <dt>Locked</dt>
-    <dd>{{ transcript.fragments.empty.count }}</dd>
+    <dd>{{ transcript.fragments.locked.count }}</dd>
 
     <dt>Unlocked</dt>
-    <dd>{{ transcript.fragments.empty.count }}</dd>
+    <dd>{{ transcript.fragments.unlocked.count }}</dd>
 
   </dl>
   
