@@ -1,6 +1,6 @@
 """Common settings and globals."""
 
-
+from os import getenv
 from os.path import abspath, basename, dirname, join, normpath
 
 import fanscribed
@@ -268,7 +268,7 @@ LOGIN_REDIRECT_URL = 'home'
 THIRD_PARTY_APPS += (
     'djcelery',
 )
-BROKER_URL = 'redis://localhost:6379/0'
+BROKER_URL = getenv('BROKER_URL', 'redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'

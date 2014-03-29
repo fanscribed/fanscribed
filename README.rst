@@ -41,21 +41,21 @@ One-time preparation
 
       $ vagrant ssh
 
-    The virtualenv is already activated for you upon login.
+6.  Activate the ``app`` virtualenv::
 
-    The ``fanscribed`` command is an alias to Django admin.
+      $ workon app
 
-6.  Synchronize the database::
+7.  Synchronize the database::
 
-      $ fanscribed syncdb --migrate --noinput
+      $ da syncdb --migrate --noinput
 
-7.  Create a superuser::
+8.  Create some demo data::
 
-      $ fanscribed createsuperuser
+      $ da fix demo
 
 
-Start the web server in foreground mode
-=======================================
+Start the app and worker in foreground mode
+===========================================
 
 1.  Bring up the VM (if it's not up already)::
 
@@ -65,9 +65,10 @@ Start the web server in foreground mode
 
       $ vagrant ssh
 
-3.  Start the development web server::
+3.  Activate the ``app`` virtualenv and start services::
 
-      $ fanscribed runserver
+      $ workon app
+      $ sup
 
 4.  Visit `<http://localhost:8000/>`__.
 
@@ -88,5 +89,6 @@ Updating the VM
 
     $ vagrant ssh
         # ... after connecting ...
-    $ fanscribed syncdb --migrate --noinput
+    $ workon app
+    $ da syncdb --migrate --noinput
 
