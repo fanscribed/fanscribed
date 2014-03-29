@@ -1,5 +1,6 @@
 """Common settings and globals."""
 
+from decimal import Decimal
 from os import getenv
 from os.path import abspath, basename, dirname, join, normpath
 
@@ -347,3 +348,9 @@ IPYTHON_ARGUMENTS = [
     '--ip=0.0.0.0',
     '--no-browser',
 ]
+
+
+# TRANSCRIPTION
+# -------------
+
+TRANSCRIPT_FRAGMENT_LENGTH = Decimal('5.00')

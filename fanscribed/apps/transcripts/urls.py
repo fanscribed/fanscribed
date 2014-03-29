@@ -1,5 +1,7 @@
 from django.conf.urls import patterns, url
 
+from ...urls import LOGGED_IN_USER
+
 from .views import (
     TaskAssignView,
     TranscriptDetailView, TranscriptListView,
@@ -19,6 +21,7 @@ urlpatterns = patterns(
 
     url(r'^(?P<pk>\d+)/tasks/assign/$',
         name='task_assign',
-        view=TaskAssignView.as_view()),
+        view=TaskAssignView.as_view(),
+        kwargs=LOGGED_IN_USER),
 
 )

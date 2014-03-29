@@ -6,9 +6,14 @@ from django.db import connection
 from allauth.account.models import EmailAddress, EmailConfirmation
 from allauth.socialaccount.models import SocialAccount, SocialToken
 
+from fanscribed.apps import media, podcasts, transcripts
+import fanscribed.apps.media.models
+import fanscribed.apps.podcasts.models
+import fanscribed.apps.transcripts.models
+
 from ...apps.media.models import MediaFile
 from ...apps.media.tests.base import RAW_NOAGENDA_MEDIA_PATH
-from ...apps.podcasts.models import Podcast, RssFetch, TranscriptionApproval
+from ...apps.podcasts.models import Podcast
 from ...apps.transcripts.models import Transcript, TranscriptMedia
 
 
@@ -114,16 +119,17 @@ class Command(BaseCommand):
             'waffle_flag_users',
 
             # media,
-            MediaFile,
+            media.models.MediaFile,
 
             # podcasts,
-            Podcast,
-            RssFetch,
-            TranscriptionApproval,
+            podcasts.models.Podcast,
+            podcasts.models.RssFetch,
+            podcasts.models.TranscriptionApproval,
 
             # transcripts,
-            Transcript,
-            TranscriptMedia,
+            transcripts.models.Transcript,
+            transcripts.models.TranscriptMedia,
+            transcripts.models.TranscriptFragment,
         ])
         call_command('load_initial_data', verbosity=self.verbosity,
                      interactive=False)

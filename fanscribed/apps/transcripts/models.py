@@ -1,8 +1,11 @@
+from decimal import Decimal
+
+from django.conf import settings
 from django.db import models
 
-from django_extensions.db.models import CreationDateTimeField
+from model_utils.models import AutoCreatedField, TimeStampedModel
 
-from django_fsm.db.fields import FSMField
+from django_fsm.db.fields import FSMField, transition
 
 from .tasks import create_processed_transcript_media
 
@@ -10,11 +13,80 @@ from .tasks import create_processed_transcript_media
 # ---------------------
 
 
-class Transcript(models.Model):
+class SentenceFragment(models.Model):
+    """A sentence fragment from within a transcript fragment."""
 
-    created = CreationDateTimeField()
+    revision = models.ForeignKey('TranscriptFragmentRevision')
+    sequence = models.PositiveIntegerField()
+    text = models.TextField()
+
+    class Meta:
+        unique_together = [
+            ('revision', 'sequence'),
+        ]
+
+
+# ---------------------
+
+
+class Task(TimeStampedModel):
+    """A transcription task to be completed.
+
+    state
+    -----
+
+    @startuml
+
+    [*] --> unassigned
+    unassigned --> assigned
+    assigned --> presented
+    presented --> submitted
+    submitted --> processed
+    processed --> [*]
+
+    submitted --> invalid
+    invalid --> presented
+
+    assigned --> expired
+    expired --> aborted
+    presented --> aborted
+    aborted --> [*]
+
+    @enduml
+    """
+
+    class Meta:
+        abstract = True
+
+    transcript = models.ForeignKey('Transcript', related_name='tasks')
+    state = FSMField(default='unassigned')
+    is_review = models.BooleanField()
+
+
+class TranscriptionTask(Task):
+
+    revision = models.ForeignKey('TranscriptFragmentRevision')
+
+
+# ---------------------
+
+
+class Transcript(TimeStampedModel):
+    """A transcript of audio or video to text.
+
+    length_state
+    ------------
+
+    @startuml
+    [*] --> unset
+    unset --> set
+    set --> [*]
+    @enduml
+    """
+
     name = models.CharField(max_length=512)  # TODO: change to `title`
     length = models.DecimalField(max_digits=8, decimal_places=2, null=True)
+    length_state = FSMField(default='unset', protected=True)
 
     def __unicode__(self):
         return self.name
@@ -25,6 +97,29 @@ class Transcript(models.Model):
             is_processed=True,
             is_full_length=True,
         ).exists()
+
+    @transition(length_state, 'unset', 'set', save=True)
+    def set_length(self, length):
+        self.length = length
+        self._create_fragments()
+
+    def _create_fragments(self):  # TODO: unit test
+        start = Decimal('0')
+        while start < self.length:
+
+            # Find the end of the current fragment.
+            # If remaining time is less than fragment length, stretch to end.
+            end = start + settings.TRANSCRIPT_FRAGMENT_LENGTH
+            remaining = self.length - end
+            if remaining < settings.TRANSCRIPT_FRAGMENT_LENGTH:
+                end = self.length
+
+            self.fragments.create(
+                start=start,
+                end=end,
+            )
+
+            start = end
 
 
 # ---------------------
@@ -39,6 +134,9 @@ class TranscriptFragmentManager(models.Manager):
 
     def transcribed(self):
         return self.filter(state='transcribed')
+
+    def reviewed(self):
+        return self.filter(state='reviewed')
 
     def locked(self):
         return self.filter(locked_state='locked')
@@ -56,6 +154,8 @@ class TranscriptFragment(models.Model):
     @startuml
     [*] --> empty
     empty --> transcribed
+    transcribed --> reviewed
+    reviewed --> [*]
     @enduml
 
     locked_state
@@ -88,13 +188,27 @@ class TranscriptFragment(models.Model):
 
 
 class TranscriptFragmentRevision(models.Model):
+    """A revision of a TranscriptFragment.
+
+    state
+    -----
+
+    @startuml
+    [*] --> editing
+    editing --> changed
+    editing --> not_changed
+    editing --> cancelled
+    changed --> [*]
+    not_changed --> [*]
+    cancelled --> [*]
+    @enduml
+    """
 
     fragment = models.ForeignKey('TranscriptFragment', related_name='revisions')
     revision = models.PositiveIntegerField()
     editor = models.ForeignKey('auth.User')
-    created = CreationDateTimeField()
-    changed = models.BooleanField(
-        help_text='True if first revision, or changed since last revision.')
+    created = AutoCreatedField()
+    state = FSMField(default='editing')
 
     class Meta:
         unique_together = [
@@ -114,7 +228,7 @@ class TranscriptMedia(models.Model):
     is_processed = models.BooleanField(help_text='Is it processed media?')
     is_full_length = models.BooleanField(
         help_text='Is it the full length of media to be transcribed?')
-    created = CreationDateTimeField()
+    created = AutoCreatedField()
     start = models.DecimalField(max_digits=8, decimal_places=2, null=True)
     end = models.DecimalField(max_digits=8, decimal_places=2, null=True)
 

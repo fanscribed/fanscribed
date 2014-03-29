@@ -7,6 +7,12 @@ from django.contrib import admin
 admin.autodiscover()
 
 
+# Attach this to kwargs of an url to require login.
+LOGGED_IN_USER = {
+    'login_required': True,
+}
+
+
 # URL patterns used by all projects based on fanscribed core.
 urlpatterns = patterns(
     '',

@@ -69,5 +69,5 @@ def create_processed_transcript_media(transcript_media_pk):
     )
 
     # Set transcript's length based on processed media.
-    transcript.length = processed_transcript_media.end
+    transcript.set_length(processed_transcript_media.end)
     transcript.save()
