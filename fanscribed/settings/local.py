@@ -1,5 +1,8 @@
 """Development settings and globals."""
 
+from os import getenv
+
+import dj_database_url
 
 from .base import *
 
@@ -25,15 +28,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # --------
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#databases
+DATABASE_URL = getenv('DATABASE_URL', 'postgres://fanscribed:fanscribed@localhost:5432/fanscribed')
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'fanscribed',
-        'USER': 'fanscribed',
-        'PASSWORD': 'fanscribed',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.parse(DATABASE_URL),
 }
 
 
