@@ -54,7 +54,7 @@ class Migration(SchemaMigration):
             ('start', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
             ('end', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
             ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='not_transcribed', max_length=50)),
-            ('locked_state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='unlocked', max_length=50)),
+            ('lock_state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='unlocked', max_length=50)),
         ))
         db.send_create_signal(u'transcripts', ['TranscriptFragment'])
 
@@ -69,7 +69,6 @@ class Migration(SchemaMigration):
             ('fragment', self.gf('django.db.models.fields.related.ForeignKey')(related_name='revisions', to=orm['transcripts.TranscriptFragment'])),
             ('sequence', self.gf('django.db.models.fields.PositiveIntegerField')()),
             ('editor', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='editing', max_length=50)),
         ))
         db.send_create_signal(u'transcripts', ['TranscriptFragmentRevision'])
 
@@ -168,7 +167,7 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
         },
         u'transcripts.sentencefragment': {
-            'Meta': {'unique_together': "[('revision', 'sequence')]", 'object_name': 'SentenceFragment'},
+            'Meta': {'ordering': "('sequence',)", 'unique_together': "[('revision', 'sequence')]", 'object_name': 'SentenceFragment'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'revision': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'sentence_fragments'", 'to': u"orm['transcripts.TranscriptFragmentRevision']"}),
             'sequence': ('django.db.models.fields.PositiveIntegerField', [], {}),
@@ -187,20 +186,19 @@ class Migration(SchemaMigration):
             'Meta': {'unique_together': "[('transcript', 'start', 'end')]", 'object_name': 'TranscriptFragment'},
             'end': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'locked_state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unlocked'", 'max_length': '50'}),
+            'lock_state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unlocked'", 'max_length': '50'}),
             'start': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
             'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'not_transcribed'", 'max_length': '50'}),
             'transcript': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'fragments'", 'to': u"orm['transcripts.Transcript']"})
         },
         u'transcripts.transcriptfragmentrevision': {
-            'Meta': {'unique_together': "[('fragment', 'sequence')]", 'object_name': 'TranscriptFragmentRevision'},
+            'Meta': {'ordering': "('sequence',)", 'unique_together': "[('fragment', 'sequence')]", 'object_name': 'TranscriptFragmentRevision'},
             'created': ('model_utils.fields.AutoCreatedField', [], {'default': 'datetime.datetime.now'}),
             'editor': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
             'fragment': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'revisions'", 'to': u"orm['transcripts.TranscriptFragment']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified': ('model_utils.fields.AutoLastModifiedField', [], {'default': 'datetime.datetime.now'}),
-            'sequence': ('django.db.models.fields.PositiveIntegerField', [], {}),
-            'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'editing'", 'max_length': '50'})
+            'sequence': ('django.db.models.fields.PositiveIntegerField', [], {})
         },
         u'transcripts.transcriptiontask': {
             'Meta': {'object_name': 'TranscriptionTask'},

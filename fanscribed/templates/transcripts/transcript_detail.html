@@ -23,7 +23,7 @@
         <button class="btn btn-default" type="submit" name="type" value="transcribe">
           Transcribe
         </button>
-        <button class="btn btn-disabled" disabled type="submit" name="type" value="transcribe_review">
+        <button class="btn btn-default" type="submit" name="type" value="transcribe_review">
           Review Transcription
         </button>
       </div>
@@ -91,8 +91,8 @@
     <dt>Total</dt>
     <dd>{{ transcript.fragments.count }}</dd>
 
-    <dt>Empty</dt>
-    <dd>{{ transcript.fragments.empty.count }}</dd>
+    <dt>Not Transcribed</dt>
+    <dd>{{ transcript.fragments.not_transcribed.count }}</dd>
 
     <dt>Transcribed</dt>
     <dd>{{ transcript.fragments.transcribed.count }}</dd>

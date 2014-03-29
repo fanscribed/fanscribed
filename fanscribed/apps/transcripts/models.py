@@ -23,6 +23,7 @@ class SentenceFragment(models.Model):
     text = models.TextField()
 
     class Meta:
+        ordering = ('sequence',)
         unique_together = [
             ('revision', 'sequence'),
         ]
@@ -136,7 +137,19 @@ class TranscriptionTask(Task):
         self.revision.fragment.lock()
 
     def _validate(self):
-        self.revision.fragment.transcribe()
+        if not self.is_review:
+            self.revision.fragment.transcribe()
+        else:
+            # Compare revisions.
+            last_revision = self.revision.fragment.revisions.get(
+                sequence=self.revision.sequence - 1)
+            if self.revision.text != last_revision.text:
+                # They differ;
+                # keep at transcribed to allow for further review.
+                pass
+            else:
+                # They are the same; finish reviewing.
+                self.revision.fragment.review()
         self.revision.fragment.unlock()
 
     def _invalidate(self):
@@ -214,8 +227,8 @@ class TranscriptFragmentManager(models.Manager):
 
     use_for_related_fields = True
 
-    def empty(self):
-        return self.filter(state='empty')
+    def not_transcribed(self):
+        return self.filter(state='not_transcribed')
 
     def transcribed(self):
         return self.filter(state='transcribed')
@@ -224,10 +237,10 @@ class TranscriptFragmentManager(models.Manager):
         return self.filter(state='reviewed')
 
     def locked(self):
-        return self.filter(locked_state='locked')
+        return self.filter(lock_state='locked')
 
     def unlocked(self):
-        return self.filter(locked_state='unlocked')
+        return self.filter(lock_state='unlocked')
 
 
 class TranscriptFragment(models.Model):
@@ -243,7 +256,7 @@ class TranscriptFragment(models.Model):
     reviewed --> [*]
     @enduml
 
-    locked_state
+    lock_state
     ------------
 
     @startuml
@@ -257,7 +270,7 @@ class TranscriptFragment(models.Model):
     start = models.DecimalField(max_digits=8, decimal_places=2)
     end = models.DecimalField(max_digits=8, decimal_places=2)
     state = FSMField(default='not_transcribed', protected=True)
-    locked_state = FSMField(default='unlocked', protected=True)
+    lock_state = FSMField(default='unlocked', protected=True)
 
     objects = TranscriptFragmentManager()
 
@@ -266,11 +279,11 @@ class TranscriptFragment(models.Model):
             ('transcript', 'start', 'end'),
         ]
 
-    @transition(locked_state, 'unlocked', 'locked', save=True)
+    @transition(lock_state, 'unlocked', 'locked', save=True)
     def lock(self):
         pass
 
-    @transition(locked_state, 'locked', 'unlocked', save=True)
+    @transition(lock_state, 'locked', 'unlocked', save=True)
     def unlock(self):
         pass
 
@@ -278,36 +291,32 @@ class TranscriptFragment(models.Model):
     def transcribe(self):
         pass
 
+    @transition(state, 'transcribed', 'reviewed', save=True)
+    def review(self):
+        pass
+
 
 # ---------------------
 
 
 class TranscriptFragmentRevision(TimeStampedModel):
-    """A revision of a TranscriptFragment.
-
-    state
-    -----
-
-    @startuml
-    [*] --> editing
-    editing --> changed
-    editing --> not_changed
-    editing --> cancelled
-    changed --> [*]
-    not_changed --> [*]
-    cancelled --> [*]
-    @enduml
-    """
+    """A revision of a TranscriptFragment."""
 
     fragment = models.ForeignKey('TranscriptFragment', related_name='revisions')
     sequence = models.PositiveIntegerField()
     editor = models.ForeignKey('auth.User')
-    state = FSMField(default='editing', protected=True)
 
     class Meta:
+        get_latest_by = 'sequence'
+        ordering = ('sequence',)
         unique_together = [
             ('fragment', 'sequence'),
         ]
+
+    @property
+    def text(self):
+        return '\n\n'.join(
+            sf.text for sf in self.sentence_fragments.all())
 
 
 # ---------------------
