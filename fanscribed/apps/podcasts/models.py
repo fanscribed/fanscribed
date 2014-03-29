@@ -2,7 +2,6 @@ import datetime
 import time
 
 from django.db import models
-from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.timezone import utc
 
@@ -22,7 +21,7 @@ from . import tasks
 class Episode(models.Model):
     """An episode of a podcast."""
 
-    podcast = models.ForeignKey('Podcast')
+    podcast = models.ForeignKey('Podcast', related_name='episodes')
     guid = models.CharField(max_length=200)
     title = models.CharField(max_length=200)
     published = models.DateTimeField()

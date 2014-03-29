@@ -2,11 +2,13 @@ from django.conf.urls import patterns, url
 
 from vanilla import TemplateView
 
-from .views import PodcastDetail, PodcastList
+from .views import EpisodeDetail, PodcastDetail, PodcastList
 
 
 urlpatterns = patterns(
     '',
+
+    # -- podcasts --------------------------------------
 
     url(r'^$',
         name='index',
@@ -20,4 +22,11 @@ urlpatterns = patterns(
     url(r'^(?P<pk>\d+)/$',
         name='detail',
         view=PodcastDetail.as_view()),
+
+    # -- episodes --------------------------------------
+
+    url(r'^(?P<podcast_pk>\d+)/episodes/(?P<pk>\d+)/$',
+        name='episode_detail',
+        view=EpisodeDetail.as_view()),
+
 )

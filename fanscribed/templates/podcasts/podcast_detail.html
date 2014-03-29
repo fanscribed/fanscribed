@@ -1,7 +1,37 @@
 {% extends "base.html" %}
 
+
+{% block nav_class_read %}
+  active
+{% endblock %}
+
+
 {% block content %}
 
   <h1>{{ podcast.title }}</h1>
+
+  <h2>Episodes</h2>
+
+  <p>{{ podcast.description }}</p>
+
+  <table class="table">
+
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Published</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for episode in podcast.episodes.all %}
+        <tr>
+          <td><a href="{% url 'podcasts:episode_detail' podcast_pk=podcast.pk pk=episode.pk %}">{{ episode.title }}</a></td>
+          <td>{{ episode.published }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+
+  </table>
 
 {% endblock %}

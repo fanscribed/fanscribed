@@ -1,6 +1,9 @@
 from vanilla import DetailView, ListView
 
-from .models import Podcast
+from .models import Episode, Podcast
+
+
+# ----------------------------------
 
 
 class PodcastList(ListView):
@@ -11,3 +14,11 @@ class PodcastList(ListView):
 class PodcastDetail(DetailView):
 
     model = Podcast
+
+
+# ----------------------------------
+
+
+class EpisodeDetail(DetailView):
+
+    model = Episode
