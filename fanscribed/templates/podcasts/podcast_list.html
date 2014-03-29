@@ -13,7 +13,7 @@
     <tbody>
       {% for podcast in object_list %}
         <tr>
-          <td>{{ podcast.title }}</td>
+          <td><a href="{% url 'podcasts:detail' pk=podcast.pk %}">{{ podcast.title }}</a></td>
         </tr>
       {% endfor %}
     </tbody>

@@ -1,4 +1,4 @@
-from vanilla import ListView
+from vanilla import DetailView, ListView
 
 from .models import Podcast
 
@@ -6,4 +6,8 @@ from .models import Podcast
 class PodcastList(ListView):
 
     model = Podcast
-    template_name = 'podcasts/list.html'
+
+
+class PodcastDetail(DetailView):
+
+    model = Podcast
