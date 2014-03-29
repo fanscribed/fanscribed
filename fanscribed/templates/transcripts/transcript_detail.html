@@ -10,6 +10,37 @@
 
   <h1>{{ transcript.name }}</h1>
 
+  <form action="{% url 'transcripts:task_assign' pk=transcript.pk %}" method="post">
+    {% csrf_token %}
+    <button class="btn btn-primary" type="submit" name="type" value="any">
+      Any Task
+    </button>
+    <button class="btn btn-default" type="submit" name="type" value="transcribe">
+      Transcribe
+    </button>
+    <button class="btn btn-disabled" disabled type="submit" name="type" value="transcribe_review">
+      Review Transcription
+    </button>
+    <button class="btn btn-disabled" disabled type="submit" name="type" value="stitch">
+      Stitch
+    </button>
+    <button class="btn btn-disabled" disabled type="submit" name="type" value="stitch_review">
+      Review Stitch
+    </button>
+    <button class="btn btn-disabled" disabled type="submit" name="type" value="boundary">
+      Identify Boundary
+    </button>
+    <button class="btn btn-disabled" disabled type="submit" name="type" value="boundary_review">
+      Review Boundary
+    </button>
+    <button class="btn btn-disabled" disabled type="submit" name="type" value="speaker">
+      Identify Speaker
+    </button>
+    <button class="btn btn-disabled" disabled type="submit" name="type" value="speaker_review">
+      Review Speaker
+    </button>
+  </form>
+
   <h2>Fragments</h2>
 
   <dl class="dl-horizontal">
@@ -27,5 +58,5 @@
     <dd>{{ transcript.fragments.empty.count }}</dd>
 
   </dl>
-
+  
 {% endblock %}

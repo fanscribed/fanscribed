@@ -1,6 +1,9 @@
 from django.conf.urls import patterns, url
 
-from .views import TranscriptDetail, TranscriptList
+from .views import (
+    TaskAssignView,
+    TranscriptDetailView, TranscriptListView,
+)
 
 
 urlpatterns = patterns(
@@ -8,10 +11,14 @@ urlpatterns = patterns(
 
     url(r'^$',
         name='index',
-        view=TranscriptList.as_view()),
+        view=TranscriptListView.as_view()),
 
     url(r'^(?P<pk>\d+)/$',
         name='detail',
-        view=TranscriptDetail.as_view()),
+        view=TranscriptDetailView.as_view()),
+
+    url(r'^(?P<pk>\d+)/tasks/assign/$',
+        name='task_assign',
+        view=TaskAssignView.as_view()),
 
 )
