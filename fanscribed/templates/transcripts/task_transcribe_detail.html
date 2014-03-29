@@ -25,6 +25,7 @@
   </ul>
 
   {% if task.state == 'presented' %}
+
     <form action="" method="post" class="form">
       {% csrf_token %}
       {% bootstrap_form form %}
@@ -32,6 +33,13 @@
         <button class="btn btn-primary" type="submit">Submit</button>
       {% endbuttons %}
     </form>
+
+  {% else %}
+
+    <h3>Text</h3>
+
+    <pre>{{ task.text }}</pre>
+
   {% endif %}
 
 {% endblock %}
