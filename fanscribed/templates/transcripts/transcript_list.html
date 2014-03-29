@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+
+{% block nav_class_transcribe %}
+  active
+{% endblock %}
+
+
+{% block content %}
+
+  <h1>Transcripts</h1>
+
+  <table class="table">
+
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for transcript in object_list %}
+        <tr>
+          <td>{{ transcript.name }}</td>
+          <td>{{ transcript.created }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+
+  </table>
+
+{% endblock %}

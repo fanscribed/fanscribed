@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, url
 
-from vanilla import TemplateView
+from .views import TranscriptList
 
 
 urlpatterns = patterns(
@@ -8,5 +8,6 @@ urlpatterns = patterns(
 
     url(r'^$',
         name='index',
-        view=TemplateView.as_view(template_name='placeholder.html')),
+        view=TranscriptList.as_view()),
+
 )
