@@ -31,3 +31,7 @@ Vagrantfile
 # Ipython notebook:
 .ipynb_checkpoints/
 Untitled*.ipynb
+
+# Supervisor:
+supervisord.log
+supervisord.pid
