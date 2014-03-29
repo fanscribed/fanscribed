@@ -10,4 +10,22 @@
 
   <h1>{{ transcript.name }}</h1>
 
+  <h2>Fragments</h2>
+
+  <dl class="dl-horizontal">
+
+    <dt>Empty</dt>
+    <dd>{{ transcript.fragments.empty.count }}</dd>
+
+    <dt>Transcribed</dt>
+    <dd>{{ transcript.fragments.empty.count }}</dd>
+
+    <dt>Locked</dt>
+    <dd>{{ transcript.fragments.empty.count }}</dd>
+
+    <dt>Unlocked</dt>
+    <dd>{{ transcript.fragments.empty.count }}</dd>
+
+  </dl>
+
 {% endblock %}
