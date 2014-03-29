@@ -14,21 +14,21 @@
 
     {% include "transcripts/_task_detail_common.html" %}
 
-    <dt>Start</dt>
-    <dd>{{ task.revision.fragment.start }}</dd>
+    {% if task.revision %}
 
-    <dt>End</dt>
-    <dd>{{ task.revision.fragment.end }}</dd>
+      <dt>Start</dt>
+      <dd>{{ task.revision.fragment.start }}</dd>
+
+      <dt>End</dt>
+      <dd>{{ task.revision.fragment.end }}</dd>
+
+    {% endif %}
 
   </dl>
 
-  <ul>
-    <li>Type what you hear.</li>
-    <li>Start a new line when you hear a different speaker.</li>
-    <li>Start a new line when you hear a new sentence.</li>
-  </ul>
-
   {% if task.state == 'presented' %}
+
+    {% include 'transcripts/_guidelines_list.html' %}
 
     <form action="" method="post" class="form">
       {% csrf_token %}

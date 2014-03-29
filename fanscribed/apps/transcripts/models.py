@@ -31,6 +31,20 @@ class SentenceFragment(models.Model):
 # ---------------------
 
 
+class TaskManager(models.Manager):
+
+    use_for_related_fields = True
+
+    def presented(self):
+        return self.filter(state='presented')
+
+    def valid(self):
+        return self.filter(state='valid')
+
+    def invalid(self):
+        return self.filter(state='invalid')
+
+
 class Task(TimeStampedModel):
     """A transcription task to be completed.
 
@@ -66,6 +80,8 @@ class Task(TimeStampedModel):
     assignee = models.ForeignKey('auth.User', blank=True, null=True,
                                  related_name='transcription_tasks')
 
+    objects = TaskManager()
+
     def get_absolute_url(self):
         return reverse('transcripts:task_perform', kwargs=dict(
             transcript_pk=self.transcript.pk,
@@ -76,9 +92,9 @@ class Task(TimeStampedModel):
     @transition(state, 'unassigned', 'assigned', save=True)
     def assign_to(self, user):
         self.assignee = user
-        self._finish_assign_to()
+        self._assign_to()
 
-    def _finish_assign_to(self):
+    def _assign_to(self):
         raise NotImplementedError()
 
     @transition(state, 'assigned', 'presented', save=True)
@@ -92,22 +108,42 @@ class Task(TimeStampedModel):
 
     @transition(state, 'submitted', 'valid', save=True)
     def validate(self):
-        pass
+        self._validate()
+
+    def _validate(self):
+        raise NotImplementedError()
 
     @transition(state, 'submitted', 'invalid', save=True)
     def invalidate(self):
-        pass
+        self._invalidate()
+
+    def _invalidate(self):
+        raise NotImplementedError()
 
 
 class TranscriptionTask(Task):
 
     TASK_TYPE = 'transcribe'
 
-    revision = models.ForeignKey('TranscriptFragmentRevision')
+    revision = models.ForeignKey('TranscriptFragmentRevision',
+                                 blank=True, null=True)
     text = models.TextField(blank=True, null=True)
+    # Keep start and end even if `revision` goes away.
+    start = models.DecimalField(max_digits=8, decimal_places=2)
+    end = models.DecimalField(max_digits=8, decimal_places=2)
 
-    def _finish_assign_to(self):
+    def _assign_to(self):
         self.revision.fragment.lock()
+
+    def _validate(self):
+        self.revision.fragment.transcribe()
+        self.revision.fragment.unlock()
+
+    def _invalidate(self):
+        fragment = self.revision.fragment
+        self.revision.delete()
+        self.revision = None
+        fragment.unlock()
 
 
 # Mapping of task types to model classes
@@ -232,6 +268,14 @@ class TranscriptFragment(models.Model):
 
     @transition(locked_state, 'unlocked', 'locked', save=True)
     def lock(self):
+        pass
+
+    @transition(locked_state, 'locked', 'unlocked', save=True)
+    def unlock(self):
+        pass
+
+    @transition(state, 'not_transcribed', 'transcribed', save=True)
+    def transcribe(self):
         pass
 
 

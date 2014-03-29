@@ -64,6 +64,24 @@
 
   {% endif %}
 
+  <h2>Tasks</h2>
+
+  <dl class="dl-horizontal">
+
+    <dt>Total</dt>
+    <dd>{{ transcript.tasks.count }}</dd>
+
+    <dt>Presented</dt>
+    <dd>{{ transcript.tasks.presented.count }}</dd>
+
+    <dt>Valid</dt>
+    <dd>{{ transcript.tasks.valid.count }}</dd>
+
+    <dt>Invalid</dt>
+    <dd>{{ transcript.tasks.invalid.count }}</dd>
+
+  </dl>
+
   <h2>Fragments</h2>
 
   <dl class="dl-horizontal">

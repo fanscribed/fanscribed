@@ -39,14 +39,16 @@ class TaskAssignView(RedirectView):
         return task.get_absolute_url()
 
     def task_create_transcribe(self, transcript):
-        first_fragment_not_transcribed = m.TranscriptFragment.objects.filter(
+
+        # Find first fragment not yet transcribed.
+        fragment = m.TranscriptFragment.objects.filter(
             transcript=transcript,
             state='not_transcribed',
             locked_state='unlocked',
         ).first()
 
         initial_revision = m.TranscriptFragmentRevision.objects.create(
-            fragment=first_fragment_not_transcribed,
+            fragment=fragment,
             sequence=1,
             editor=self.request.user,
         )
@@ -55,6 +57,8 @@ class TaskAssignView(RedirectView):
             transcript=transcript,
             is_review=False,
             revision=initial_revision,
+            start=fragment.start,
+            end=fragment.end,
         )
 
         return task

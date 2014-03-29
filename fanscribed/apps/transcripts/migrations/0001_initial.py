@@ -11,7 +11,7 @@ class Migration(SchemaMigration):
         # Adding model 'SentenceFragment'
         db.create_table(u'transcripts_sentencefragment', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('revision', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['transcripts.TranscriptFragmentRevision'])),
+            ('revision', self.gf('django.db.models.fields.related.ForeignKey')(related_name='sentence_fragments', to=orm['transcripts.TranscriptFragmentRevision'])),
             ('sequence', self.gf('django.db.models.fields.PositiveIntegerField')()),
             ('text', self.gf('django.db.models.fields.TextField')()),
         ))
@@ -29,8 +29,10 @@ class Migration(SchemaMigration):
             ('is_review', self.gf('django.db.models.fields.BooleanField')()),
             ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='unassigned', max_length=50)),
             ('assignee', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='transcription_tasks', null=True, to=orm['auth.User'])),
-            ('revision', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['transcripts.TranscriptFragmentRevision'])),
+            ('revision', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['transcripts.TranscriptFragmentRevision'], null=True, blank=True)),
             ('text', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('start', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
+            ('end', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
         ))
         db.send_create_signal(u'transcripts', ['TranscriptionTask'])
 
@@ -168,7 +170,7 @@ class Migration(SchemaMigration):
         u'transcripts.sentencefragment': {
             'Meta': {'unique_together': "[('revision', 'sequence')]", 'object_name': 'SentenceFragment'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'revision': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.TranscriptFragmentRevision']"}),
+            'revision': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'sentence_fragments'", 'to': u"orm['transcripts.TranscriptFragmentRevision']"}),
             'sequence': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'text': ('django.db.models.fields.TextField', [], {})
         },
@@ -204,10 +206,12 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'TranscriptionTask'},
             'assignee': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'transcription_tasks'", 'null': 'True', 'to': u"orm['auth.User']"}),
             'created': ('model_utils.fields.AutoCreatedField', [], {'default': 'datetime.datetime.now'}),
+            'end': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_review': ('django.db.models.fields.BooleanField', [], {}),
             'modified': ('model_utils.fields.AutoLastModifiedField', [], {'default': 'datetime.datetime.now'}),
-            'revision': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.TranscriptFragmentRevision']"}),
+            'revision': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.TranscriptFragmentRevision']", 'null': 'True', 'blank': 'True'}),
+            'start': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
             'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unassigned'", 'max_length': '50'}),
             'text': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'transcript': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'tasks'", 'to': u"orm['transcripts.Transcript']"})
