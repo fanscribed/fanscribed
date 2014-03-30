@@ -289,7 +289,7 @@ class Transcript(TimeStampedModel):
 
     @transition(length_state, 'unset', 'set', save=True)
     def set_length(self, length):
-        self.length = length
+        self.length = Decimal(length)
         self._create_fragments()
 
     def _create_fragments(self):  # TODO: unit test

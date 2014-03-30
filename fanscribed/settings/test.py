@@ -13,3 +13,6 @@ DATABASES = {
 }
 
 CELERY_ALWAYS_EAGER = True
+
+# Set specifically to 5.00 for tests.
+TRANSCRIPT_FRAGMENT_LENGTH = Decimal('5.00')
