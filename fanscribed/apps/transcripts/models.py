@@ -14,6 +14,45 @@ from .tasks import create_processed_transcript_media
 # ---------------------
 
 
+class Sentence(models.Model):
+    """A sentence made from sentence fragments.
+
+    @startuml
+    [*] --> empty
+    empty --> partial
+    partial --> full
+    @enduml
+    """
+
+    transcript = models.ForeignKey('Transcript', related_name='sentences')
+    state = FSMField(default='empty', protected=True)
+    fragments = models.ManyToManyField(
+        'SentenceFragment', related_name='sentences')
+    fragment_candidates = models.ManyToManyField(
+        'SentenceFragment', related_name='candidate_sentences')
+
+    @transition(state, ['empty', 'partial'], 'partial', save=True)
+    def add_candidates(self, *fragments):
+        self.fragment_candidates.add(*fragments)
+
+    @transition(state, 'partial', 'partial', save=True)
+    def remove_candidates(self, *fragments):
+        self.fragment_candidates.remove(*fragments)
+
+    @transition(state, 'partial', 'partial', save=True)
+    def commit_candidates(self):
+        candidates = self.fragment_candidates.all()
+        self.fragments.add(*candidates)
+        self.fragment_candidates.remove(*candidates)
+
+    @transition(state, 'partial', 'full', save=True)
+    def complete(self):
+        pass
+
+
+# ---------------------
+
+
 class SentenceFragment(models.Model):
     """A sentence fragment from within a transcript fragment."""
 
@@ -75,11 +114,10 @@ class Task(TimeStampedModel):
     class Meta:
         abstract = True
 
-    transcript = models.ForeignKey('Transcript', related_name='tasks')
+    transcript = models.ForeignKey('Transcript')
     is_review = models.BooleanField()
     state = FSMField(default='unassigned', protected=True)
-    assignee = models.ForeignKey('auth.User', blank=True, null=True,
-                                 related_name='transcription_tasks')
+    assignee = models.ForeignKey('auth.User', blank=True, null=True)
 
     objects = TaskManager()
 
@@ -104,8 +142,10 @@ class Task(TimeStampedModel):
 
     @transition(state, 'presented', 'submitted', save=True)
     def submit(self):
-        from .tasks import process_transcribe_task
-        process_transcribe_task.delay(self.pk)
+        self._submit()
+
+    def _submit(self):
+        raise NotImplementedError()
 
     @transition(state, 'submitted', 'valid', save=True)
     def validate(self):
@@ -122,7 +162,7 @@ class Task(TimeStampedModel):
         raise NotImplementedError()
 
 
-class TranscriptionTask(Task):
+class TranscribeTask(Task):
 
     TASK_TYPE = 'transcribe'
 
@@ -136,20 +176,11 @@ class TranscriptionTask(Task):
     def _assign_to(self):
         self.revision.fragment.lock()
 
+    def _submit(self):
+        from .tasks import process_transcribe_task
+        process_transcribe_task.delay(self.pk)
+
     def _validate(self):
-        if not self.is_review:
-            self.revision.fragment.transcribe()
-        else:
-            # Compare revisions.
-            last_revision = self.revision.fragment.revisions.get(
-                sequence=self.revision.sequence - 1)
-            if self.revision.text != last_revision.text:
-                # They differ;
-                # keep at transcribed to allow for further review.
-                pass
-            else:
-                # They are the same; finish reviewing.
-                self.revision.fragment.review()
         self.revision.fragment.unlock()
 
     def _invalidate(self):
@@ -159,10 +190,47 @@ class TranscriptionTask(Task):
         fragment.unlock()
 
 
+class StitchTask(Task):
+
+    TASK_TYPE = 'stitch'
+
+    left = models.ForeignKey('TranscriptFragmentRevision', related_name='+')
+    right = models.ForeignKey('TranscriptFragmentRevision', related_name='+')
+
+    def _assign_to(self):
+        self.left.fragment.lock()
+        self.right.fragment.lock()
+
+    def _submit(self):
+        from .tasks import process_stitch_task
+        process_stitch_task.delay(self.pk)
+
+    def _validate(self):
+        self.left.fragment.unlock()
+        self.right.fragment.unlock()
+
+    def _invalidate(self):
+        self.left.fragment.unlock()
+        self.right.fragment.unlock()
+
+
+class StitchTaskPairing(models.Model):
+
+    task = models.ForeignKey('StitchTask', related_name='task_pairings')
+    left = models.ForeignKey('SentenceFragment', related_name='+')
+    right = models.ForeignKey('SentenceFragment', related_name='+')
+
+    class Meta:
+        unique_together = [
+            ('task', 'left',),
+        ]
+
+
 # Mapping of task types to model classes
 TASK_MODEL = {
     # task_type: model_class,
-    'transcribe': TranscriptionTask,
+    'transcribe': TranscribeTask,
+    'stitch': StitchTask,
 }
 
 
@@ -215,6 +283,9 @@ class Transcript(TimeStampedModel):
             self.fragments.create(
                 start=start,
                 end=end,
+                # First and last fragments are 'stitched' to each end. :)
+                stitched_left=True if start == Decimal('0') else False,
+                stitched_right=True if start == self.length else False,
             )
 
             start = end
@@ -227,14 +298,20 @@ class TranscriptFragmentManager(models.Manager):
 
     use_for_related_fields = True
 
-    def not_transcribed(self):
-        return self.filter(state='not_transcribed')
+    def empty(self):
+        return self.filter(state='empty')
 
     def transcribed(self):
         return self.filter(state='transcribed')
 
-    def reviewed(self):
-        return self.filter(state='reviewed')
+    def transcript_reviewed(self):
+        return self.filter(state='transcript_reviewed')
+
+    def stitched(self):
+        return self.filter(state='stitched')
+
+    def stitch_reviewed(self):
+        return self.filter(state='stitch_reviewed')
 
     def locked(self):
         return self.filter(lock_state='locked')
@@ -250,10 +327,12 @@ class TranscriptFragment(models.Model):
     -----
 
     @startuml
-    [*] --> not_transcribed
-    not_transcribed --> transcribed
-    transcribed --> reviewed
-    reviewed --> [*]
+    [*] --> empty
+    empty --> transcribed
+    transcribed --> transcript_reviewed
+    transcript_reviewed --> stitched
+    stitched --> stitch_reviewed
+    stitch_reviewed --> [*]
     @enduml
 
     lock_state
@@ -269,7 +348,9 @@ class TranscriptFragment(models.Model):
     transcript = models.ForeignKey('Transcript', related_name='fragments')
     start = models.DecimalField(max_digits=8, decimal_places=2)
     end = models.DecimalField(max_digits=8, decimal_places=2)
-    state = FSMField(default='not_transcribed', protected=True)
+    stitched_left = models.BooleanField(default=False)
+    stitched_right = models.BooleanField(default=False)
+    state = FSMField(default='empty', protected=True)
     lock_state = FSMField(default='unlocked', protected=True)
 
     objects = TranscriptFragmentManager()
@@ -279,6 +360,9 @@ class TranscriptFragment(models.Model):
             ('transcript', 'start', 'end'),
         ]
 
+    def stitched_both_sides(self):
+        return self.stitched_left and self.stitched_right
+
     @transition(lock_state, 'unlocked', 'locked', save=True)
     def lock(self):
         pass
@@ -287,12 +371,22 @@ class TranscriptFragment(models.Model):
     def unlock(self):
         pass
 
-    @transition(state, 'not_transcribed', 'transcribed', save=True)
+    @transition(state, 'empty', 'transcribed', save=True)
     def transcribe(self):
         pass
 
-    @transition(state, 'transcribed', 'reviewed', save=True)
-    def review(self):
+    @transition(state, 'transcribed', 'transcript_reviewed', save=True)
+    def review_transcript(self):
+        pass
+
+    @transition(state, 'transcript_reviewed', 'stitched', save=True,
+                conditions=[stitched_both_sides])
+    def stitch(self):
+        pass
+
+    @transition(state, 'stitched', 'stitch_reviewed', save=True,
+                conditions=[stitched_both_sides])
+    def review_stitch(self):
         pass
 
 

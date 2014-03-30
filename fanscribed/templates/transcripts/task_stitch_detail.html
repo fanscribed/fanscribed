@@ -1,0 +1,77 @@
+{% extends "transcripts/task_base.html" %}
+{% load bootstrap3 %}
+
+{% block content %}
+
+  {{ block.super }}
+
+  <h2>{% if not task.is_review %}Stitch{% else %}Review Stitch{% endif %}</h2>
+
+  <dl class="dl-horizontal">
+
+    {% include "transcripts/_task_detail_common.html" %}
+
+  </dl>
+
+  {% if task.state == 'presented' %}
+
+    <p>
+      For each sentence fragment,
+      select the next sentence fragment it should be paired with,
+      or <em>none</em> if it's the end of a sentence.
+    </p>
+
+    <div class="row">
+      <div class="col-xs-12">
+        <form action="" method="post" class="form">
+          {% csrf_token %}
+          {% bootstrap_form form %}
+          {% buttons %}
+            <button class="btn btn-primary" type="submit">Submit</button>
+          {% endbuttons %}
+        </form>
+      </div>
+    </div>
+
+  {% else %}
+
+    <h3>Text</h3>
+
+    <h4>Left</h4>
+
+    <ul>
+      {% for sentence_fragment in task.left.sentence_fragments.all %}
+        <li>{{ sentence_fragment.text }}</li>
+      {% endfor %}
+    </ul>
+
+    <h4>Right</h4>
+
+    <ul>
+      {% for sentence_fragment in task.right.sentence_fragments.all %}
+        <li>{{ sentence_fragment.text }}</li>
+      {% endfor %}
+    </ul>
+
+    <h3>Pairings</h3>
+
+    <table class="table">
+      <thead>
+      <tr>
+        <th>Left</th>
+        <th>Right</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for pairing in task.task_pairings.all %}
+        <tr>
+          <th>{{ pairing.left.text }}</th>
+          <th>{{ pairing.right.text }}</th>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+  {% endif %}
+
+{% endblock %}

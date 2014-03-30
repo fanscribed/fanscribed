@@ -1,4 +1,7 @@
+import time
+
 from celery.app import shared_task
+from celery.exceptions import Reject
 
 from ..media import avlib
 from ..media.models import MediaFile
@@ -72,12 +75,22 @@ def create_processed_transcript_media(transcript_media_pk):
     transcript.set_length(processed_transcript_media.end)
 
 
+def _get_task(task_class, pk):
+    task = task_class.objects.get(pk=pk)
+    if task.state == 'presented':
+        time.sleep(0.1)  # wait for database to propagate
+        task = task_class.objects.get(pk=pk)
+    if task.state != 'submitted':
+        raise Reject('Task not in "submitted" state.')
+    return task
+
+
 @shared_task
 def process_transcribe_task(transcription_task_pk):
 
-    from .models import TranscriptionTask, SentenceFragment
+    from .models import TranscribeTask, SentenceFragment
 
-    task = TranscriptionTask.objects.get(pk=transcription_task_pk)
+    task = _get_task(TranscribeTask, transcription_task_pk)
 
     # Require text.
     if task.text is None or task.text.strip() == u'':
@@ -92,5 +105,103 @@ def process_transcribe_task(transcription_task_pk):
             sequence=sequence,
             text=line,
         )
+
+    # Compare revisions and update TranscriptFragment state.
+    if not task.is_review:
+        task.revision.fragment.transcribe()
+    else:
+        # Compare revisions.
+        last_revision = task.revision.fragment.revisions.get(
+            sequence=task.revision.sequence - 1)
+        if task.revision.text != last_revision.text:
+            # They differ;
+            # keep at transcribed to allow for further review.
+            pass
+        else:
+            # They are the same; finish reviewing.
+            task.revision.fragment.review_transcript()
+
+    task.validate()
+
+
+@shared_task
+def process_stitch_task(transcription_task_pk):
+
+    from .models import StitchTask
+
+    task = _get_task(StitchTask, transcription_task_pk)
+
+    if not task.is_review:
+        old_pairings = None
+    else:
+        # TODO: This could be a lot simpler.
+        # Detect and delete prior pairings, if any.
+        old_pairings = set([
+            # (left_sentence_fragment_id, right_sentence_fragment_id),
+        ])
+        for left_fragment in task.left.sentence_fragments.all():
+            for left_sentence in left_fragment.candidate_sentences.all():
+                left_sentence_fragment = None
+                right_sentence_fragment = None
+                for candidate in left_sentence.fragment_candidates.all():
+                    if candidate.revision == task.left:
+                        left_sentence_fragment = candidate
+                    if candidate.revision == task.right:
+                        right_sentence_fragment = candidate
+                if (left_sentence_fragment is not None
+                    and right_sentence_fragment is not None
+                    ):
+                    old_pairings.add(
+                        (left_sentence_fragment.id, right_sentence_fragment.id))
+                    left_sentence.remove_candidates(
+                        left_sentence_fragment, right_sentence_fragment)
+
+    # Create new pairings.
+    new_pairings = set([
+        # (left_sentence_fragment_id, right_sentence_fragment_id),
+    ])
+    # Make sure every fragment has a sentence.
+    for fragment in task.left.sentence_fragments.all():
+        if fragment.candidate_sentences.count() == 0:
+            sentence = task.transcript.sentences.create()
+            sentence.add_candidates(fragment)
+
+    for task_pairing in task.task_pairings.all():
+        new_pairings.add(
+            (task_pairing.left.id, task_pairing.right.id))
+        task_pairing.left.candidate_sentences.first().add_candidates(
+            task_pairing.right)
+
+    print 'old pairings', old_pairings
+    print 'new pairings', new_pairings
+
+    if not task.is_review:
+        # First time.
+        task.left.fragment.stitched_right = True
+        if task.left.fragment.stitched_left:
+            task.left.fragment.stitch()
+        else:
+            task.left.fragment.save()
+
+        task.right.fragment.stitched_left = True
+        if task.right.fragment.stitched_right:
+            task.right.fragment.stitch()
+        else:
+            task.right.fragment.save()
+
+    elif task.is_review and old_pairings == new_pairings:
+        # No changes; commit sentence candidates.
+        for fragment in task.left.sentence_fragments.all():
+            for sentence in fragment.candidate_sentences.all():
+                sentence.commit_candidates()
+        # Update state of transcript fragments if fully stitched.
+        if task.left.fragment.stitched_left:
+            task.left.fragment.review_stitch()
+        if task.right.fragment.stitched_right:
+            task.right.fragment.review_stitch()
+
+    else:
+        # Changes detected; review one more time.
+        pass
 
     task.validate()

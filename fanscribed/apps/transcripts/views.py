@@ -42,7 +42,7 @@ class TaskAssignView(RedirectView):
 
         # Find first fragment not yet transcribed.
         fragment = transcript.fragments.filter(
-            state='not_transcribed',
+            state='empty',
             lock_state='unlocked',
         ).first()
 
@@ -51,7 +51,7 @@ class TaskAssignView(RedirectView):
             editor=self.request.user,
         )
 
-        task = m.TranscriptionTask.objects.create(
+        task = m.TranscribeTask.objects.create(
             transcript=transcript,
             is_review=False,
             revision=initial_revision,
@@ -76,7 +76,7 @@ class TaskAssignView(RedirectView):
             editor=self.request.user,
         )
 
-        task = m.TranscriptionTask.objects.create(
+        task = m.TranscribeTask.objects.create(
             transcript=transcript,
             is_review=True,
             revision=next_revision,
@@ -84,6 +84,97 @@ class TaskAssignView(RedirectView):
             end=fragment.end,
             text=last_revision.text,
         )
+
+        return task
+
+    def task_create_stitch(self, transcript):
+
+        # Find first two adjacent fragments not yet stitched together.
+        unstitched_fragments = transcript.fragments.filter(
+            state='transcript_reviewed',
+            lock_state='unlocked',
+            stitched_right=False,
+        )
+        if unstitched_fragments.count() == 0:
+            raise Exception('No more unstitched fragments.')
+        for left in unstitched_fragments:
+            try:
+                right = transcript.fragments.get(
+                    start=left.end,
+                    stitched_left=False,
+                    lock_state='unlocked',
+                )
+            except m.TranscriptFragment.DoesNotExist:
+                # No neighbor; keep trying.
+                pass
+            else:
+                # Found our match.
+                break
+        else:
+            # No match found.
+            raise Exception('No unlocked stitches available.')
+
+        task = m.StitchTask.objects.create(
+            transcript=transcript,
+            is_review=False,
+            left=left.revisions.latest(),
+            right=right.revisions.latest(),
+        )
+
+        return task
+
+    def task_create_stitch_review(self, transcript):
+
+        # Find first two adjacent fragments already stitched together.
+        stitched_fragments = transcript.fragments.filter(
+            state__in=['transcript_reviewed', 'stitched'],
+            lock_state='unlocked',
+            stitched_right=True,
+        )
+        if stitched_fragments.count() == 0:
+            raise Exception('No more stitched fragments to review.')
+        for left in stitched_fragments:
+            try:
+                right = transcript.fragments.get(
+                    start=left.end,
+                    stitched_left=True,
+                    lock_state='unlocked',
+                )
+            except m.TranscriptFragment.DoesNotExist:
+                # No neighbor; keep trying.
+                pass
+            else:
+                # Found our match.
+                break
+        else:
+            # No match found.
+            raise Exception('No unlocked stitches available to review.')
+
+        task = m.StitchTask.objects.create(
+            transcript=transcript,
+            is_review=True,
+            left=left.revisions.latest(),
+            right=right.revisions.latest(),
+        )
+
+        # Create StitchTaskPairings based on existing candidate pairings.
+        for left_fragment in task.left.sentence_fragments.all():
+            for left_sentence in left_fragment.candidate_sentences.all():
+                left_sentence_fragment = None
+                right_sentence_fragment = None
+                for candidate in left_sentence.fragment_candidates.all():
+                    if candidate.revision == task.left:
+                        left_sentence_fragment = candidate
+                    if candidate.revision == task.right:
+                        right_sentence_fragment = candidate
+                if (left_sentence_fragment is not None
+                    and right_sentence_fragment is not None
+                    ):
+                    # print left_sentence_fragment.text, right_sentence_fragment.text
+                    task.task_pairings.create(
+                        left=left_sentence_fragment,
+                        right=right_sentence_fragment,
+                    )
 
         return task
 

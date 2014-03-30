@@ -1,14 +1,11 @@
-{% extends "base.html" %}
+{% extends "transcripts/task_base.html" %}
 {% load bootstrap3 %}
 
-{% block nav_class_transcribe %}
-  active
-{% endblock %}
-
 {% block content %}
-  <h1>{{ task.transcript }}</h1>
 
-  <h2>Transcription Task</h2>
+  {{ block.super }}
+
+  <h2>{% if not task.is_review %}Transcribe{% else %}Review Transcription{% endif %}</h2>
 
   <dl class="dl-horizontal">
 

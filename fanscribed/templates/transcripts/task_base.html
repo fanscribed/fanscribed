@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block nav_class_transcribe %}
+  active
+{% endblock %}
+
+{% block content %}
+
+  <h1><a href="{% url 'transcripts:detail' pk=task.transcript.pk %}">{{ task.transcript }}</a></h1>
+
+{% endblock %}
