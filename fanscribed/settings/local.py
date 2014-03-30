@@ -1,7 +1,5 @@
 """Development settings and globals."""
 
-from os import getenv
-
 import dj_database_url
 
 from .base import *
