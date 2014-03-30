@@ -134,8 +134,8 @@ def process_stitch_task(transcription_task_pk):
     if not task.is_review:
         old_pairings = None
     else:
-        # TODO: This could be a lot simpler.
         # Detect and delete prior pairings, if any.
+        # TODO: Could this be simpler?
         old_pairings = set([
             # (left_sentence_fragment_id, right_sentence_fragment_id),
         ])

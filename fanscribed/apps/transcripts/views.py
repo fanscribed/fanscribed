@@ -101,6 +101,7 @@ class TaskAssignView(RedirectView):
             try:
                 right = transcript.fragments.get(
                     start=left.end,
+                    state='transcript_reviewed',
                     stitched_left=False,
                     lock_state='unlocked',
                 )
@@ -137,6 +138,7 @@ class TaskAssignView(RedirectView):
             try:
                 right = transcript.fragments.get(
                     start=left.end,
+                    state__in=['transcript_reviewed', 'stitched'],
                     stitched_left=True,
                     lock_state='unlocked',
                 )
