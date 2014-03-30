@@ -1,16 +1,15 @@
 {% extends "base.html" %}
 
 
-{% url 'transcripts:task_assign' pk=transcript.pk as task_assign_url %}
-{% url 'transcripts:detail' pk=transcript.pk as detail_url %}
-
-
 {% block nav_class_transcribe %}
   active
 {% endblock %}
 
 
 {% block content %}
+
+  {% url 'transcripts:task_assign' pk=transcript.pk as task_assign_url %}
+  {% url 'transcripts:detail' pk=transcript.pk as detail_url %}
 
   <h1><a href="{% url 'transcripts:detail' pk=transcript.pk %}">{{ transcript.name }}</a></h1>
 

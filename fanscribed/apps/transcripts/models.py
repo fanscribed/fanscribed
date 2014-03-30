@@ -47,6 +47,14 @@ class Sentence(models.Model):
 
     objects = SentenceManager()
 
+    @property
+    def text(self):
+        return u' '.join(
+            fragment.text
+            for fragment
+            in self.fragments.order_by('revision__fragment__start')
+        )
+
     @transition(state, ['empty', 'partial'], 'partial', save=True)
     def add_candidates(self, *fragments):
         self.fragment_candidates.add(*fragments)
@@ -56,8 +64,7 @@ class Sentence(models.Model):
         self.fragment_candidates.remove(*fragments)
 
     @transition(state, 'partial', 'partial', save=True)
-    def commit_candidates(self):
-        candidates = self.fragment_candidates.all()
+    def commit_candidates(self, *candidates):
         self.fragments.add(*candidates)
         self.fragment_candidates.remove(*candidates)
 
@@ -372,6 +379,7 @@ class TranscriptFragment(models.Model):
     objects = TranscriptFragmentManager()
 
     class Meta:
+        ordering = ('start',)
         unique_together = [
             ('transcript', 'start', 'end'),
         ]
@@ -403,7 +411,42 @@ class TranscriptFragment(models.Model):
     @transition(state, 'stitched', 'stitch_reviewed', save=True,
                 conditions=[stitched_both_sides])
     def review_stitch(self):
-        pass
+        self._merge_sentences()
+        self._complete_sentences()
+
+    def _merge_sentences(self):
+        """Merge overlapping Sentence instances."""
+        print 'merging sentences'
+        latest = self.revisions.latest()
+        for sf in latest.sentence_fragments.all():
+            if sf.sentences.count() > 1:
+                # This fragment is in more than one sentence.
+                # Pick the first sentence selected as the survivor.
+                survivor = sf.sentences.all()[0]
+                for other in sf.sentences.all()[1:]:
+                    if other.fragment_candidates.count() > 0:
+                        # The other sentence is still being worked on.
+                        continue
+                    print 'merging sentence {} -> {}'.format(other.id, survivor.id)
+                    survivor.fragments.add(*other.fragments.all())
+                    print 'deleting {}'.format(other.id)
+                    other.delete()
+
+    def _complete_sentences(self):
+        """Complete sentences in this fragment as applicable."""
+        latest = self.revisions.latest()
+        for candidate_sf in latest.sentence_fragments.all():
+            for sentence in candidate_sf.sentences.filter(state='partial'):
+                if sentence.fragment_candidates.count() > 0:
+                    # The sentence is still being worked on.
+                    continue
+                if all(
+                    other_sf.revision.fragment.state == 'stitch_reviewed'
+                    for other_sf in sentence.fragments.all()
+                    if other_sf != candidate_sf
+                ):
+                    print 'completing sentence {}'.format(sentence.id)
+                    sentence.complete()
 
 
 # ---------------------

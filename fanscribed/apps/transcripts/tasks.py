@@ -161,10 +161,10 @@ def process_stitch_task(transcription_task_pk):
         # (left_sentence_fragment_id, right_sentence_fragment_id),
     ])
     # Make sure every fragment has a sentence.
-    for fragment in task.left.sentence_fragments.all():
-        if fragment.candidate_sentences.count() == 0:
+    for sf in task.left.sentence_fragments.all():
+        if sf.candidate_sentences.count() == 0:
             sentence = task.transcript.sentences.create()
-            sentence.add_candidates(fragment)
+            sentence.add_candidates(sf)
 
     for task_pairing in task.task_pairings.all():
         new_pairings.add(
@@ -191,14 +191,17 @@ def process_stitch_task(transcription_task_pk):
 
     elif task.is_review and old_pairings == new_pairings:
         # No changes; commit sentence candidates.
-        for fragment in task.left.sentence_fragments.all():
-            for sentence in fragment.candidate_sentences.all():
-                sentence.commit_candidates()
+        for sf in task.left.sentence_fragments.all():
+            if sf.revision.fragment == task.left:
+                for sentence in sf.candidate_sentences.all():
+                    sentence.commit_candidates(sf)
         # Update state of transcript fragments if fully stitched.
         if task.left.fragment.stitched_left:
+            print 'reviewing stitch on left'
             task.left.fragment.review_stitch()
-        if task.right.fragment.stitched_right:
-            task.right.fragment.review_stitch()
+        # if task.right.fragment.stitched_right:
+        #     print 'reviewing stitch on right'
+        #     task.right.fragment.review_stitch()
 
     else:
         # Changes detected; review one more time.
