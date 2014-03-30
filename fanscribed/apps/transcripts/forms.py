@@ -56,7 +56,6 @@ class StitchTaskForm(forms.ModelForm):
             # Get the left and right sentence fragments chosen by the user.
             left_id = int(field_name.split('_', 1)[1])
             left = task.left.sentence_fragments.get(id=left_id)
-            print left.text,
             if value != '-':
                 right_id = int(value)
                 right = task.right.sentence_fragments.get(id=right_id)
