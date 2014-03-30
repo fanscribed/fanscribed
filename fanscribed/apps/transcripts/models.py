@@ -26,8 +26,8 @@ class SentenceManager(models.Manager):
     def partial(self):
         return self.filter(state='partial')
 
-    def full(self):
-        return self.filter(state='full')
+    def completed(self):
+        return self.filter(state='completed')
 
 
 class Sentence(models.Model):
@@ -36,7 +36,7 @@ class Sentence(models.Model):
     @startuml
     [*] --> empty
     empty --> partial
-    partial --> full
+    partial --> completed
     @enduml
     """
 
@@ -70,7 +70,7 @@ class Sentence(models.Model):
         self.fragments.add(*candidates)
         self.fragment_candidates.remove(*candidates)
 
-    @transition(state, 'partial', 'full', save=True)
+    @transition(state, 'partial', 'completed', save=True)
     def complete(self):
         pass
 
@@ -248,6 +248,26 @@ class StitchTask(Task):
     def _invalidate(self):
         self.left.fragment.unlock()
         self.right.fragment.unlock()
+
+    def create_pairings_from_existing_candidates(self):
+        # Create StitchTaskPairings based on existing candidate pairings.
+        for left_fragment in self.left.sentence_fragments.all():
+            for left_sentence in left_fragment.candidate_sentences.all():
+                left_sentence_fragment = None
+                right_sentence_fragment = None
+                for candidate in left_sentence.fragment_candidates.all():
+                    if candidate.revision == self.left:
+                        left_sentence_fragment = candidate
+                    if candidate.revision == self.right:
+                        right_sentence_fragment = candidate
+                if (left_sentence_fragment is not None
+                    and right_sentence_fragment is not None
+                ):
+                    # print left_sentence_fragment.text, right_sentence_fragment.text
+                    self.task_pairings.create(
+                        left=left_sentence_fragment,
+                        right=right_sentence_fragment,
+                    )
 
 
 class StitchTaskPairing(models.Model):
@@ -448,8 +468,12 @@ class TranscriptFragment(models.Model):
     def _complete_sentences(self):
         """Complete sentences in this fragment as applicable."""
         latest = self.revisions.latest()
+        print 'latest is', latest.sequence
         for candidate_sf in latest.sentence_fragments.all():
+            print 'checking', candidate_sf.text
             for sentence in candidate_sf.sentences.filter(state='partial'):
+                print 'in sentence', sentence.id
+                print 'candidate count', sentence.fragment_candidates.count()
                 if sentence.fragment_candidates.count() > 0:
                     # The sentence is still being worked on.
                     continue

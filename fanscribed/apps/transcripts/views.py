@@ -158,25 +158,7 @@ class TaskAssignView(RedirectView):
             left=left.revisions.latest(),
             right=right.revisions.latest(),
         )
-
-        # Create StitchTaskPairings based on existing candidate pairings.
-        for left_fragment in task.left.sentence_fragments.all():
-            for left_sentence in left_fragment.candidate_sentences.all():
-                left_sentence_fragment = None
-                right_sentence_fragment = None
-                for candidate in left_sentence.fragment_candidates.all():
-                    if candidate.revision == task.left:
-                        left_sentence_fragment = candidate
-                    if candidate.revision == task.right:
-                        right_sentence_fragment = candidate
-                if (left_sentence_fragment is not None
-                    and right_sentence_fragment is not None
-                    ):
-                    # print left_sentence_fragment.text, right_sentence_fragment.text
-                    task.task_pairings.create(
-                        left=left_sentence_fragment,
-                        right=right_sentence_fragment,
-                    )
+        task.create_pairings_from_existing_candidates()
 
         return task
 

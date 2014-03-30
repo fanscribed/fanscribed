@@ -1,21 +1,22 @@
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.test import TransactionTestCase
+from django.test import TestCase
 
 from ....utils import refresh
 from .. import models as m
 
 
-class TranscribeTaskTestCase(TransactionTestCase):
+class TranscribeTaskTestCase(TestCase):
 
     def setUp(self):
         self.user = User.objects.create_user('user', 'user@user.user', 'user')
         t = self.transcript = m.Transcript.objects.create(name='test transcript')
         t.set_length(Decimal('20.00'))
+        self.tfragments = t.fragments.all()
 
     def _submitted_task(self, fragment, text, sequence, is_review):
-        tf = self.transcript.fragments.all()[fragment]
+        tf = self.tfragments[fragment]
         r = tf.revisions.create(
             editor=self.user,
             sequence=sequence,
@@ -60,8 +61,7 @@ class TranscribeTaskTestCase(TransactionTestCase):
         self.assertEqual(task.state, 'invalid')
         self.assertIsNone(task.revision)
 
-        fragments = self.transcript.fragments.all()
-        self.assertEqual(fragments[0].state, 'empty')
+        self.assertEqual(self.tfragments[0].state, 'empty')
 
     def test_valid_review_with_changes(self):
         self._submitted_task(
@@ -123,5 +123,4 @@ class TranscribeTaskTestCase(TransactionTestCase):
         self.assertEqual(task.state, 'invalid')
         self.assertIsNone(task.revision)
 
-        fragments = self.transcript.fragments.all()
-        self.assertEqual(fragments[0].state, 'transcribed')
+        self.assertEqual(self.tfragments[0].state, 'transcribed')

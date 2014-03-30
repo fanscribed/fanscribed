@@ -192,7 +192,10 @@ def process_stitch_task(transcription_task_pk):
     elif task.is_review and old_pairings == new_pairings:
         # No changes; commit sentence candidates.
         for sf in task.left.sentence_fragments.all():
-            if sf.revision.fragment == task.left:
+            print 'sf in task.left:', sf.text
+            print 'sf fragment id:', sf.revision.fragment.id
+            print 'task.left.fragment id:', task.left.fragment.id
+            if sf.revision.fragment == task.left.fragment:
                 for sentence in sf.candidate_sentences.all():
                     sentence.commit_candidates(sf)
         # Update state of transcript fragments if fully stitched.
