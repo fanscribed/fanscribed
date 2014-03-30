@@ -3,6 +3,8 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.dispatch import receiver
+from django_fsm.signals import post_transition
 
 from model_utils.models import AutoCreatedField, TimeStampedModel
 
@@ -166,8 +168,13 @@ class Task(TimeStampedModel):
     @transition(state, 'presented', 'submitted', save=True)
     def submit(self):
         self._submit()
+        if not settings.TESTING:
+            self._post_submit(self)
 
     def _submit(self):
+        raise NotImplementedError()
+
+    def _post_submit(self):
         raise NotImplementedError()
 
     @transition(state, 'submitted', 'valid', save=True)
@@ -200,8 +207,11 @@ class TranscribeTask(Task):
         self.revision.fragment.lock()
 
     def _submit(self):
+        pass
+
+    def _post_submit(self):
         from .tasks import process_transcribe_task
-        process_transcribe_task.delay(self.pk)
+        result = process_transcribe_task.delay(self.pk)
 
     def _validate(self):
         self.revision.fragment.unlock()
@@ -225,6 +235,9 @@ class StitchTask(Task):
         self.right.fragment.lock()
 
     def _submit(self):
+        pass
+
+    def _post_submit(self):
         from .tasks import process_stitch_task
         process_stitch_task.delay(self.pk)
 

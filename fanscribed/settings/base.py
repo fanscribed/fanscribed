@@ -354,3 +354,9 @@ IPYTHON_ARGUMENTS = [
 # -------------
 
 TRANSCRIPT_FRAGMENT_LENGTH = Decimal('5.00')
+
+
+# TESTING
+# -------
+
+TESTING = False
