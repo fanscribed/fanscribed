@@ -43,7 +43,26 @@ class TranscribeTaskTestCase(TransactionTestCase):
         self.assertEqual(f1.text, 'second')
 
     def test_invalid_task(self):
-        pass
+        tf = self.transcript.fragments.first()
+        r = tf.revisions.create(
+            editor=self.user,
+            sequence=1,
+        )
+        task = self.transcript.transcribetask_set.create(
+            is_review=False,
+            revision=r,
+            start=tf.start,
+            end=tf.end,
+        )
+        task.assign_to(self.user)
+        task.present()
+        task.text = ' '
+        task.submit()
+        task._post_submit()
+        task = refresh(task)
+
+        self.assertEqual(task.state, 'invalid')
+        self.assertIsNone(task.revision)
 
     def test_valid_review(self):
         pass
