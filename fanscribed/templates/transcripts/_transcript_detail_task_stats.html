@@ -1,0 +1,38 @@
+{# params: tasks, task_name #}
+
+{% url 'transcripts:task_assign' pk=transcript.pk as task_assign_url %}
+
+{% if user.is_authenticated %}
+  <form action="{{ task_assign_url }}" method="post">
+    {% csrf_token %}
+    <div class="btn-group">
+      <button class="btn btn-default btn-sm" type="submit" name="type" value="{{ task_name }}">
+        {{ task_name.title }}
+      </button>
+      <button class="btn btn-default btn-sm" type="submit" name="type" value="{{ task_name}}_review">
+        Review
+      </button>
+    </div>
+  </form>
+{% endif %}
+
+<br>
+
+<table class="table table-condensed table-bordered">
+  <tr>
+    <th>Total</th>
+    <td>{{ tasks.count }}</td>
+  </tr>
+  <tr>
+    <th>Presented</th>
+    <td>{{ tasks.presented.count }}</td>
+  </tr>
+  <tr>
+    <th>Valid</th>
+    <td>{{ tasks.valid.count }}</td>
+  </tr>
+  <tr>
+    <th>Invalid</th>
+    <td>{{ tasks.invalid.count }}</td>
+  </tr>
+</table>

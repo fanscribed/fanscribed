@@ -14,6 +14,20 @@ from .tasks import create_processed_transcript_media
 # ---------------------
 
 
+class SentenceManager(models.Manager):
+
+    use_for_related_fields = True
+
+    def empty(self):
+        return self.filter(state='empty')
+
+    def partial(self):
+        return self.filter(state='partial')
+
+    def full(self):
+        return self.filter(state='full')
+
+
 class Sentence(models.Model):
     """A sentence made from sentence fragments.
 
@@ -30,6 +44,8 @@ class Sentence(models.Model):
         'SentenceFragment', related_name='sentences')
     fragment_candidates = models.ManyToManyField(
         'SentenceFragment', related_name='candidate_sentences')
+
+    objects = SentenceManager()
 
     @transition(state, ['empty', 'partial'], 'partial', save=True)
     def add_candidates(self, *fragments):

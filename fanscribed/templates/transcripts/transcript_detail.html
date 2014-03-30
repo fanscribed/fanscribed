@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 
 
+{% url 'transcripts:task_assign' pk=transcript.pk as task_assign_url %}
+{% url 'transcripts:detail' pk=transcript.pk as detail_url %}
+
+
 {% block nav_class_transcribe %}
   active
 {% endblock %}
@@ -10,106 +14,113 @@
 
   <h1><a href="{% url 'transcripts:detail' pk=transcript.pk %}">{{ transcript.name }}</a></h1>
 
+  <h2>Tasks</h2>
+
   {% if user.is_authenticated %}
-
-    {% url 'transcripts:task_assign' pk=transcript.pk as task_assign_url %}
-
     <form action="{{ task_assign_url }}" method="post">
       {% csrf_token %}
       <button class="btn btn-primary" type="submit" name="type" value="any">
-        Any Task
+        Assign Any Task
       </button>
-      <div class="btn-group">
-        <button class="btn btn-default" type="submit" name="type" value="transcribe">
-          Transcribe
-        </button>
-        <button class="btn btn-default" type="submit" name="type" value="transcribe_review">
-          Review Transcription
-        </button>
-      </div>
-      <div class="btn-group">
-        <button class="btn btn-default" type="submit" name="type" value="stitch">
-          Stitch
-        </button>
-        <button class="btn btn-default" type="submit" name="type" value="stitch_review">
-          Review Stitch
-        </button>
-      </div>
-      <div class="btn-group">
-        <button class="btn btn-disabled" disabled type="submit" name="type" value="boundary">
-          Identify Boundary
-        </button>
-        <button class="btn btn-disabled" disabled type="submit" name="type" value="boundary_review">
-          Review Boundary
-        </button>
-      </div>
-      <div class="btn-group">
-        <button class="btn btn-disabled" disabled type="submit" name="type" value="speaker">
-          Identify Speaker
-        </button>
-        <button class="btn btn-disabled" disabled type="submit" name="type" value="speaker_review">
-          Review Speaker
-        </button>
-      </div>
     </form>
-
   {% else %}
-
-    {% url 'transcripts:detail' pk=transcript.pk as detail_url %}
-
     <a class="btn btn-primary"
        href="{% url 'account_login' %}?next={{ detail_url }}">
       Sign In
     </a>
-
   {% endif %}
 
-  <h2>Tasks</h2>
 
   <div class="row">
 
-    <div class="col-md-3">
+    <div class="col-md-2">
       <h3>Transcribe</h3>
-      {% include 'transcripts/_transcript_task_stats_dl.html' with tasks=transcript.transcribetask_set %}
+      {% include 'transcripts/_transcript_detail_task_stats.html' with tasks=transcript.transcribetask_set task_name='transcribe' %}
     </div>
 
-    <div class="col-md-3">
+    <div class="col-md-2">
       <h3>Stitch</h3>
-      {% include 'transcripts/_transcript_task_stats_dl.html' with tasks=transcript.stitchtask_set %}
+      {% include 'transcripts/_transcript_detail_task_stats.html' with tasks=transcript.stitchtask_set task_name='stitch' %}
+    </div>
+
+    <div class="col-md-2">
+      <h3>Trim</h3>
+    </div>
+
+    <div class="col-md-2">
+      <h3>Boundary</h3>
+    </div>
+
+    <div class="col-md-2">
+      <h3>Speaker</h3>
     </div>
 
   </div>
 
-  <h2>Fragments</h2>
+  <div class="row">
 
-  <dl class="dl-horizontal">
+    <div class="col-md-4">
+      <h3>Fragments</h3>
 
-    {# TODO: turn these into little bar charts #}
+      <table class="table table-condensed table-bordered">
+        <tr>
+          <th>Total</th>
+          <td>{{ transcript.fragments.count }}</td>
+        </tr>
+        <tr>
+          <th>Empty</th>
+          <td>{{ transcript.fragments.empty.count }}</td>
+        </tr>
+        <tr>
+          <th>Transcribed</th>
+          <td>{{ transcript.fragments.transcribed.count }}</td>
+        </tr>
+        <tr>
+          <th>Transcript Reviewed</th>
+          <td>{{ transcript.fragments.transcript_reviewed.count }}</td>
+        </tr>
+        <tr>
+          <th>Stitched</th>
+          <td>{{ transcript.fragments.stitched.count }}</td>
+        </tr>
+        <tr>
+          <th>Stitch Reviewed</th>
+          <td>{{ transcript.fragments.stitch_reviewed.count }}</td>
+        </tr>
+        <tr>
+          <th>Locked</th>
+          <td>{{ transcript.fragments.locked.count }}</td>
+        </tr>
+        <tr>
+          <th>Unlocked</th>
+          <td>{{ transcript.fragments.unlocked.count }}</td>
+        </tr>
+      </table>
+    </div>
 
-    <dt>Total</dt>
-    <dd>{{ transcript.fragments.count }}</dd>
+    <div class="col-md-4">
+      <h3>Sentences</h3>
 
-    <dt>Empty</dt>
-    <dd>{{ transcript.fragments.empty.count }}</dd>
+      <table class="table table-condensed table-bordered">
+        <tr>
+          <th>Total</th>
+          <td>{{ transcript.sentences.count }}</td>
+        </tr>
+        <tr>
+          <th>Empty</th>
+          <td>{{ transcript.sentences.empty.count }}</td>
+        </tr>
+        <tr>
+          <th>Partial</th>
+          <td>{{ transcript.sentences.partial.count }}</td>
+        </tr>
+        <tr>
+          <th>Full</th>
+          <td>{{ transcript.sentences.full.count }}</td>
+        </tr>
+      </table>
+    </div>
 
-    <dt>Transcribed</dt>
-    <dd>{{ transcript.fragments.transcribed.count }}</dd>
+  </div>
 
-    <dt>Transcript Reviewed</dt>
-    <dd>{{ transcript.fragments.transcript_reviewed.count }}</dd>
-
-    <dt>Stitched</dt>
-    <dd>{{ transcript.fragments.stitched.count }}</dd>
-
-    <dt>Stitch Reviewed</dt>
-    <dd>{{ transcript.fragments.stitch_reviewed.count }}</dd>
-
-    <dt>Locked</dt>
-    <dd>{{ transcript.fragments.locked.count }}</dd>
-
-    <dt>Unlocked</dt>
-    <dd>{{ transcript.fragments.unlocked.count }}</dd>
-
-  </dl>
-  
 {% endblock %}
