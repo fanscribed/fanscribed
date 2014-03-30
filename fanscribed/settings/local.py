@@ -45,6 +45,12 @@ CACHES = {
 }
 
 
+# DEBUGGER RUNSERVER
+INSTALLED_APPS += (
+    'werkzeug_debugger_runserver',
+)
+
+
 # TODO: reinstall the toolbar after figuring out how to avoid conflict with waffle
 
 # # TOOLBAR
