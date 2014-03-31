@@ -43,12 +43,16 @@ class Sentence(models.Model):
     state = FSMField(default='empty', protected=True)
     # TODO: trim_state
     # TODO: boundary_state
+    # TODO: speaker_state
     fragments = models.ManyToManyField(
         'SentenceFragment', related_name='sentences')
     fragment_candidates = models.ManyToManyField(
         'SentenceFragment', related_name='candidate_sentences')
     tf_start = models.ForeignKey('TranscriptFragment')
     tf_sequence = models.PositiveIntegerField()
+    # TODO: latest_text denormalization
+    # TODO: latest_boundary denormalization
+    # TODO: latest_speaker denormalization
 
     class Meta:
         ordering = ('tf_start__start', 'tf_sequence')
