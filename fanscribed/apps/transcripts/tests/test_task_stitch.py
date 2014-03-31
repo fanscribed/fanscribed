@@ -385,32 +385,19 @@ class StitchTaskTestCase(TransactionTestCase):
         self._transcribe_and_review(1, """
             A2
             """)
+        self._transcribe_and_review(2, """
+            A3
+            """)
 
-        self.stitch(0, 1, [
-            (0, 0),  # A1, A2
-        ])
-
-        self.check_sentences([
-            (u'partial', [u'A1', u'A2'], []),
-        ])
-
+        self.stitch(0, 1, [(0, 0)])
         self.review(0, 1, alter=[])
-
-        self.check_sentences([
-            (u'partial', [u'A1'], []),
-            (u'partial', [u'A2'], []),
-        ])
-
-        self.review(0, 1, alter=[
-            (0, 0),
-        ])
-
-        self.check_sentences([
-            (u'partial', [u'A1', u'A2'], []),
-        ])
-
+        self.review(0, 1, alter=[(0, 0)])
         self.review(0, 1)
+        self.stitch(1, 2, [(0, 0)])
+        self.review(1, 2, alter=[])
+        self.review(1, 2, alter=[(0, 0)])
+        self.review(1, 2)
 
         self.check_sentences([
-            (u'partial', [u'A2'], [u'A1']),
+            (u'completed', [], [u'A1', u'A2', u'A3']),
         ])

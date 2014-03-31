@@ -203,7 +203,7 @@ def process_stitch_task(pk):
         left_sf = SentenceFragment.objects.get(id=left_sf_id)
         right_sf = SentenceFragment.objects.get(id=right_sf_id)
         for sentence in left_sf.candidate_sentences.all():
-            sentence.remove_candidates(left_sf, right_sf)
+            sentence.remove_candidates(right_sf)
             # Delete orphaned sentences.
             if (sentence.fragments.count() == 0
                 and sentence.fragment_candidates.count() == 0
@@ -211,12 +211,17 @@ def process_stitch_task(pk):
                 sentence.delete()
         if right_is_at_end:
             for sentence in right_sf.candidate_sentences.all():
-                sentence.remove_candidates(left_sf, right_sf)
+                sentence.remove_candidates(left_sf)
                 # Delete orphaned sentences.
                 if (sentence.fragments.count() == 0
                     and sentence.fragment_candidates.count() == 0
                 ):
                     sentence.delete()
+        # Recreate sentences for orphaned fragments.
+        if right_sf.candidate_sentences.count() == 0:
+            _make_sentence(right_sf)
+        if left_sf.candidate_sentences.count() == 0:
+            _make_sentence(left_sf)
 
     fragment_left = task.left.fragment
     fragment_right = task.right.fragment
