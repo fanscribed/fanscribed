@@ -35,11 +35,14 @@ class Sentence(models.Model):
     [*] --> empty
     empty --> partial
     partial --> completed
+    completed --> [*]
     @enduml
     """
 
     transcript = models.ForeignKey('Transcript', related_name='sentences')
     state = FSMField(default='empty', protected=True)
+    # TODO: trim_state
+    # TODO: boundary_state
     fragments = models.ManyToManyField(
         'SentenceFragment', related_name='sentences')
     fragment_candidates = models.ManyToManyField(
@@ -71,7 +74,10 @@ class Sentence(models.Model):
 
     @transition(state, 'partial', 'completed', save=True)
     def complete(self):
-        pass
+        self.revisions.create(
+            sequence=1,
+            text=self.text,
+        )
 
 
 # ---------------------
@@ -89,6 +95,60 @@ class SentenceFragment(models.Model):
         ordering = ('revision__fragment__start', 'sequence')
         unique_together = [
             ('revision', 'sequence'),
+        ]
+
+
+# ---------------------
+
+
+class SentenceRevision(models.Model):
+    """A full-text revision of a sentence."""
+
+    sentence = models.ForeignKey('Sentence', related_name='revisions')
+    sequence = models.PositiveIntegerField()
+    editor = models.ForeignKey('auth.User', blank=True, null=True)
+    text = models.TextField()
+
+    class Meta:
+        ordering = ('sequence',)
+        get_latest_by = 'sequence'
+        unique_together = [
+            ('sentence', 'sequence'),
+        ]
+
+
+# ---------------------
+
+
+class SentenceBoundary(models.Model):
+    """A precise start/end boundary of a sentence."""
+
+    sentence = models.ForeignKey('Sentence', related_name='boundaries')
+    sequence = models.PositiveIntegerField()
+    editor = models.ForeignKey('auth.User', blank=True, null=True)
+    start = models.DecimalField(max_digits=8, decimal_places=2)
+    end = models.DecimalField(max_digits=8, decimal_places=2)
+
+    class Meta:
+        ordering = ('sequence',)
+        get_latest_by = 'sequence'
+        unique_together = [
+            ('sentence', 'sequence'),
+        ]
+
+
+# ---------------------
+
+
+class Speaker(models.Model):
+    """A unique speaker in the transcript."""
+
+    transcript = models.ForeignKey('Transcript', related_name='speakers')
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        unique_together = [
+            ('transcript', 'name'),
         ]
 
 
@@ -281,11 +341,87 @@ class StitchTaskPairing(models.Model):
         ]
 
 
+class TrimTask(Task):
+
+    TASK_TYPE = 'trim'
+
+    sentence = models.ForeignKey('Sentence')
+    text = models.TextField()
+
+    def _assign_to(self):
+        pass
+
+    def _submit(self):
+        pass
+
+    def _post_submit(self):
+        from .tasks import process_trim_task
+        process_trim_task.delay(self.pk)
+
+    def _validate(self):
+        pass
+
+    def _invalidate(self):
+        pass
+
+
+class BoundaryTask(Task):
+
+    TASK_TYPE = 'boundary'
+
+    sentence = models.ForeignKey('Sentence')
+    start = models.DecimalField(max_digits=8, decimal_places=2)
+    end = models.DecimalField(max_digits=8, decimal_places=2)
+
+    def _assign_to(self):
+        pass
+
+    def _submit(self):
+        pass
+
+    def _post_submit(self):
+        from .tasks import process_boundary_task
+        process_boundary_task.delay(self.pk)
+
+    def _validate(self):
+        pass
+
+    def _invalidate(self):
+        pass
+
+
+class SpeakerTask(Task):
+
+    TASK_TYPE = 'speaker'
+
+    sentence = models.ForeignKey('Sentence')
+    speaker = models.ForeignKey('Speaker', blank=True, null=True)
+
+    def _assign_to(self):
+        pass
+
+    def _submit(self):
+        pass
+
+    def _post_submit(self):
+        from .tasks import process_speaker_task
+        process_speaker_task.delay(self.pk)
+
+    def _validate(self):
+        pass
+
+    def _invalidate(self):
+        pass
+
+
 # Mapping of task types to model classes
 TASK_MODEL = {
     # task_type: model_class,
     'transcribe': TranscribeTask,
     'stitch': StitchTask,
+    'trim': TrimTask,
+    'boundary': BoundaryTask,
+    'speaker': SpeakerTask,
 }
 
 
@@ -472,18 +608,14 @@ class TranscriptFragment(models.Model):
                         merge(survivor, other)
 
                 for other in candidate_sentences.all():
-                    print 'other', other
                     if other != survivor:
                         merge(survivor, other)
 
     def _complete_sentences(self):
         """Complete sentences in this fragment as applicable."""
-        print 'completing sentences for', self.start, self.end
         latest = self.revisions.latest()
         for candidate_sf in latest.sentence_fragments.all():
-            print '  candidate_sf', candidate_sf.text
             for sentence in candidate_sf.sentences.filter(state='partial'):
-                print '    sentence', sentence.id, sentence.text
                 if sentence.fragment_candidates.count() > 0:
                     # The sentence is still being worked on.
                     continue

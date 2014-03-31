@@ -161,6 +161,24 @@ class TaskAssignView(RedirectView):
         task.create_pairings_from_existing_candidates()
 
         return task
+    
+    def task_create_trim(self, transcript):
+        pass  # TODO
+
+    def task_create_trim_review(self, transcript):
+        pass  # TODO
+
+    def task_create_boundary(self, transcript):
+        pass  # TODO
+
+    def task_create_boundary_review(self, transcript):
+        pass  # TODO
+
+    def task_create_speaker(self, transcript):
+        pass  # TODO
+
+    def task_create_speaker_review(self, transcript):
+        pass  # TODO
 
 
 class TaskPerformView(UpdateView):

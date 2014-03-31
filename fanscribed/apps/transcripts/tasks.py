@@ -86,11 +86,11 @@ def _get_task(task_class, pk):
 
 
 @shared_task
-def process_transcribe_task(transcription_task_pk):
+def process_transcribe_task(pk):
 
     from .models import TranscribeTask, SentenceFragment
 
-    task = _get_task(TranscribeTask, transcription_task_pk)
+    task = _get_task(TranscribeTask, pk)
 
     # Require text.
     if task.text is None or task.text.strip() == u'':
@@ -125,11 +125,11 @@ def process_transcribe_task(transcription_task_pk):
 
 
 @shared_task
-def process_stitch_task(transcription_task_pk):
+def process_stitch_task(pk):
 
     from .models import SentenceFragment, StitchTask
 
-    task = _get_task(StitchTask, transcription_task_pk)
+    task = _get_task(StitchTask, pk)
 
     if not task.is_review:
         old_pairings = set([])
@@ -156,10 +156,6 @@ def process_stitch_task(transcription_task_pk):
     ])
     # Make sure every fragment has a sentence.
     def _make_sentence(sentence_fragment):
-        print
-        print 'fragment:', sentence_fragment.text
-        print '- candidates', sentence_fragment.candidate_sentences.count()
-        print '- sentences', sentence_fragment.sentences.count()
         if (sentence_fragment.candidate_sentences.count() == 0
             and sentence_fragment.sentences.count() == 0
             ):
@@ -167,19 +163,14 @@ def process_stitch_task(transcription_task_pk):
                 tf_start=sentence_fragment.revision.fragment,
                 tf_sequence=sentence_fragment.sequence,
             )
-            print '  * made sentence'
             s.add_candidates(sentence_fragment)
-    print '>>>'
     for sf in task.left.sentence_fragments.all():
         _make_sentence(sf)
-    print '---'
     right_is_at_end = (task.right.fragment.end == task.transcript.length)
     if right_is_at_end:
         # Special case when the right side is the last TranscriptFragment.
         for sf in task.right.sentence_fragments.all():
-            print 'right making sentence', sf.id, sf.text
             _make_sentence(sf)
-    print '<<<'
 
     for task_pairing in task.task_pairings.all():
         new_pairings.add(
@@ -255,3 +246,18 @@ def process_stitch_task(transcription_task_pk):
         pass
 
     task.validate()
+
+
+@shared_task
+def process_trim_task(pk):
+    pass
+
+
+@shared_task
+def process_boundary_task(pk):
+    pass
+
+
+@shared_task
+def process_speaker_task(pk):
+    pass

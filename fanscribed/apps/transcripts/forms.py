@@ -69,8 +69,35 @@ class StitchTaskForm(forms.ModelForm):
         return task
 
 
+class TrimTaskForm(forms.ModelForm):
+
+    class Meta:
+        model = m.TrimTask
+
+    # TODO
+
+
+class BoundaryTaskForm(forms.ModelForm):
+
+    class Meta:
+        model = m.BoundaryTask
+
+    # TODO
+
+
+class SpeakerTaskForm(forms.ModelForm):
+
+    class Meta:
+        model = m.SpeakerTask
+
+    # TODO
+
+
 TASK_FORM = {
     # task_type: form_class,
     'transcribe': TranscribeTaskForm,
     'stitch': StitchTaskForm,
+    'trim': TrimTaskForm,
+    'boundary': BoundaryTaskForm,
+    'speaker': SpeakerTaskForm,
 }
