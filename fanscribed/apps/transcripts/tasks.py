@@ -134,8 +134,7 @@ def process_stitch_task(transcription_task_pk):
     if not task.is_review:
         old_pairings = set([])
     else:
-        # Detect and delete prior pairings, if any.
-        # TODO: Could this be simpler?
+        # Detect prior pairings.
         old_pairings = set([
             # (left_sentence_fragment_id, right_sentence_fragment_id),
         ])
@@ -148,18 +147,8 @@ def process_stitch_task(transcription_task_pk):
                         left_sf = candidate
                     if candidate.revision == task.right:
                         right_sf = candidate
-                if (left_sf is not None
-                    and right_sf is not None
-                    ):
-                    old_pairings.add(
-                        (left_sf.id, right_sf.id))
-                    # left_sentence.remove_candidates(
-                    #     left_sf, right_sf)
-                    # # Delete orphaned sentences.
-                    # if (left_sentence.fragments.count() == 0
-                    #     and left_sentence.fragment_candidates.count() == 0
-                    #     ):
-                    #     left_sentence.delete()
+                if left_sf is not None and right_sf is not None:
+                    old_pairings.add((left_sf.id, right_sf.id))
 
     # Create new pairings.
     new_pairings = set([
@@ -180,14 +169,17 @@ def process_stitch_task(transcription_task_pk):
             )
             print '  * made sentence'
             s.add_candidates(sentence_fragment)
+    print '>>>'
     for sf in task.left.sentence_fragments.all():
         _make_sentence(sf)
+    print '---'
     right_is_at_end = (task.right.fragment.end == task.transcript.length)
     if right_is_at_end:
         # Special case when the right side is the last TranscriptFragment.
         for sf in task.right.sentence_fragments.all():
             print 'right making sentence', sf.id, sf.text
             _make_sentence(sf)
+    print '<<<'
 
     for task_pairing in task.task_pairings.all():
         new_pairings.add(
@@ -219,36 +211,44 @@ def process_stitch_task(transcription_task_pk):
                 ):
                     sentence.delete()
 
+    fragment_left = task.left.fragment
+    fragment_right = task.right.fragment
     if not task.is_review:
         # First time.
-        task.left.fragment.stitched_right = True
-        if task.left.fragment.stitched_left:
-            task.left.fragment.stitch()
+        fragment_left.stitched_right = True
+        if fragment_left.stitched_left:
+            fragment_left.stitch()
         else:
-            task.left.fragment.save()
+            fragment_left.save()
 
-        task.right.fragment.stitched_left = True
-        if task.right.fragment.stitched_right:
-            task.right.fragment.stitch()
+        fragment_right.stitched_left = True
+        if fragment_right.stitched_right:
+            fragment_right.stitch()
         else:
-            task.right.fragment.save()
+            fragment_right.save()
 
     elif task.is_review and old_pairings == new_pairings:
         # No changes; commit sentence candidates.
         for sf in task.left.sentence_fragments.all():
-            if sf.revision.fragment == task.left.fragment:
+            if sf.revision.fragment == fragment_left:
                 for sentence in sf.candidate_sentences.all():
                     sentence.commit_candidates(sf)
         if right_is_at_end:
             for sf in task.right.sentence_fragments.all():
-                if sf.revision.fragment == task.right.fragment:
+                if sf.revision.fragment == fragment_right:
                     for sentence in sf.candidate_sentences.all():
                         sentence.commit_candidates(sf)
+
         # Update state of transcript fragments if fully stitched.
-        if task.left.fragment.stitched_left:
-            task.left.fragment.review_stitch()
-        if task.right.fragment.stitched_right:
-            task.right.fragment.review_stitch()
+        if (fragment_left.stitched_left 
+            and fragment_left.state != 'stitch_reviewed'
+            ):
+            fragment_left.review_stitch()
+            
+        if (fragment_right.stitched_right 
+            and fragment_right.state != 'stitch_reviewed'
+            ):
+            fragment_right.review_stitch()
 
     else:
         # Changes detected; review one more time.
