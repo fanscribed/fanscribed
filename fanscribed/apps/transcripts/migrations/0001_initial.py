@@ -15,6 +15,7 @@ class Migration(SchemaMigration):
             ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='empty', max_length=50)),
             ('tf_start', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['transcripts.TranscriptFragment'])),
             ('tf_sequence', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('latest_text', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
         ))
         db.send_create_signal(u'transcripts', ['Sentence'])
 
@@ -366,6 +367,7 @@ class Migration(SchemaMigration):
             'fragment_candidates': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'candidate_sentences'", 'symmetrical': 'False', 'to': u"orm['transcripts.SentenceFragment']"}),
             'fragments': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'sentences'", 'symmetrical': 'False', 'to': u"orm['transcripts.SentenceFragment']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'latest_text': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'empty'", 'max_length': '50'}),
             'tf_sequence': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'tf_start': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.TranscriptFragment']"}),

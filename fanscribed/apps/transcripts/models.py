@@ -3,6 +3,8 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from model_utils.models import AutoCreatedField, TimeStampedModel
 
@@ -50,7 +52,7 @@ class Sentence(models.Model):
         'SentenceFragment', related_name='candidate_sentences')
     tf_start = models.ForeignKey('TranscriptFragment')
     tf_sequence = models.PositiveIntegerField()
-    # TODO: latest_text denormalization
+    latest_text = models.TextField(blank=True, null=True)
     # TODO: latest_boundary denormalization
     # TODO: latest_speaker denormalization
 
@@ -119,6 +121,14 @@ class SentenceRevision(models.Model):
         unique_together = [
             ('sentence', 'sequence'),
         ]
+
+
+@receiver(post_save, sender=SentenceRevision)
+def update_sentence_latest_text(instance, created, raw, **kwargs):
+    if created and not raw:
+        sentence = instance.sentence
+        sentence.latest_text = instance
+        sentence.save()
 
 
 # ---------------------
