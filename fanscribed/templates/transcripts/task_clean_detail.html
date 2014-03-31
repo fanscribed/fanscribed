@@ -5,7 +5,7 @@
 
   {{ block.super }}
 
-  <h2>{% if not task.is_review %}Speaker{% else %}Review Speaker{% endif %}</h2>
+  <h2>{% if not task.is_review %}Clean{% else %}Review Clean{% endif %}</h2>
 
   <dl class="dl-horizontal">
 
@@ -15,9 +15,7 @@
 
   {% if task.state == 'presented' %}
 
-    <p>Select the speaker for this sentence, or give the name of a new speaker:</p>
-
-    <p><strong>{{ task.sentence.latest_text }}</strong></p>
+    <p>Clean the sentence to remove duplicate words.</p>
 
     <form action="" method="post" class="form">
       {% csrf_token %}
@@ -29,17 +27,9 @@
 
   {% else %}
 
-    <h3>Speaker</h3>
+    <h3>Text</h3>
 
-    {% if task.speaker %}
-      <dt>Speaker</dt>
-      <dd>{{ task.speaker.name }}</dd>
-    {% endif %}
-
-    {% if task.new_name %}
-      <dt>New Name</dt>
-      <dd>{{ task.new_name }}</dd>
-    {% endif %}
+    <pre>{{ task.text }}</pre>
 
   {% endif %}
 

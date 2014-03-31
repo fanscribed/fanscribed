@@ -1,3 +1,4 @@
+from decimal import Decimal
 import time
 
 from celery.app import shared_task
@@ -17,6 +18,9 @@ PROCESSED_MEDIA_AVCONV_SETTINGS = [
     '-c:a', 'libmp3lame',
     '-f', 'mp2',
 ]
+
+
+# ---------------------
 
 
 @shared_task
@@ -75,6 +79,9 @@ def create_processed_transcript_media(transcript_media_pk):
     transcript.set_length(processed_transcript_media.end)
 
 
+# ---------------------
+
+
 def _get_task(task_class, pk):
     task = task_class.objects.get(pk=pk)
     if task.state == 'presented':
@@ -83,6 +90,9 @@ def _get_task(task_class, pk):
     if task.state != 'submitted':
         raise Reject('Task not in "submitted" state.')
     return task
+
+
+# ---------------------
 
 
 @shared_task
@@ -122,6 +132,9 @@ def process_transcribe_task(pk):
             task.revision.fragment.review_transcript()
 
     task.validate()
+
+
+# ---------------------
 
 
 @shared_task
@@ -248,16 +261,109 @@ def process_stitch_task(pk):
     task.validate()
 
 
+# ---------------------
+
+
 @shared_task
-def process_trim_task(pk):
-    pass
+def process_clean_task(pk):
+
+    from .models import CleanTask
+
+    task = _get_task(CleanTask, pk)
+
+    # Require text.
+    if task.text is None or task.text.strip() == u'':
+        task.invalidate()
+        return
+
+    # Clean up text.
+    text = task.text.strip()
+
+    # Update sentence.
+    sequence = task.sentence.revisions.latest().sequence + 1
+    task.sentence.revisions.create(
+        sequence=sequence,
+        editor=task.assignee,
+        text=text,
+    )
+
+    task.validate()
+
+
+# ---------------------
 
 
 @shared_task
 def process_boundary_task(pk):
-    pass
+
+    from .models import BoundaryTask
+
+    task = _get_task(BoundaryTask, pk)
+
+    # Require start and end.
+    if task.start is None or task.end is None:
+        task.invalidate()
+        return
+
+    # Require end to be > start.
+    if task.end <= task.start:
+        task.invalidate()
+        return
+
+    # Require start and end to be within transcript.
+    if task.start < Decimal('0') or task.end > task.transcript.length:
+        task.invalidate()
+        return
+
+    # Update sentence.
+    if not task.is_review:
+        sequence = 1
+    else:
+        sequence = task.sentence.boundaries.latest().sequence + 1
+    task.sentence.boundaries.create(
+        sequence=sequence,
+        editor=task.assignee,
+        start=task.start,
+        end=task.end,
+    )
+
+    task.validate()
+
+
+# ---------------------
 
 
 @shared_task
 def process_speaker_task(pk):
-    pass
+
+    from .models import Speaker, SpeakerTask
+
+    task = _get_task(SpeakerTask, pk)
+
+    # Require speaker XOR speaker name
+    has_new_name = (task.new_name is not None and task.new_name.strip() != u'')
+    if ((task.speaker is None and not has_new_name)
+        or (task.speaker is not None and has_new_name)
+        ):
+        task.invalidate()
+        return
+
+    # Update sentence.
+    if not task.is_review:
+        sequence = 1
+    else:
+        sequence = task.sentence.speakers.latest().sequence + 1
+
+    if has_new_name:
+        task.speaker = Speaker.objects.create(
+            transcript=task.transcript,
+            name=task.new_name,
+        )
+
+    task.sentence.speakers.create(
+        sequence=sequence,
+        editor=task.assignee,
+        speaker=task.speaker,
+    )
+
+    task.validate()

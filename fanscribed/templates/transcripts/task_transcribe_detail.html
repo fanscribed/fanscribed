@@ -11,15 +11,11 @@
 
     {% include "transcripts/_task_detail_common.html" %}
 
-    {% if task.revision %}
+    <dt>Start</dt>
+    <dd>{{ task.start }}</dd>
 
-      <dt>Start</dt>
-      <dd>{{ task.revision.fragment.start }}</dd>
-
-      <dt>End</dt>
-      <dd>{{ task.revision.fragment.end }}</dd>
-
-    {% endif %}
+    <dt>End</dt>
+    <dd>{{ task.end }}</dd>
 
   </dl>
 

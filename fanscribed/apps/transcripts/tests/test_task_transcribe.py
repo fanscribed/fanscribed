@@ -25,7 +25,7 @@ class TranscribeTaskTestCase(TestCase):
         task.present()
         task.text = text
         task.submit()
-        task._post_submit()
+        task._finish_submit()
         task = refresh(task)
         return task
 

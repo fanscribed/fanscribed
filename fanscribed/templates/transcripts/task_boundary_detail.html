@@ -1,1 +1,42 @@
-TODO
+{% extends "transcripts/task_base.html" %}
+{% load bootstrap3 %}
+
+{% block content %}
+
+  {{ block.super }}
+
+  <h2>{% if not task.is_review %}Boundary{% else %}Review Boundary{% endif %}</h2>
+
+  <dl class="dl-horizontal">
+
+    {% include "transcripts/_task_detail_common.html" %}
+
+  </dl>
+
+  {% if task.state == 'presented' %}
+
+    <p>Find the precise start and end point of the sentence:</p>
+
+    <p><strong>{{ task.sentence.latest_text }}</strong></p>
+
+    <form action="" method="post" class="form">
+      {% csrf_token %}
+      {% bootstrap_form form %}
+      {% buttons %}
+        <button class="btn btn-primary" type="submit">Submit</button>
+      {% endbuttons %}
+    </form>
+
+  {% else %}
+
+    <h3>Boundary</h3>
+
+    <dt>Start</dt>
+    <dd>{{ task.start }}</dd>
+
+    <dt>End</dt>
+    <dd>{{ task.end }}</dd>
+
+  {% endif %}
+
+{% endblock %}

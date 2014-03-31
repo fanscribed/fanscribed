@@ -33,19 +33,38 @@ class SentenceManager(models.Manager):
 class Sentence(models.Model):
     """A sentence made from sentence fragments.
 
+    state
+    -----
+
     @startuml
     [*] --> empty
     empty --> partial
     partial --> completed
     completed --> [*]
     @enduml
+
+    clean_state, boundary_state, speaker_state
+    ------------------------------------------
+
+    These are all unprotected fields, and have no transition methods.
+    We trust ourselves to change them appropriately instead.
+
+    @startuml
+    [*] --> untouched
+    untouched --> editing
+    editing --> untouched
+    editing --> edited
+    edited --> reviewing
+    reviewing --> edited
+    reviewing --> reviewed
+    @enduml
     """
 
     transcript = models.ForeignKey('Transcript', related_name='sentences')
     state = FSMField(default='empty', protected=True)
-    # TODO: trim_state
-    # TODO: boundary_state
-    # TODO: speaker_state
+    clean_state = FSMField(default='untouched')     # Not protected.
+    boundary_state = FSMField(default='untouched')  # Not protected.
+    speaker_state = FSMField(default='untouched')   # Not protected.
     fragments = models.ManyToManyField(
         'SentenceFragment', related_name='sentences')
     fragment_candidates = models.ManyToManyField(
@@ -53,8 +72,11 @@ class Sentence(models.Model):
     tf_start = models.ForeignKey('TranscriptFragment')
     tf_sequence = models.PositiveIntegerField()
     latest_text = models.TextField(blank=True, null=True)
-    # TODO: latest_boundary denormalization
-    # TODO: latest_speaker denormalization
+    latest_start = models.DecimalField(max_digits=8, decimal_places=2,
+                                       blank=True, null=True)
+    latest_end = models.DecimalField(max_digits=8, decimal_places=2,
+                                     blank=True, null=True)
+    latest_speaker = models.ForeignKey('Speaker', blank=True, null=True)
 
     class Meta:
         ordering = ('tf_start__start', 'tf_sequence')
@@ -64,6 +86,8 @@ class Sentence(models.Model):
     @property
     def text(self):
         return u' '.join(fragment.text for fragment in self.fragments.all())
+
+    # --
 
     @transition(state, ['empty', 'partial'], 'partial', save=True)
     def add_candidates(self, *fragments):
@@ -80,10 +104,19 @@ class Sentence(models.Model):
 
     @transition(state, 'partial', 'completed', save=True)
     def complete(self):
+        # Set initial latest text and (latest_start, latest_end).
         self.revisions.create(
             sequence=1,
             text=self.text,
         )
+        starts = set()
+        ends = set()
+        for fragment in self.fragments.all():
+            transcript_fragment = fragment.revision.fragment
+            starts.add(transcript_fragment.start)
+            ends.add(transcript_fragment.end)
+        self.latest_start = min(starts)
+        self.latest_end = max(ends)
 
 
 # ---------------------
@@ -127,7 +160,7 @@ class SentenceRevision(models.Model):
 def update_sentence_latest_text(instance, created, raw, **kwargs):
     if created and not raw:
         sentence = instance.sentence
-        sentence.latest_text = instance
+        sentence.latest_text = instance.text
         sentence.save()
 
 
@@ -139,7 +172,7 @@ class SentenceBoundary(models.Model):
 
     sentence = models.ForeignKey('Sentence', related_name='boundaries')
     sequence = models.PositiveIntegerField()
-    editor = models.ForeignKey('auth.User', blank=True, null=True)
+    editor = models.ForeignKey('auth.User')
     start = models.DecimalField(max_digits=8, decimal_places=2)
     end = models.DecimalField(max_digits=8, decimal_places=2)
 
@@ -149,6 +182,42 @@ class SentenceBoundary(models.Model):
         unique_together = [
             ('sentence', 'sequence'),
         ]
+
+
+@receiver(post_save, sender=SentenceBoundary)
+def update_sentence_latest_boundary(instance, created, raw, **kwargs):
+    if created and not raw:
+        sentence = instance.sentence
+        sentence.latest_start = instance.start
+        sentence.latest_end = instance.end
+        sentence.save()
+
+
+# ---------------------
+
+
+class SentenceSpeaker(models.Model):
+    """An assignment of a speaker to a sentence."""
+
+    sentence = models.ForeignKey('Sentence', related_name='speakers')
+    sequence = models.PositiveIntegerField()
+    editor = models.ForeignKey('auth.User')
+    speaker = models.ForeignKey('Speaker')
+
+    class Meta:
+        ordering = ('sequence',)
+        get_latest_by = 'sequence'
+        unique_together = [
+            ('sentence', 'sequence'),
+        ]
+
+
+@receiver(post_save, sender=SentenceSpeaker)
+def update_sentence_latest_speaker(instance, created, raw, **kwargs):
+    if created and not raw:
+        sentence = instance.sentence
+        sentence.latest_speaker = instance.speaker
+        sentence.save()
 
 
 # ---------------------
@@ -164,6 +233,9 @@ class Speaker(models.Model):
         unique_together = [
             ('transcript', 'name'),
         ]
+
+    def __unicode__(self):
+        return self.name
 
 
 # ---------------------
@@ -182,7 +254,7 @@ class TaskManager(models.Manager):
     def invalid(self):
         return self.filter(state='invalid')
 
-    def can_create(self, transcript, review):
+    def can_create(self, transcript, is_review):
         """Can we create a new task?
 
         :ptype transcript: Transcript
@@ -190,7 +262,7 @@ class TaskManager(models.Manager):
         """
         return False
 
-    def create_next(self, user, transcript, review):
+    def create_next(self, user, transcript, is_review):
         """Create and return the next new task.
 
         :ptype transcript: Transcript
@@ -256,14 +328,10 @@ class Task(TimeStampedModel):
 
     @transition(state, 'presented', 'submitted', save=True)
     def submit(self):
-        self._submit()
         if not settings.TESTING:
-            self._post_submit()
+            self._finish_submit()
 
-    def _submit(self):
-        raise NotImplementedError()
-
-    def _post_submit(self):
+    def _finish_submit(self):
         raise NotImplementedError()
 
     @transition(state, 'submitted', 'valid', save=True)
@@ -279,6 +347,9 @@ class Task(TimeStampedModel):
 
     def _invalidate(self):
         raise NotImplementedError()
+
+
+# ---------------------
 
 
 class TranscribeTaskManager(TaskManager):
@@ -335,10 +406,7 @@ class TranscribeTask(Task):
     def _assign_to(self):
         self.revision.fragment.lock()
 
-    def _submit(self):
-        pass
-
-    def _post_submit(self):
+    def _finish_submit(self):
         from .tasks import process_transcribe_task
         result = process_transcribe_task.delay(self.pk)
 
@@ -350,6 +418,9 @@ class TranscribeTask(Task):
         self.revision.delete()
         self.revision = None
         fragment.unlock()
+
+
+# ---------------------
 
 
 class StitchTaskManager(TaskManager):
@@ -430,10 +501,7 @@ class StitchTask(Task):
         self.left.fragment.lock()
         self.right.fragment.lock()
 
-    def _submit(self):
-        pass
-
-    def _post_submit(self):
+    def _finish_submit(self):
         from .tasks import process_stitch_task
         process_stitch_task.delay(self.pk)
 
@@ -478,28 +546,106 @@ class StitchTaskPairing(models.Model):
         ]
 
 
-class TrimTask(Task):
+# ---------------------
 
-    TASK_TYPE = 'trim'
+
+class CleanTaskManager(TaskManager):
+
+    def _available_sentences(self, transcript, is_review):
+        if not is_review:
+            return transcript.sentences.filter(
+                state='completed',
+                clean_state='untouched',
+            )
+        else:
+            return transcript.sentences.filter(
+                state='completed',
+                clean_state='edited',
+            )
+
+    def can_create(self, transcript, is_review):
+        return bool(self._available_sentences(transcript, is_review).count())
+
+    def create_next(self, user, transcript, is_review):
+        sentence = self._available_sentences(transcript, is_review).first()
+        task = transcript.cleantask_set.create(
+            is_review=is_review,
+            sentence=sentence,
+            text=sentence.latest_text,
+        )
+        task.assign_to(user)
+        return task
+
+
+class CleanTask(Task):
+
+    TASK_TYPE = 'clean'
 
     sentence = models.ForeignKey('Sentence')
     text = models.TextField()
 
+    objects = CleanTaskManager()
+
     def _assign_to(self):
-        pass
+        if not self.is_review:
+            self.sentence.clean_state = 'editing'
+        else:
+            self.sentence.clean_state = 'reviewing'
+        self.sentence.save()
 
-    def _submit(self):
-        pass
-
-    def _post_submit(self):
-        from .tasks import process_trim_task
-        process_trim_task.delay(self.pk)
+    def _finish_submit(self):
+        from .tasks import process_clean_task
+        process_clean_task.delay(self.pk)
 
     def _validate(self):
-        pass
+        if not self.is_review:
+            self.sentence.clean_state = 'edited'
+        else:
+            latest, previous = self.sentence.revisions.order_by('-sequence')[:2]
+            if latest.text.strip() == previous.text.strip():
+                self.sentence.clean_state = 'reviewed'
+            else:
+                self.sentence.clean_state = 'edited'
+        self.sentence.save()
 
     def _invalidate(self):
-        pass
+        if not self.is_review:
+            self.sentence.clean_state = 'untouched'
+        else:
+            self.sentence.clean_state = 'edited'
+        self.sentence.save()
+
+
+# ---------------------
+
+
+class BoundaryTaskManager(TaskManager):
+
+    def _available_sentences(self, transcript, is_review):
+        if not is_review:
+            return transcript.sentences.filter(
+                state='completed',
+                boundary_state='untouched',
+            )
+        else:
+            return transcript.sentences.filter(
+                state='completed',
+                boundary_state='edited',
+            )
+
+    def can_create(self, transcript, is_review):
+        return bool(self._available_sentences(transcript, is_review).count())
+
+    def create_next(self, user, transcript, is_review):
+        sentence = self._available_sentences(transcript, is_review).first()
+        task = transcript.boundarytask_set.create(
+            is_review=is_review,
+            sentence=sentence,
+            start=sentence.latest_start,
+            end=sentence.latest_end,
+        )
+        task.assign_to(user)
+        return task
 
 
 class BoundaryTask(Task):
@@ -510,21 +656,67 @@ class BoundaryTask(Task):
     start = models.DecimalField(max_digits=8, decimal_places=2)
     end = models.DecimalField(max_digits=8, decimal_places=2)
 
+    objects = BoundaryTaskManager()
+
     def _assign_to(self):
-        pass
+        if not self.is_review:
+            self.sentence.boundary_state = 'editing'
+        else:
+            self.sentence.boundary_state = 'reviewing'
+        self.sentence.save()
 
-    def _submit(self):
-        pass
-
-    def _post_submit(self):
+    def _finish_submit(self):
         from .tasks import process_boundary_task
         process_boundary_task.delay(self.pk)
 
     def _validate(self):
-        pass
+        if not self.is_review:
+            self.sentence.boundary_state = 'edited'
+        else:
+            latest, previous = self.sentence.boundaries.order_by('-sequence')[:2]
+            if (latest.start, latest.end) == (previous.start, previous.end):
+                self.sentence.boundary_state = 'reviewed'
+            else:
+                self.sentence.boundary_state = 'edited'
+        self.sentence.save()
 
     def _invalidate(self):
-        pass
+        if not self.is_review:
+            self.sentence.boundary_state = 'untouched'
+        else:
+            self.sentence.boundary_state = 'edited'
+        self.sentence.save()
+
+
+# ---------------------
+
+
+class SpeakerTaskManager(TaskManager):
+
+    def _available_sentences(self, transcript, is_review):
+        if not is_review:
+            return transcript.sentences.filter(
+                state='completed',
+                speaker_state='untouched',
+            )
+        else:
+            return transcript.sentences.filter(
+                state='completed',
+                speaker_state='edited',
+            )
+
+    def can_create(self, transcript, is_review):
+        return bool(self._available_sentences(transcript, is_review).count())
+
+    def create_next(self, user, transcript, is_review):
+        sentence = self._available_sentences(transcript, is_review).first()
+        task = transcript.speakertask_set.create(
+            is_review=is_review,
+            sentence=sentence,
+            speaker=sentence.latest_speaker,
+        )
+        task.assign_to(user)
+        return task
 
 
 class SpeakerTask(Task):
@@ -533,22 +725,41 @@ class SpeakerTask(Task):
 
     sentence = models.ForeignKey('Sentence')
     speaker = models.ForeignKey('Speaker', blank=True, null=True)
+    new_name = models.CharField(max_length=100, blank=True, null=True)
+
+    objects = SpeakerTaskManager()
 
     def _assign_to(self):
-        pass
+        if not self.is_review:
+            self.sentence.speaker_state = 'editing'
+        else:
+            self.sentence.speaker_state = 'reviewing'
+        self.sentence.save()
 
-    def _submit(self):
-        pass
-
-    def _post_submit(self):
+    def _finish_submit(self):
         from .tasks import process_speaker_task
         process_speaker_task.delay(self.pk)
 
     def _validate(self):
-        pass
+        if not self.is_review:
+            self.sentence.speaker_state = 'edited'
+        else:
+            latest, previous = self.sentence.speakers.order_by('-sequence')[:2]
+            if latest.speaker == previous.speaker:
+                self.sentence.speaker_state = 'reviewed'
+            else:
+                self.sentence.speaker_state = 'edited'
+        self.sentence.save()
 
     def _invalidate(self):
-        pass
+        if not self.is_review:
+            self.sentence.speaker_state = 'untouched'
+        else:
+            self.sentence.speaker_state = 'edited'
+        self.sentence.save()
+
+
+# ---------------------
 
 
 # Mapping of task types to model classes
@@ -556,7 +767,7 @@ TASK_MODEL = {
     # task_type: model_class,
     'transcribe': TranscribeTask,
     'stitch': StitchTask,
-    'trim': TrimTask,
+    'clean': CleanTask,
     'boundary': BoundaryTask,
     'speaker': SpeakerTask,
 }

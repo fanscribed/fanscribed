@@ -33,19 +33,34 @@ class TaskAssignView(RedirectView):
         task_type = self.request.POST['type']
 
         if task_type in ['any_sequential', 'any_eager']:
-            L = [
-                # (task_class, is_review),
-                ('transcribe', False),
-                ('transcribe', True),
-                ('stitch', False),
-                ('stitch', True),
-                ('trim', False),
-                ('trim', True),
-                ('boundary', False),
-                ('boundary', True),
-            ]
+            if task_type == 'any_sequential':
+                L = [
+                    # (task_class, is_review),
+                    ('transcribe', False),
+                    ('transcribe', True),
+                    ('stitch', False),
+                    ('stitch', True),
+                    ('clean', False),
+                    ('clean', True),
+                    ('boundary', False),
+                    ('boundary', True),
+                    ('speaker', False),
+                    ('speaker', True),
+                ]
             if task_type == 'any_eager':
-                L.reverse()
+                L = [
+                    # (task_class, is_review),
+                    ('clean', True),
+                    ('boundary', True),
+                    ('speaker', True),
+                    ('clean', False),
+                    ('boundary', False),
+                    ('speaker', False),
+                    ('stitch', True),
+                    ('stitch', False),
+                    ('transcribe', True),
+                    ('transcribe', False),
+                ]
             for task_type, is_review in L:
                 tasks = m.TASK_MODEL[task_type].objects
                 if tasks.can_create(transcript, is_review):

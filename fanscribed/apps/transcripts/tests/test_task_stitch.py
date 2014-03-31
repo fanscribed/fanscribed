@@ -32,7 +32,7 @@ class StitchTaskTestCase(TransactionTestCase):
         task.present()
         task.text = text
         task.submit()
-        task._post_submit()
+        task._finish_submit()
         task = refresh(task)
         return task
 
@@ -74,7 +74,7 @@ class StitchTaskTestCase(TransactionTestCase):
                 right=sf_right[R],
             )
         task.submit()
-        task._post_submit()
+        task._finish_submit()
         task = refresh(task)
 
         self.assertState(task, 'valid')
@@ -101,7 +101,7 @@ class StitchTaskTestCase(TransactionTestCase):
         task.assign_to(self.user)
         task.present()
         task.submit()
-        task._post_submit()
+        task._finish_submit()
         task = refresh(task)
 
         self.assertState(task, 'valid')

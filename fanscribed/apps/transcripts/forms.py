@@ -3,7 +3,15 @@ from django import forms
 from . import models as m
 
 
-class TranscribeTaskForm(forms.ModelForm):
+class DefaultTaskForm(forms.ModelForm):
+
+    def save(self, **kwargs):
+        task = super(DefaultTaskForm, self).save(False)
+        task.submit()
+        return task
+
+
+class TranscribeTaskForm(DefaultTaskForm):
 
     class Meta:
         model = m.TranscribeTask
@@ -13,13 +21,8 @@ class TranscribeTaskForm(forms.ModelForm):
         super(TranscribeTaskForm, self).__init__(*args, **kwargs)
         self.fields['text'].required = True
 
-    def save(self, **kwargs):
-        task = super(TranscribeTaskForm, self).save(False)
-        task.submit()
-        return task
 
-
-class StitchTaskForm(forms.ModelForm):
+class StitchTaskForm(DefaultTaskForm):
 
     class Meta:
         model = m.StitchTask
@@ -69,35 +72,39 @@ class StitchTaskForm(forms.ModelForm):
         return task
 
 
-class TrimTaskForm(forms.ModelForm):
+class CleanTaskForm(DefaultTaskForm):
 
     class Meta:
-        model = m.TrimTask
+        model = m.CleanTask
+        fields = ('text',)
 
-    # TODO
 
-
-class BoundaryTaskForm(forms.ModelForm):
+class BoundaryTaskForm(DefaultTaskForm):
 
     class Meta:
         model = m.BoundaryTask
+        fields = ('start', 'end')
 
-    # TODO
 
-
-class SpeakerTaskForm(forms.ModelForm):
+class SpeakerTaskForm(DefaultTaskForm):
 
     class Meta:
         model = m.SpeakerTask
+        fields = ('speaker', 'new_name')
+        widgets = {
+            'speaker': forms.RadioSelect,
+        }
 
-    # TODO
+    def __init__(self, *args, **kwargs):
+        super(SpeakerTaskForm, self).__init__(*args, **kwargs)
+        self.fields['speaker'].queryset = self.instance.transcript.speakers.all()
 
 
 TASK_FORM = {
     # task_type: form_class,
     'transcribe': TranscribeTaskForm,
     'stitch': StitchTaskForm,
-    'trim': TrimTaskForm,
+    'clean': CleanTaskForm,
     'boundary': BoundaryTaskForm,
     'speaker': SpeakerTaskForm,
 }

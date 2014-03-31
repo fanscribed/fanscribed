@@ -13,9 +13,15 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('transcript', self.gf('django.db.models.fields.related.ForeignKey')(related_name='sentences', to=orm['transcripts.Transcript'])),
             ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='empty', max_length=50)),
+            ('clean_state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='untouched', max_length=50)),
+            ('boundary_state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='untouched', max_length=50)),
+            ('speaker_state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='untouched', max_length=50)),
             ('tf_start', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['transcripts.TranscriptFragment'])),
             ('tf_sequence', self.gf('django.db.models.fields.PositiveIntegerField')()),
             ('latest_text', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('latest_start', self.gf('django.db.models.fields.DecimalField')(null=True, max_digits=8, decimal_places=2, blank=True)),
+            ('latest_end', self.gf('django.db.models.fields.DecimalField')(null=True, max_digits=8, decimal_places=2, blank=True)),
+            ('latest_speaker', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['transcripts.Speaker'], null=True, blank=True)),
         ))
         db.send_create_signal(u'transcripts', ['Sentence'])
 
@@ -67,7 +73,7 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('sentence', self.gf('django.db.models.fields.related.ForeignKey')(related_name='boundaries', to=orm['transcripts.Sentence'])),
             ('sequence', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('editor', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True, blank=True)),
+            ('editor', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
             ('start', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
             ('end', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
         ))
@@ -75,6 +81,19 @@ class Migration(SchemaMigration):
 
         # Adding unique constraint on 'SentenceBoundary', fields ['sentence', 'sequence']
         db.create_unique(u'transcripts_sentenceboundary', ['sentence_id', 'sequence'])
+
+        # Adding model 'SentenceSpeaker'
+        db.create_table(u'transcripts_sentencespeaker', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('sentence', self.gf('django.db.models.fields.related.ForeignKey')(related_name='speakers', to=orm['transcripts.Sentence'])),
+            ('sequence', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('editor', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('speaker', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['transcripts.Speaker'])),
+        ))
+        db.send_create_signal(u'transcripts', ['SentenceSpeaker'])
+
+        # Adding unique constraint on 'SentenceSpeaker', fields ['sentence', 'sequence']
+        db.create_unique(u'transcripts_sentencespeaker', ['sentence_id', 'sequence'])
 
         # Adding model 'Speaker'
         db.create_table(u'transcripts_speaker', (
@@ -129,8 +148,8 @@ class Migration(SchemaMigration):
         # Adding unique constraint on 'StitchTaskPairing', fields ['task', 'left']
         db.create_unique(u'transcripts_stitchtaskpairing', ['task_id', 'left_id'])
 
-        # Adding model 'TrimTask'
-        db.create_table(u'transcripts_trimtask', (
+        # Adding model 'CleanTask'
+        db.create_table(u'transcripts_cleantask', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created', self.gf('model_utils.fields.AutoCreatedField')(default=datetime.datetime.now)),
             ('modified', self.gf('model_utils.fields.AutoLastModifiedField')(default=datetime.datetime.now)),
@@ -141,7 +160,7 @@ class Migration(SchemaMigration):
             ('sentence', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['transcripts.Sentence'])),
             ('text', self.gf('django.db.models.fields.TextField')()),
         ))
-        db.send_create_signal(u'transcripts', ['TrimTask'])
+        db.send_create_signal(u'transcripts', ['CleanTask'])
 
         # Adding model 'BoundaryTask'
         db.create_table(u'transcripts_boundarytask', (
@@ -169,6 +188,7 @@ class Migration(SchemaMigration):
             ('assignee', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True, blank=True)),
             ('sentence', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['transcripts.Sentence'])),
             ('speaker', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['transcripts.Speaker'], null=True, blank=True)),
+            ('new_name', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
         ))
         db.send_create_signal(u'transcripts', ['SpeakerTask'])
 
@@ -246,6 +266,9 @@ class Migration(SchemaMigration):
         # Removing unique constraint on 'Speaker', fields ['transcript', 'name']
         db.delete_unique(u'transcripts_speaker', ['transcript_id', 'name'])
 
+        # Removing unique constraint on 'SentenceSpeaker', fields ['sentence', 'sequence']
+        db.delete_unique(u'transcripts_sentencespeaker', ['sentence_id', 'sequence'])
+
         # Removing unique constraint on 'SentenceBoundary', fields ['sentence', 'sequence']
         db.delete_unique(u'transcripts_sentenceboundary', ['sentence_id', 'sequence'])
 
@@ -273,6 +296,9 @@ class Migration(SchemaMigration):
         # Deleting model 'SentenceBoundary'
         db.delete_table(u'transcripts_sentenceboundary')
 
+        # Deleting model 'SentenceSpeaker'
+        db.delete_table(u'transcripts_sentencespeaker')
+
         # Deleting model 'Speaker'
         db.delete_table(u'transcripts_speaker')
 
@@ -285,8 +311,8 @@ class Migration(SchemaMigration):
         # Deleting model 'StitchTaskPairing'
         db.delete_table(u'transcripts_stitchtaskpairing')
 
-        # Deleting model 'TrimTask'
-        db.delete_table(u'transcripts_trimtask')
+        # Deleting model 'CleanTask'
+        db.delete_table(u'transcripts_cleantask')
 
         # Deleting model 'BoundaryTask'
         db.delete_table(u'transcripts_boundarytask')
@@ -362,12 +388,30 @@ class Migration(SchemaMigration):
             'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unassigned'", 'max_length': '50'}),
             'transcript': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.Transcript']"})
         },
+        u'transcripts.cleantask': {
+            'Meta': {'object_name': 'CleanTask'},
+            'assignee': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'null': 'True', 'blank': 'True'}),
+            'created': ('model_utils.fields.AutoCreatedField', [], {'default': 'datetime.datetime.now'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_review': ('django.db.models.fields.BooleanField', [], {}),
+            'modified': ('model_utils.fields.AutoLastModifiedField', [], {'default': 'datetime.datetime.now'}),
+            'sentence': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.Sentence']"}),
+            'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unassigned'", 'max_length': '50'}),
+            'text': ('django.db.models.fields.TextField', [], {}),
+            'transcript': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.Transcript']"})
+        },
         u'transcripts.sentence': {
             'Meta': {'ordering': "('tf_start__start', 'tf_sequence')", 'object_name': 'Sentence'},
+            'boundary_state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'untouched'", 'max_length': '50'}),
+            'clean_state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'untouched'", 'max_length': '50'}),
             'fragment_candidates': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'candidate_sentences'", 'symmetrical': 'False', 'to': u"orm['transcripts.SentenceFragment']"}),
             'fragments': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'sentences'", 'symmetrical': 'False', 'to': u"orm['transcripts.SentenceFragment']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'latest_end': ('django.db.models.fields.DecimalField', [], {'null': 'True', 'max_digits': '8', 'decimal_places': '2', 'blank': 'True'}),
+            'latest_speaker': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.Speaker']", 'null': 'True', 'blank': 'True'}),
+            'latest_start': ('django.db.models.fields.DecimalField', [], {'null': 'True', 'max_digits': '8', 'decimal_places': '2', 'blank': 'True'}),
             'latest_text': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'speaker_state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'untouched'", 'max_length': '50'}),
             'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'empty'", 'max_length': '50'}),
             'tf_sequence': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'tf_start': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.TranscriptFragment']"}),
@@ -375,7 +419,7 @@ class Migration(SchemaMigration):
         },
         u'transcripts.sentenceboundary': {
             'Meta': {'ordering': "('sequence',)", 'unique_together': "[('sentence', 'sequence')]", 'object_name': 'SentenceBoundary'},
-            'editor': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'null': 'True', 'blank': 'True'}),
+            'editor': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
             'end': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'sentence': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'boundaries'", 'to': u"orm['transcripts.Sentence']"}),
@@ -397,6 +441,14 @@ class Migration(SchemaMigration):
             'sequence': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'text': ('django.db.models.fields.TextField', [], {})
         },
+        u'transcripts.sentencespeaker': {
+            'Meta': {'ordering': "('sequence',)", 'unique_together': "[('sentence', 'sequence')]", 'object_name': 'SentenceSpeaker'},
+            'editor': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'sentence': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'speakers'", 'to': u"orm['transcripts.Sentence']"}),
+            'sequence': ('django.db.models.fields.PositiveIntegerField', [], {}),
+            'speaker': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.Speaker']"})
+        },
         u'transcripts.speaker': {
             'Meta': {'unique_together': "[('transcript', 'name')]", 'object_name': 'Speaker'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -410,6 +462,7 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_review': ('django.db.models.fields.BooleanField', [], {}),
             'modified': ('model_utils.fields.AutoLastModifiedField', [], {'default': 'datetime.datetime.now'}),
+            'new_name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'sentence': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.Sentence']"}),
             'speaker': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.Speaker']", 'null': 'True', 'blank': 'True'}),
             'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unassigned'", 'max_length': '50'}),
@@ -486,18 +539,6 @@ class Migration(SchemaMigration):
             'is_processed': ('django.db.models.fields.BooleanField', [], {}),
             'media_file': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['media.MediaFile']"}),
             'start': ('django.db.models.fields.DecimalField', [], {'null': 'True', 'max_digits': '8', 'decimal_places': '2'}),
-            'transcript': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.Transcript']"})
-        },
-        u'transcripts.trimtask': {
-            'Meta': {'object_name': 'TrimTask'},
-            'assignee': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'null': 'True', 'blank': 'True'}),
-            'created': ('model_utils.fields.AutoCreatedField', [], {'default': 'datetime.datetime.now'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_review': ('django.db.models.fields.BooleanField', [], {}),
-            'modified': ('model_utils.fields.AutoLastModifiedField', [], {'default': 'datetime.datetime.now'}),
-            'sentence': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.Sentence']"}),
-            'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unassigned'", 'max_length': '50'}),
-            'text': ('django.db.models.fields.TextField', [], {}),
             'transcript': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.Transcript']"})
         }
     }
