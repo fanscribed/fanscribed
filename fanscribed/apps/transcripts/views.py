@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
 from vanilla import DetailView, UpdateView, ListView, RedirectView
@@ -30,155 +31,46 @@ class TaskAssignView(RedirectView):
         transcript = get_object_or_404(m.Transcript, pk=pk)
 
         task_type = self.request.POST['type']
-        task_create_method_name = 'task_create_{}'.format(task_type)
-        task_create_method = getattr(self, task_create_method_name)
 
-        task = task_create_method(transcript)
-        task.assign_to(self.request.user)
-        task.present()
-        return task.get_absolute_url()
-
-    def task_create_transcribe(self, transcript):
-
-        # Find first fragment not yet transcribed.
-        fragment = transcript.fragments.filter(
-            state='empty',
-            lock_state='unlocked',
-        ).first()
-
-        initial_revision = fragment.revisions.create(
-            sequence=1,
-            editor=self.request.user,
-        )
-
-        task = m.TranscribeTask.objects.create(
-            transcript=transcript,
-            is_review=False,
-            revision=initial_revision,
-            start=fragment.start,
-            end=fragment.end,
-        )
-
-        return task
-
-    def task_create_transcribe_review(self, transcript):
-
-        # Find first fragment transcribed and not reviewed.
-        fragment = transcript.fragments.filter(
-            state='transcribed',
-            lock_state='unlocked',
-        ).first()
-
-        last_revision = fragment.revisions.latest()
-
-        next_revision = fragment.revisions.create(
-            sequence=last_revision.sequence + 1,
-            editor=self.request.user,
-        )
-
-        task = m.TranscribeTask.objects.create(
-            transcript=transcript,
-            is_review=True,
-            revision=next_revision,
-            start=fragment.start,
-            end=fragment.end,
-            text=last_revision.text,
-        )
-
-        return task
-
-    def task_create_stitch(self, transcript):
-
-        # Find first two adjacent fragments not yet stitched together.
-        unstitched_fragments = transcript.fragments.filter(
-            state='transcript_reviewed',
-            lock_state='unlocked',
-            stitched_right=False,
-        )
-        if unstitched_fragments.count() == 0:
-            raise Exception('No more unstitched fragments.')
-        for left in unstitched_fragments:
-            try:
-                right = transcript.fragments.get(
-                    start=left.end,
-                    state='transcript_reviewed',
-                    stitched_left=False,
-                    lock_state='unlocked',
-                )
-            except m.TranscriptFragment.DoesNotExist:
-                # No neighbor; keep trying.
-                pass
+        if task_type in ['any_sequential', 'any_eager']:
+            L = [
+                # (task_class, is_review),
+                ('transcribe', False),
+                ('transcribe', True),
+                ('stitch', False),
+                ('stitch', True),
+                ('trim', False),
+                ('trim', True),
+                ('boundary', False),
+                ('boundary', True),
+            ]
+            if task_type == 'any_eager':
+                L.reverse()
+            for task_type, is_review in L:
+                tasks = m.TASK_MODEL[task_type].objects
+                if tasks.can_create(transcript, is_review):
+                    task = tasks.create_next(
+                        self.request.user, transcript, is_review)
+                    break
             else:
-                # Found our match.
-                break
+                task = None
         else:
-            # No match found.
-            raise Exception('No unlocked stitches available.')
-
-        task = m.StitchTask.objects.create(
-            transcript=transcript,
-            is_review=False,
-            left=left.revisions.latest(),
-            right=right.revisions.latest(),
-        )
-
-        return task
-
-    def task_create_stitch_review(self, transcript):
-
-        # Find first two adjacent fragments already stitched together.
-        stitched_fragments = transcript.fragments.filter(
-            state__in=['transcript_reviewed', 'stitched'],
-            lock_state='unlocked',
-            stitched_right=True,
-        )
-        if stitched_fragments.count() == 0:
-            raise Exception('No more stitched fragments to review.')
-        for left in stitched_fragments:
-            try:
-                right = transcript.fragments.get(
-                    start=left.end,
-                    state__in=['transcript_reviewed', 'stitched'],
-                    stitched_left=True,
-                    lock_state='unlocked',
-                )
-            except m.TranscriptFragment.DoesNotExist:
-                # No neighbor; keep trying.
-                pass
+            if task_type.endswith('_review'):
+                task_type = task_type.split('_review')[0]  # Trim _review off end.
+                is_review = True
             else:
-                # Found our match.
-                break
+                is_review = False
+            task = m.TASK_MODEL[task_type].objects.create_next(
+                user=self.request.user,
+                transcript=transcript,
+                is_review=is_review,
+            )
+
+        if task:
+            task.present()
+            return task.get_absolute_url()
         else:
-            # No match found.
-            raise Exception('No unlocked stitches available to review.')
-
-        task = m.StitchTask.objects.create(
-            transcript=transcript,
-            is_review=True,
-            left=left.revisions.latest(),
-            right=right.revisions.latest(),
-        )
-        task.create_pairings_from_existing_candidates()
-
-        return task
-    
-    def task_create_trim(self, transcript):
-        pass  # TODO
-
-    def task_create_trim_review(self, transcript):
-        pass  # TODO
-
-    def task_create_boundary(self, transcript):
-        pass  # TODO
-
-    def task_create_boundary_review(self, transcript):
-        pass  # TODO
-
-    def task_create_speaker(self, transcript):
-        pass  # TODO
-
-    def task_create_speaker_review(self, transcript):
-        pass  # TODO
+            return HttpResponse('no tasks available')
 
 
 class TaskPerformView(UpdateView):

@@ -182,6 +182,22 @@ class TaskManager(models.Manager):
     def invalid(self):
         return self.filter(state='invalid')
 
+    def can_create(self, transcript, review):
+        """Can we create a new task?
+
+        :ptype transcript: Transcript
+        :ptype review: bool
+        """
+        return False
+
+    def create_next(self, user, transcript, review):
+        """Create and return the next new task.
+
+        :ptype transcript: Transcript
+        :ptype review: bool
+        """
+        raise Task.DoesNotExist()
+
 
 class Task(TimeStampedModel):
     """A transcription task to be completed.
@@ -242,7 +258,7 @@ class Task(TimeStampedModel):
     def submit(self):
         self._submit()
         if not settings.TESTING:
-            self._post_submit(self)
+            self._post_submit()
 
     def _submit(self):
         raise NotImplementedError()
@@ -265,6 +281,44 @@ class Task(TimeStampedModel):
         raise NotImplementedError()
 
 
+class TranscribeTaskManager(TaskManager):
+
+    def _available_fragments(self, transcript, is_review):
+        if not is_review:
+            return transcript.fragments.filter(
+                state='empty',
+                lock_state='unlocked',
+            )
+        else:
+            return transcript.fragments.filter(
+                state='transcribed',
+                lock_state='unlocked',
+            )
+
+    def can_create(self, transcript, is_review):
+        return bool(self._available_fragments(transcript, is_review).count())
+
+    def create_next(self, user, transcript, is_review):
+        fragment = self._available_fragments(transcript, is_review).first()
+        if not is_review:
+            next = fragment.revisions.create(sequence=1, editor=user)
+            text = ''
+        else:
+            latest = fragment.revisions.latest()
+            text = latest.text
+            next = fragment.revisions.create(sequence=latest.sequence + 1,
+                                             editor=user)
+        task = transcript.transcribetask_set.create(
+            is_review=is_review,
+            revision=next,
+            start=fragment.start,
+            end=fragment.end,
+            text=text,
+        )
+        task.assign_to(user)
+        return task
+
+
 class TranscribeTask(Task):
 
     TASK_TYPE = 'transcribe'
@@ -275,6 +329,8 @@ class TranscribeTask(Task):
     # Keep start and end even if `revision` goes away.
     start = models.DecimalField(max_digits=8, decimal_places=2)
     end = models.DecimalField(max_digits=8, decimal_places=2)
+
+    objects = TranscribeTaskManager()
 
     def _assign_to(self):
         self.revision.fragment.lock()
@@ -296,12 +352,77 @@ class TranscribeTask(Task):
         fragment.unlock()
 
 
+class StitchTaskManager(TaskManager):
+
+    def _available_neighbors(self, transcript, is_review):
+        if not is_review:
+            candidates = transcript.fragments.filter(
+                state='transcript_reviewed',
+                lock_state='unlocked',
+                stitched_right=False,
+            )
+        else:
+            candidates = transcript.fragments.filter(
+                state__in=['transcript_reviewed', 'stitched'],
+                lock_state='unlocked',
+                stitched_right=True,
+            )
+        if candidates.count() == 0:
+            raise TranscriptFragment.DoesNotExist()
+        for left in candidates:
+            try:
+                if not is_review:
+                    right = transcript.fragments.get(
+                        start=left.end,
+                        state='transcript_reviewed',
+                        stitched_left=False,
+                        lock_state='unlocked',
+                    )
+                else:
+                    right = transcript.fragments.get(
+                        start=left.end,
+                        state__in=['transcript_reviewed', 'stitched'],
+                        stitched_left=True,
+                        lock_state='unlocked',
+                    )
+            except TranscriptFragment.DoesNotExist:
+                # No neighbor; keep trying.
+                pass
+            else:
+                # Found our match.
+                break
+        else:
+            raise TranscriptFragment.DoesNotExist()
+        return left, right
+
+    def can_create(self, transcript, is_review):
+        try:
+            self._available_neighbors(transcript, is_review)
+        except TranscriptFragment.DoesNotExist:
+            return False
+        else:
+            return True
+
+    def create_next(self, user, transcript, is_review):
+        left, right = self._available_neighbors(transcript, is_review)
+        task = StitchTask.objects.create(
+            transcript=transcript,
+            is_review=is_review,
+            left=left.revisions.latest(),
+            right=right.revisions.latest(),
+        )
+        task.assign_to(user)
+        return task
+
+
 class StitchTask(Task):
 
     TASK_TYPE = 'stitch'
 
     left = models.ForeignKey('TranscriptFragmentRevision', related_name='+')
     right = models.ForeignKey('TranscriptFragmentRevision', related_name='+')
+
+    objects = StitchTaskManager()
 
     def _assign_to(self):
         self.left.fragment.lock()

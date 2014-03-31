@@ -17,17 +17,11 @@ class TranscribeTaskTestCase(TestCase):
 
     def _submitted_task(self, fragment, text, sequence, is_review):
         tf = self.tfragments[fragment]
-        r = tf.revisions.create(
-            editor=self.user,
-            sequence=sequence,
-        )
-        task = self.transcript.transcribetask_set.create(
+        task = m.TranscribeTask.objects.create_next(
+            user=self.user,
+            transcript=self.transcript,
             is_review=is_review,
-            revision=r,
-            start=tf.start,
-            end=tf.end,
         )
-        task.assign_to(self.user)
         task.present()
         task.text = text
         task.submit()

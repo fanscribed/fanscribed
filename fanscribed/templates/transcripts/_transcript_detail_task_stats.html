@@ -3,6 +3,7 @@
 {% url 'transcripts:task_assign' pk=transcript.pk as task_assign_url %}
 
 {% if user.is_authenticated %}
+  {# TODO: Disable buttons if no tasks available #}
   <form action="{{ task_assign_url }}" method="post">
     {% csrf_token %}
     <div class="btn-group">

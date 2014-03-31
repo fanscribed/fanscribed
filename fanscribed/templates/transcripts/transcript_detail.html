@@ -18,8 +18,11 @@
   {% if user.is_authenticated %}
     <form action="{{ task_assign_url }}" method="post">
       {% csrf_token %}
-      <button class="btn btn-primary" type="submit" name="type" value="any">
-        Assign Any Task
+      <button class="btn btn-primary" type="submit" name="type" value="any_sequential">
+        Assign Any (Sequential)
+      </button>
+      <button class="btn btn-primary" type="submit" name="type" value="any_eager">
+        Assign Any (Eager)
       </button>
     </form>
   {% else %}
@@ -32,27 +35,32 @@
 
   <div class="row">
 
-    <div class="col-md-2">
-      <h3>Transcribe</h3>
-      {% include 'transcripts/_transcript_detail_task_stats.html' with tasks=transcript.transcribetask_set task_name='transcribe' %}
-    </div>
-
-    <div class="col-md-2">
-      <h3>Stitch</h3>
-      {% include 'transcripts/_transcript_detail_task_stats.html' with tasks=transcript.stitchtask_set task_name='stitch' %}
-    </div>
-
-    <div class="col-md-2">
-      <h3>Trim</h3>
-    </div>
-
-    <div class="col-md-2">
-      <h3>Boundary</h3>
-    </div>
-
-    <div class="col-md-2">
-      <h3>Speaker</h3>
-    </div>
+    {% with stats_template='transcripts/_transcript_detail_task_stats.html' %}
+      <div class="col-md-2">
+        <h3>Transcribe</h3>
+        {% include stats_template with tasks=transcript.transcribetask_set task_name='transcribe' %}
+      </div>
+  
+      <div class="col-md-2">
+        <h3>Stitch</h3>
+        {% include stats_template with tasks=transcript.stitchtask_set task_name='stitch' %}
+      </div>
+  
+      <div class="col-md-2">
+        <h3>Trim</h3>
+        {% include stats_template with tasks=transcript.trimtask_set task_name='trim' %}
+      </div>
+  
+      <div class="col-md-2">
+        <h3>Boundary</h3>
+        {% include stats_template with tasks=transcript.boundarytask_set task_name='boundary' %}
+      </div>
+  
+      <div class="col-md-2">
+        <h3>Speaker</h3>
+        {% include stats_template with tasks=transcript.speakertask_set task_name='speaker' %}
+      </div>
+    {% endwith %}
 
   </div>
 
