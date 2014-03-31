@@ -411,6 +411,8 @@ class StitchTaskManager(TaskManager):
             left=left.revisions.latest(),
             right=right.revisions.latest(),
         )
+        if is_review:
+            task.create_pairings_from_existing_candidates()
         task.assign_to(user)
         return task
 
