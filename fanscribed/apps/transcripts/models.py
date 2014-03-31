@@ -275,6 +275,7 @@ class StitchTaskPairing(models.Model):
     right = models.ForeignKey('SentenceFragment', related_name='+')
 
     class Meta:
+        ordering = ('left__revision__fragment__start', 'left__sequence')
         unique_together = [
             ('task', 'left',),
         ]
@@ -471,15 +472,18 @@ class TranscriptFragment(models.Model):
                         merge(survivor, other)
 
                 for other in candidate_sentences.all():
+                    print 'other', other
                     if other != survivor:
                         merge(survivor, other)
 
-
     def _complete_sentences(self):
         """Complete sentences in this fragment as applicable."""
+        print 'completing sentences for', self.start, self.end
         latest = self.revisions.latest()
         for candidate_sf in latest.sentence_fragments.all():
+            print '  candidate_sf', candidate_sf.text
             for sentence in candidate_sf.sentences.filter(state='partial'):
+                print '    sentence', sentence.id, sentence.text
                 if sentence.fragment_candidates.count() > 0:
                     # The sentence is still being worked on.
                     continue

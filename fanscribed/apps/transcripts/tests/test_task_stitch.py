@@ -55,29 +55,81 @@ class StitchTaskTestCase(TransactionTestCase):
     def assertState(self, obj, state):
         self.assertEqual(obj.state, state)
 
-    def test_no_stitching(self):
-        self._transcribe_and_review(0, 'sentence 1')
-        self._transcribe_and_review(1, 'sentence 2')
-
-        # TODO: extend with sentence 3
-
-        # Initial task.
-
+    def stitch(self, left_index, right_index, pairs):
+        tfr_left = self.tfragments[left_index].revisions.latest()
+        tfr_right = self.tfragments[right_index].revisions.latest()
         task = self.transcript.stitchtask_set.create(
             is_review=False,
-            left=self.tfragments[0].revisions.latest(),
-            right=self.tfragments[1].revisions.latest(),
+            left=tfr_left,
+            right=tfr_right,
         )
         task.assign_to(self.user)
         task.present()
-        # Perform no pairing, just submit.
+
+        sf_left = tfr_left.sentence_fragments.all()
+        sf_right = tfr_right.sentence_fragments.all()
+        for L, R in pairs:
+            task.task_pairings.create(
+                left=sf_left[L],
+                right=sf_right[R],
+            )
         task.submit()
         task._post_submit()
         task = refresh(task)
 
         self.assertState(task, 'valid')
 
-        # Check transcript fragments.
+    def review(self, left_index, right_index, verify=None):
+        tfr_left = self.tfragments[left_index].revisions.latest()
+        tfr_right = self.tfragments[right_index].revisions.latest()
+        task = self.transcript.stitchtask_set.create(
+            is_review=True,
+            left=tfr_left,
+            right=tfr_right,
+        )
+
+        task.create_pairings_from_existing_candidates()
+        sf_left = tfr_left.sentence_fragments.all()
+        sf_right = tfr_right.sentence_fragments.all()
+        if verify is not None:
+            for L, R in verify:
+                task.task_pairings.get(
+                    left=sf_left[L],
+                    right=sf_right[R],
+                )
+
+        task.assign_to(self.user)
+        task.present()
+        task.submit()
+        task._post_submit()
+        task = refresh(task)
+
+        self.assertState(task, 'valid')
+
+    def check_sentences(self, expected_sentences):
+        sentence_info = [
+            (
+                s.state,
+                [f.text for f in s.fragment_candidates.all()],
+                [f.text for f in s.fragments.all()],
+            )
+            for s in self.transcript.sentences.all()
+        ]
+
+        print
+        print 'checking'
+        import pprint
+        pprint.pprint(sentence_info)
+        print 'expecting'
+        pprint.pprint(expected_sentences)
+        self.assertEqual(sentence_info, expected_sentences)
+
+    def test_no_stitching(self):
+        self._transcribe_and_review(0, 'sentence 1')
+        self._transcribe_and_review(1, 'sentence 2')
+        self._transcribe_and_review(2, 'sentence 3')
+
+        self.stitch(0, 1, [])
 
         left = self.tfragments[0]
         self.assertState(left, 'stitched')
@@ -89,34 +141,11 @@ class StitchTaskTestCase(TransactionTestCase):
         self.assertEqual(right.stitched_left, True)
         self.assertEqual(right.stitched_right, False)
 
-        # Check sentences and sentence fragments.
+        self.check_sentences([
+            (u'partial', [u'sentence 1'], []),
+        ])
 
-        sentences = self.transcript.sentences.all()
-        self.assertEqual(sentences.count(), 1)
-
-        sentence = sentences[0]
-        self.assertState(sentence, 'partial')
-        self.assertSentenceHasCandidates(sentence, ['sentence 1'])
-        self.assertSentenceHasFragments(sentence, [])
-
-        # Review task.
-
-        task = self.transcript.stitchtask_set.create(
-            is_review=True,
-            left=self.tfragments[0].revisions.latest(),
-            right=self.tfragments[1].revisions.latest(),
-        )
-        task.create_pairings_from_existing_candidates()
-        task.assign_to(self.user)
-        task.present()
-        # Perform no pairing changes, just submit.
-        task.submit()
-        task._post_submit()
-        task = refresh(task)
-
-        self.assertState(task, 'valid')
-
-        # Check transcript fragments.
+        self.review(0, 1, [])
 
         left = self.tfragments[0]
         self.assertState(left, 'stitch_reviewed')
@@ -128,14 +157,45 @@ class StitchTaskTestCase(TransactionTestCase):
         self.assertEqual(right.stitched_left, True)
         self.assertEqual(right.stitched_right, False)
 
-        # Check sentences and sentence fragments.
+        self.check_sentences([
+            (u'completed', [], [u'sentence 1']),
+        ])
 
-        self.assertEqual(sentences.count(), 1)
+        self.stitch(1, 2, [])
 
-        sentence = sentences[0]
-        self.assertState(sentence, 'completed')
-        self.assertSentenceHasCandidates(sentence, [])
-        self.assertSentenceHasFragments(sentence, ['sentence 1'])
+        left = self.tfragments[1]
+        self.assertState(left, 'stitched')
+        self.assertEqual(left.stitched_left, True)
+        self.assertEqual(left.stitched_right, True)
+
+        right = self.tfragments[2]
+        self.assertState(right, 'stitched')
+        self.assertEqual(right.stitched_left, True)
+        self.assertEqual(right.stitched_right, True)
+
+        self.check_sentences([
+            (u'completed', [], [u'sentence 1']),
+            (u'partial', [u'sentence 2'], []),
+            (u'partial', [u'sentence 3'], []),
+        ])
+
+        self.review(1, 2, [])
+
+        left = self.tfragments[1]
+        self.assertState(left, 'stitch_reviewed')
+        self.assertEqual(left.stitched_left, True)
+        self.assertEqual(left.stitched_right, True)
+
+        right = self.tfragments[2]
+        self.assertState(right, 'stitch_reviewed')
+        self.assertEqual(right.stitched_left, True)
+        self.assertEqual(right.stitched_right, True)
+
+        self.check_sentences([
+            (u'completed', [], [u'sentence 1']),
+            (u'completed', [], [u'sentence 2']),
+            (u'completed', [], [u'sentence 3']),
+        ])
 
     def test_simple_stitching_immediate_review(self):
         self._transcribe_and_review(0, """
@@ -150,206 +210,42 @@ class StitchTaskTestCase(TransactionTestCase):
             sentence 4
             """)
 
-        # -------------------------
+        stitch_1_pairs = [
+            (1, 0),
+        ]
+        self.stitch(0, 1, stitch_1_pairs)  # 2a + 2b
 
-        # Stitch task #1.
+        self.check_sentences([
+            ('partial', ['sentence 1'], []),
+            ('partial', ['sentence 2a', 'sentence 2b'], []),
+        ])
 
-        tfr_left = self.tfragments[0].revisions.latest()
-        tfr_right = self.tfragments[1].revisions.latest()
-        task = self.transcript.stitchtask_set.create(
-            is_review=False,
-            left=tfr_left,
-            right=tfr_right,
-        )
-        task.assign_to(self.user)
-        task.present()
-        task.task_pairings.create(
-            left=tfr_left.sentence_fragments.all()[1],    # sentence 2a
-            right=tfr_right.sentence_fragments.all()[0],  # sentence 2b
-        )
-        task.submit()
-        task._post_submit()
-        task = refresh(task)
+        self.review(0, 1, stitch_1_pairs)
 
-        self.assertState(task, 'valid')
+        self.check_sentences([
+            ('completed', [], ['sentence 1']),
+            ('partial', ['sentence 2b'], ['sentence 2a']),
+        ])
 
-        # Check transcript fragments.
+        self.stitch(1, 2, [])
 
-        tfr_left = self.tfragments[0]
-        self.assertState(tfr_left, 'stitched')
-        self.assertEqual(tfr_left.stitched_left, True)
-        self.assertEqual(tfr_left.stitched_right, True)
+        self.check_sentences([
+            ('completed', [], ['sentence 1']),
+            ('partial', ['sentence 2b'], ['sentence 2a']),
+            ('partial', ['sentence 3'], []),
+            ('partial', ['sentence 4'], []),
+        ])
 
-        tfr_right = self.tfragments[1]
-        self.assertState(tfr_right, 'transcript_reviewed')
-        self.assertEqual(tfr_right.stitched_left, True)
-        self.assertEqual(tfr_right.stitched_right, False)
+        self.review(1, 2, [])
 
-        # Check sentences and sentence fragments.
+        self.check_sentences([
+            ('completed', [], ['sentence 1']),
+            ('completed', [], ['sentence 2a', 'sentence 2b']),
+            ('completed', [], ['sentence 3']),
+            ('completed', [], ['sentence 4']),
+        ])
 
-        sentences = self.transcript.sentences.all()
-        self.assertEqual(sentences.count(), 2)
-
-        sentence = sentences[0]
-        self.assertState(sentence, 'partial')
-        self.assertSentenceHasCandidates(sentence, ['sentence 1'])
-        self.assertSentenceHasFragments(sentence, [])
-
-        sentence = sentences[1]
-        self.assertState(sentence, 'partial')
-        self.assertSentenceHasCandidates(
-            sentence, ['sentence 2a', 'sentence 2b'])
-        self.assertSentenceHasFragments(sentence, [])
-
-        # -------------------------
-
-        # Review task #1.
-
-        task = self.transcript.stitchtask_set.create(
-            is_review=True,
-            left=self.tfragments[0].revisions.latest(),
-            right=self.tfragments[1].revisions.latest(),
-        )
-        task.create_pairings_from_existing_candidates()
-        task.assign_to(self.user)
-        task.present()
-        # Perform no pairing changes, just submit.
-        task.submit()
-        task._post_submit()
-        task = refresh(task)
-
-        self.assertState(task, 'valid')
-
-        # Check transcript fragments.
-
-        tfr_left = self.tfragments[0]
-        self.assertState(tfr_left, 'stitch_reviewed')
-        self.assertEqual(tfr_left.stitched_left, True)
-        self.assertEqual(tfr_left.stitched_right, True)
-
-        tfr_right = self.tfragments[1]
-        self.assertState(tfr_right, 'transcript_reviewed')
-        self.assertEqual(tfr_right.stitched_left, True)
-        self.assertEqual(tfr_right.stitched_right, False)
-
-        # Check sentences and sentence fragments.
-
-        self.assertEqual(sentences.count(), 2)
-
-        sentence = sentences[0]
-        self.assertState(sentence, 'completed')
-        self.assertSentenceHasCandidates(sentence, [])
-        self.assertSentenceHasFragments(sentence, ['sentence 1'])
-
-        sentence = sentences[1]
-        self.assertState(sentence, 'partial')
-        self.assertSentenceHasCandidates(sentence, ['sentence 2b'])
-        self.assertSentenceHasFragments(sentence, ['sentence 2a'])
-
-        # -------------------------
-
-        # Stitch task #2.
-
-        tfr_left = self.tfragments[1].revisions.latest()
-        tfr_right = self.tfragments[2].revisions.latest()
-        task = self.transcript.stitchtask_set.create(
-            is_review=False,
-            left=tfr_left,
-            right=tfr_right,
-        )
-        task.assign_to(self.user)
-        task.present()
-        # No pairings.
-        task.submit()
-        task._post_submit()
-        task = refresh(task)
-
-        self.assertState(task, 'valid')
-
-        # Check transcript fragments.
-
-        tfr_left = self.tfragments[1]
-        self.assertState(tfr_left, 'stitched')
-        self.assertEqual(tfr_left.stitched_left, True)
-        self.assertEqual(tfr_left.stitched_right, True)
-
-        tfr_right = self.tfragments[2]
-        self.assertState(tfr_right, 'stitched')
-        self.assertEqual(tfr_right.stitched_left, True)
-        self.assertEqual(tfr_right.stitched_right, True)  # end of transcript
-
-        # Check sentences and sentence fragments.
-
-        sentences = self.transcript.sentences.all()
-        self.assertEqual(sentences.count(), 3)
-
-        sentence = sentences[0]
-        self.assertState(sentence, 'completed')
-        self.assertSentenceHasCandidates(sentence, [])
-        self.assertSentenceHasFragments(sentence, ['sentence 1'])
-
-        sentence = sentences[1]
-        self.assertState(sentence, 'partial')
-        self.assertSentenceHasCandidates(sentence, ['sentence 2b'])
-        self.assertSentenceHasFragments(sentence, ['sentence 2a'])
-
-        sentence = sentences[2]
-        self.assertState(sentence, 'partial')
-        self.assertSentenceHasCandidates(sentence, ['sentence 3'])
-        self.assertSentenceHasFragments(sentence, [])
-
-        # -------------------------
-
-        # Review task #2.
-
-        task = self.transcript.stitchtask_set.create(
-            is_review=True,
-            left=self.tfragments[1].revisions.latest(),
-            right=self.tfragments[2].revisions.latest(),
-        )
-        task.create_pairings_from_existing_candidates()
-        task.assign_to(self.user)
-        task.present()
-        # Perform no pairing changes, just submit.
-        task.submit()
-        task._post_submit()
-        task = refresh(task)
-
-        self.assertState(task, 'valid')
-
-        # Check transcript fragments.
-
-        tfr_left = self.tfragments[1]
-        self.assertState(tfr_left, 'stitch_reviewed')
-        self.assertEqual(tfr_left.stitched_left, True)
-        self.assertEqual(tfr_left.stitched_right, True)
-
-        tfr_right = self.tfragments[2]
-        self.assertState(tfr_right, 'stitch_reviewed')
-        self.assertEqual(tfr_right.stitched_left, True)
-        self.assertEqual(tfr_right.stitched_right, True)
-
-        # Check sentences and sentence fragments.
-
-        sentences = self.transcript.sentences.all()
-        self.assertEqual(sentences.count(), 3)
-
-        sentence = sentences[0]
-        self.assertState(sentence, 'completed')
-        self.assertSentenceHasCandidates(sentence, [])
-        self.assertSentenceHasFragments(sentence, ['sentence 1'])
-
-        sentence = sentences[1]
-        self.assertState(sentence, 'completed')
-        self.assertSentenceHasCandidates(sentence, [])
-        self.assertSentenceHasFragments(sentence, ['sentence 2a', 'sentence 2b'])
-
-        sentence = sentences[2]
-        self.assertState(sentence, 'completed')
-        self.assertSentenceHasCandidates(sentence, [])
-        self.assertSentenceHasFragments(sentence, ['sentence 3'])
-
-    def test_complex_stitching_outoforder_review(self):
+    def test_complex_stitching_interleaved_review(self):
         self._transcribe_and_review(0, """
             A
             B1
@@ -365,111 +261,46 @@ class StitchTaskTestCase(TransactionTestCase):
             E
             """)
 
-        expected_sentences = [
-            ['A'],
-            ['B1', 'B2', 'B3'],
-            ['C1', 'C2'],
-            ['D'],
-            ['E'],
+        stitch_1_pairs = [
+            (1, 0),  # B1, B2
+            (2, 2),  # C1, C2
         ]
+        self.stitch(0, 1, stitch_1_pairs)  # B1 + B2, C1 + C2
 
-        # -------------------------
+        self.check_sentences([
+            (u'partial', [u'A'], []),
+            (u'partial', [u'B1', u'B2'], []),
+            (u'partial', [u'C1', u'C2'], []),
+        ])
 
-        # Stitch task #1.
+        self.review(0, 1, stitch_1_pairs)
 
-        tfr_left = self.tfragments[0].revisions.latest()
-        tfr_right = self.tfragments[1].revisions.latest()
-        task = self.transcript.stitchtask_set.create(
-            is_review=False,
-            left=tfr_left,
-            right=tfr_right,
-        )
-        task.assign_to(self.user)
-        task.present()
+        self.check_sentences([
+            (u'completed', [], [u'A']),
+            (u'partial', [u'B2'], [u'B1']),
+            (u'partial', [u'C2'], [u'C1']),
+        ])
 
-        sf_left = tfr_left.sentence_fragments.all()
-        sf_right = tfr_right.sentence_fragments.all()
-        task.task_pairings.create(
-            left=sf_left[1],    # B1
-            right=sf_right[0],  # B2
-        )
-        task.task_pairings.create(
-            left=sf_left[2],    # C1
-            right=sf_right[1],  # C2
-        )
-        task.submit()
-        task._post_submit()
-        task = refresh(task)
+        stitch_2_pairs = [
+            (0, 0),  # B2, B3
+        ]
+        self.stitch(1, 2, stitch_2_pairs)  # B2 + B3
 
-        self.assertState(task, 'valid')
+        self.check_sentences([
+            (u'completed', [], [u'A']),
+            (u'partial', [u'B2', u'B3'], [u'B1']),
+            (u'partial', [u'C2'], [u'C1']),
+            (u'partial', [u'D'], []),
+            (u'partial', [u'B3'], []),
+            (u'partial', [u'E'], []),
+        ])
 
-        # -------------------------
+        self.review(1, 2, verify=stitch_2_pairs)
 
-        # Review task #1.
-
-        task = self.transcript.stitchtask_set.create(
-            is_review=True,
-            left=self.tfragments[0].revisions.latest(),
-            right=self.tfragments[1].revisions.latest(),
-        )
-        task.create_pairings_from_existing_candidates()
-        task.assign_to(self.user)
-        task.present()
-        task.submit()
-        task._post_submit()
-        task = refresh(task)
-
-        self.assertState(task, 'valid')
-
-        # -------------------------
-
-        # Stitch task #2.
-
-        tfr_left = self.tfragments[1].revisions.latest()
-        tfr_right = self.tfragments[2].revisions.latest()
-        task = self.transcript.stitchtask_set.create(
-            is_review=False,
-            left=tfr_left,
-            right=tfr_right,
-        )
-        task.assign_to(self.user)
-        task.present()
-        sf_left = tfr_left.sentence_fragments.all()
-        sf_right = tfr_right.sentence_fragments.all()
-        task.task_pairings.create(
-            left=sf_left[0],    # B2
-            right=sf_right[0],  # B3
-        )
-        task.submit()
-        task._post_submit()
-        task = refresh(task)
-
-        self.assertState(task, 'valid')
-
-        # -------------------------
-
-        # Review task #2.
-
-        task = self.transcript.stitchtask_set.create(
-            is_review=True,
-            left=self.tfragments[1].revisions.latest(),
-            right=self.tfragments[2].revisions.latest(),
-        )
-        task.create_pairings_from_existing_candidates()
-        task.assign_to(self.user)
-        task.present()
-        task.submit()
-        task._post_submit()
-        task = refresh(task)
-
-        self.assertState(task, 'valid')
-
-        # Check sentences and sentence fragments.
-
-        sentences = self.transcript.sentences.all()
-        self.assertEqual(sentences.count(), len(expected_sentences))
-
-        for sentence, expected in zip(sentences.all(), expected_sentences):
-            self.assertState(sentence, 'completed')
-            self.assertSentenceHasFragments(sentence, expected)
-            self.assertSentenceHasCandidates(sentence, [])
+        self.check_sentences([
+            (u'completed', [], [u'A']),
+            (u'completed', [], [u'B1', u'B2', u'B3']),
+            (u'completed', [], [u'C1', u'C2']),
+            (u'completed', [], [u'D']),
+            (u'completed', [], [u'E']),
+        ])

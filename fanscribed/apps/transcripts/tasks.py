@@ -127,12 +127,12 @@ def process_transcribe_task(transcription_task_pk):
 @shared_task
 def process_stitch_task(transcription_task_pk):
 
-    from .models import StitchTask
+    from .models import SentenceFragment, StitchTask
 
     task = _get_task(StitchTask, transcription_task_pk)
 
     if not task.is_review:
-        old_pairings = None
+        old_pairings = set([])
     else:
         # Detect and delete prior pairings, if any.
         # TODO: Could this be simpler?
@@ -141,44 +141,83 @@ def process_stitch_task(transcription_task_pk):
         ])
         for left_fragment in task.left.sentence_fragments.all():
             for left_sentence in left_fragment.candidate_sentences.all():
-                left_sentence_fragment = None
-                right_sentence_fragment = None
+                left_sf = None
+                right_sf = None
                 for candidate in left_sentence.fragment_candidates.all():
                     if candidate.revision == task.left:
-                        left_sentence_fragment = candidate
+                        left_sf = candidate
                     if candidate.revision == task.right:
-                        right_sentence_fragment = candidate
-                if (left_sentence_fragment is not None
-                    and right_sentence_fragment is not None
+                        right_sf = candidate
+                if (left_sf is not None
+                    and right_sf is not None
                     ):
                     old_pairings.add(
-                        (left_sentence_fragment.id, right_sentence_fragment.id))
-                    left_sentence.remove_candidates(
-                        left_sentence_fragment, right_sentence_fragment)
-                    # Delete orphaned sentences.
-                    if (left_sentence.fragments.count() == 0
-                        and left_sentence.fragment_candidates.count() == 0
-                        ):
-                        left_sentence.delete()
+                        (left_sf.id, right_sf.id))
+                    # left_sentence.remove_candidates(
+                    #     left_sf, right_sf)
+                    # # Delete orphaned sentences.
+                    # if (left_sentence.fragments.count() == 0
+                    #     and left_sentence.fragment_candidates.count() == 0
+                    #     ):
+                    #     left_sentence.delete()
 
     # Create new pairings.
     new_pairings = set([
         # (left_sentence_fragment_id, right_sentence_fragment_id),
     ])
     # Make sure every fragment has a sentence.
-    for sf in task.left.sentence_fragments.all():
-        if sf.candidate_sentences.count() == 0:
-            sentence = task.transcript.sentences.create(
-                tf_start=task.left.fragment,
-                tf_sequence=sf.sequence,
+    def _make_sentence(sentence_fragment):
+        print
+        print 'fragment:', sentence_fragment.text
+        print '- candidates', sentence_fragment.candidate_sentences.count()
+        print '- sentences', sentence_fragment.sentences.count()
+        if (sentence_fragment.candidate_sentences.count() == 0
+            and sentence_fragment.sentences.count() == 0
+            ):
+            s = task.transcript.sentences.create(
+                tf_start=sentence_fragment.revision.fragment,
+                tf_sequence=sentence_fragment.sequence,
             )
-            sentence.add_candidates(sf)
+            print '  * made sentence'
+            s.add_candidates(sentence_fragment)
+    for sf in task.left.sentence_fragments.all():
+        _make_sentence(sf)
+    right_is_at_end = (task.right.fragment.end == task.transcript.length)
+    if right_is_at_end:
+        # Special case when the right side is the last TranscriptFragment.
+        for sf in task.right.sentence_fragments.all():
+            print 'right making sentence', sf.id, sf.text
+            _make_sentence(sf)
 
     for task_pairing in task.task_pairings.all():
         new_pairings.add(
             (task_pairing.left.id, task_pairing.right.id))
-        task_pairing.left.candidate_sentences.first().add_candidates(
-            task_pairing.right)
+
+    # Add new pairings.
+    for left_sf_id, right_sf_id in new_pairings - old_pairings:
+        left_sf = SentenceFragment.objects.get(id=left_sf_id)
+        right_sf = SentenceFragment.objects.get(id=right_sf_id)
+        left_sf.candidate_sentences.first().add_candidates(right_sf)
+
+    # Delete removed pairings.
+    for left_sf_id, right_sf_id in old_pairings - new_pairings:
+        left_sf = SentenceFragment.objects.get(id=left_sf_id)
+        right_sf = SentenceFragment.objects.get(id=right_sf_id)
+        for sentence in left_sf.candidate_sentences.all():
+            sentence.remove_candidates(left_sf, right_sf)
+            # Delete orphaned sentences.
+            if (sentence.fragments.count() == 0
+                and sentence.fragment_candidates.count() == 0
+                ):
+                sentence.delete()
+        if right_is_at_end:
+            for sentence in right_sf.candidate_sentences.all():
+                sentence.remove_candidates(left_sf, right_sf)
+                # Delete orphaned sentences.
+                if (sentence.fragments.count() == 0
+                    and sentence.fragment_candidates.count() == 0
+                ):
+                    sentence.delete()
 
     if not task.is_review:
         # First time.
@@ -200,6 +239,11 @@ def process_stitch_task(transcription_task_pk):
             if sf.revision.fragment == task.left.fragment:
                 for sentence in sf.candidate_sentences.all():
                     sentence.commit_candidates(sf)
+        if right_is_at_end:
+            for sf in task.right.sentence_fragments.all():
+                if sf.revision.fragment == task.right.fragment:
+                    for sentence in sf.candidate_sentences.all():
+                        sentence.commit_candidates(sf)
         # Update state of transcript fragments if fully stitched.
         if task.left.fragment.stitched_left:
             task.left.fragment.review_stitch()

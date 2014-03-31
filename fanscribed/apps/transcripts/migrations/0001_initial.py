@@ -270,7 +270,7 @@ class Migration(SchemaMigration):
             'transcript': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.Transcript']"})
         },
         u'transcripts.stitchtaskpairing': {
-            'Meta': {'unique_together': "[('task', 'left')]", 'object_name': 'StitchTaskPairing'},
+            'Meta': {'ordering': "('left__revision__fragment__start', 'left__sequence')", 'unique_together': "[('task', 'left')]", 'object_name': 'StitchTaskPairing'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'left': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['transcripts.SentenceFragment']"}),
             'right': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['transcripts.SentenceFragment']"}),
