@@ -3,8 +3,6 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.dispatch import receiver
-from django_fsm.signals import post_transition
 
 from model_utils.models import AutoCreatedField, TimeStampedModel
 
@@ -46,16 +44,17 @@ class Sentence(models.Model):
         'SentenceFragment', related_name='sentences')
     fragment_candidates = models.ManyToManyField(
         'SentenceFragment', related_name='candidate_sentences')
+    tf_start = models.ForeignKey('TranscriptFragment')
+    tf_sequence = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = ('tf_start__start', 'tf_sequence')
 
     objects = SentenceManager()
 
     @property
     def text(self):
-        return u' '.join(
-            fragment.text
-            for fragment
-            in self.fragments.order_by('revision__fragment__start')
-        )
+        return u' '.join(fragment.text for fragment in self.fragments.all())
 
     @transition(state, ['empty', 'partial'], 'partial', save=True)
     def add_candidates(self, *fragments):
@@ -87,7 +86,7 @@ class SentenceFragment(models.Model):
     text = models.TextField()
 
     class Meta:
-        ordering = ('sequence',)
+        ordering = ('revision__fragment__start', 'sequence')
         unique_together = [
             ('revision', 'sequence'),
         ]
@@ -136,13 +135,13 @@ class Task(TimeStampedModel):
     @enduml
     """
 
-    class Meta:
-        abstract = True
-
     transcript = models.ForeignKey('Transcript')
     is_review = models.BooleanField()
     state = FSMField(default='unassigned', protected=True)
     assignee = models.ForeignKey('auth.User', blank=True, null=True)
+
+    class Meta:
+        abstract = True
 
     objects = TaskManager()
 
@@ -263,7 +262,6 @@ class StitchTask(Task):
                 if (left_sentence_fragment is not None
                     and right_sentence_fragment is not None
                 ):
-                    # print left_sentence_fragment.text, right_sentence_fragment.text
                     self.task_pairings.create(
                         left=left_sentence_fragment,
                         right=right_sentence_fragment,
@@ -341,7 +339,7 @@ class Transcript(TimeStampedModel):
                 end=end,
                 # First and last fragments are 'stitched' to each end. :)
                 stitched_left=True if start == Decimal('0') else False,
-                stitched_right=True if start == self.length else False,
+                stitched_right=True if end == self.length else False,
             )
 
             start = end
@@ -449,31 +447,39 @@ class TranscriptFragment(models.Model):
 
     def _merge_sentences(self):
         """Merge overlapping Sentence instances."""
-        print 'merging sentences'
-        latest = self.revisions.latest()
-        for sf in latest.sentence_fragments.all():
-            if sf.sentences.count() > 1:
+        latest_revision = self.revisions.latest()
+        deletion_candidates = []
+        for sf in latest_revision.sentence_fragments.all():
+            sentences = sf.sentences
+            candidate_sentences = sf.candidate_sentences
+            if sentences.count() > 1 or candidate_sentences.count() > 1:
                 # This fragment is in more than one sentence.
                 # Pick the first sentence selected as the survivor.
-                survivor = sf.sentences.all()[0]
-                for other in sf.sentences.all()[1:]:
-                    if other.fragment_candidates.count() > 0:
-                        # The other sentence is still being worked on.
-                        continue
-                    print 'merging sentence {} -> {}'.format(other.id, survivor.id)
-                    survivor.fragments.add(*other.fragments.all())
-                    print 'deleting {}'.format(other.id)
-                    other.delete()
+                if sentences:
+                    survivor = sentences.first()
+                else:
+                    survivor = candidate_sentences.first()
+
+                def merge(s, o):
+                    s.fragments.add(*o.fragments.all())
+                    s.fragment_candidates.add(
+                        *o.fragment_candidates.all())
+                    o.delete()
+
+                for other in sentences.all():
+                    if other != survivor:
+                        merge(survivor, other)
+
+                for other in candidate_sentences.all():
+                    if other != survivor:
+                        merge(survivor, other)
+
 
     def _complete_sentences(self):
         """Complete sentences in this fragment as applicable."""
         latest = self.revisions.latest()
-        print 'latest is', latest.sequence
         for candidate_sf in latest.sentence_fragments.all():
-            print 'checking', candidate_sf.text
             for sentence in candidate_sf.sentences.filter(state='partial'):
-                print 'in sentence', sentence.id
-                print 'candidate count', sentence.fragment_candidates.count()
                 if sentence.fragment_candidates.count() > 0:
                     # The sentence is still being worked on.
                     continue
@@ -482,7 +488,6 @@ class TranscriptFragment(models.Model):
                     for other_sf in sentence.fragments.all()
                     if other_sf != candidate_sf
                 ):
-                    print 'completing sentence {}'.format(sentence.id)
                     sentence.complete()
 
 

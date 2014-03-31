@@ -27,6 +27,8 @@ class TranscriptsTestCase(TestCase):
         f0, = t.fragments.all()
         self.assertEqual(f0.start, Decimal('0.00'))
         self.assertEqual(f0.end, Decimal('3.33'))
+        self.assertEqual(f0.stitched_left, True)
+        self.assertEqual(f0.stitched_right, True)
 
         t = m.Transcript.objects.create(name='test')
         t.set_length('7.77')
@@ -39,8 +41,12 @@ class TranscriptsTestCase(TestCase):
         f0, f1 = t.fragments.all()
         self.assertEqual(f0.start, Decimal('0.00'))
         self.assertEqual(f0.end, Decimal('5.00'))
+        self.assertEqual(f0.stitched_left, True)
+        self.assertEqual(f0.stitched_right, False)
         self.assertEqual(f1.start, Decimal('5.00'))
         self.assertEqual(f1.end, Decimal('13.33'))
+        self.assertEqual(f1.stitched_left, False)
+        self.assertEqual(f1.stitched_right, True)
 
 
 if os.environ.get('FAST_TEST') != '1':

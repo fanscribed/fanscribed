@@ -13,6 +13,8 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('transcript', self.gf('django.db.models.fields.related.ForeignKey')(related_name='sentences', to=orm['transcripts.Transcript'])),
             ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='empty', max_length=50)),
+            ('tf_start', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['transcripts.TranscriptFragment'])),
+            ('tf_sequence', self.gf('django.db.models.fields.PositiveIntegerField')()),
         ))
         db.send_create_signal(u'transcripts', ['Sentence'])
 
@@ -239,15 +241,17 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
         },
         u'transcripts.sentence': {
-            'Meta': {'object_name': 'Sentence'},
+            'Meta': {'ordering': "('tf_start__start', 'tf_sequence')", 'object_name': 'Sentence'},
             'fragment_candidates': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'candidate_sentences'", 'symmetrical': 'False', 'to': u"orm['transcripts.SentenceFragment']"}),
             'fragments': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'sentences'", 'symmetrical': 'False', 'to': u"orm['transcripts.SentenceFragment']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'empty'", 'max_length': '50'}),
+            'tf_sequence': ('django.db.models.fields.PositiveIntegerField', [], {}),
+            'tf_start': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.TranscriptFragment']"}),
             'transcript': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'sentences'", 'to': u"orm['transcripts.Transcript']"})
         },
         u'transcripts.sentencefragment': {
-            'Meta': {'ordering': "('sequence',)", 'unique_together': "[('revision', 'sequence')]", 'object_name': 'SentenceFragment'},
+            'Meta': {'ordering': "('revision__fragment__start', 'sequence')", 'unique_together': "[('revision', 'sequence')]", 'object_name': 'SentenceFragment'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'revision': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'sentence_fragments'", 'to': u"orm['transcripts.TranscriptFragmentRevision']"}),
             'sequence': ('django.db.models.fields.PositiveIntegerField', [], {}),
@@ -296,7 +300,7 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '512'})
         },
         u'transcripts.transcriptfragment': {
-            'Meta': {'unique_together': "[('transcript', 'start', 'end')]", 'object_name': 'TranscriptFragment'},
+            'Meta': {'ordering': "('start',)", 'unique_together': "[('transcript', 'start', 'end')]", 'object_name': 'TranscriptFragment'},
             'end': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'lock_state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unlocked'", 'max_length': '50'}),
