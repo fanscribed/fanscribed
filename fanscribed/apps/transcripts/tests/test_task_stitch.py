@@ -79,7 +79,7 @@ class StitchTaskTestCase(TransactionTestCase):
 
         self.assertState(task, 'valid')
 
-    def review(self, left_index, right_index, verify=None):
+    def review(self, left_index, right_index, verify=None, alter=None):
         tfr_left = self.tfragments[left_index].revisions.latest()
         tfr_right = self.tfragments[right_index].revisions.latest()
         task = self.transcript.stitchtask_set.create(
@@ -100,6 +100,15 @@ class StitchTaskTestCase(TransactionTestCase):
 
         task.assign_to(self.user)
         task.present()
+
+        if alter is not None:
+            task.task_pairings.all().delete()
+            for L, R in alter:
+                task.task_pairings.create(
+                    left=sf_left[L],
+                    right=sf_right[R],
+                )
+
         task.submit()
         task._finish_submit()
         task = refresh(task)
@@ -367,4 +376,41 @@ class StitchTaskTestCase(TransactionTestCase):
             (u'completed', [], [u'C1', u'C2']),
             (u'completed', [], [u'D']),
             (u'completed', [], [u'E']),
+        ])
+
+    def test_review_removes_and_readds_stitch(self):
+        self._transcribe_and_review(0, """
+            A1
+            """)
+        self._transcribe_and_review(1, """
+            A2
+            """)
+
+        self.stitch(0, 1, [
+            (0, 0),  # A1, A2
+        ])
+
+        self.check_sentences([
+            (u'partial', [u'A1', u'A2'], []),
+        ])
+
+        self.review(0, 1, alter=[])
+
+        self.check_sentences([
+            (u'partial', [u'A1'], []),
+            (u'partial', [u'A2'], []),
+        ])
+
+        self.review(0, 1, alter=[
+            (0, 0),
+        ])
+
+        self.check_sentences([
+            (u'partial', [u'A1', u'A2'], []),
+        ])
+
+        self.review(0, 1)
+
+        self.check_sentences([
+            (u'partial', [u'A2'], [u'A1']),
         ])
