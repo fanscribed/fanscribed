@@ -104,6 +104,7 @@ def process_transcribe_task(pk):
 
     # Require text.
     if task.text is None or task.text.strip() == u'':
+        print 'transcribe: no text'
         task.invalidate()
         return
 
@@ -281,6 +282,7 @@ def process_clean_task(pk):
 
     # Require text.
     if task.text is None or task.text.strip() == u'':
+        print 'clean: no text'
         task.invalidate()
         return
 
@@ -310,16 +312,19 @@ def process_boundary_task(pk):
 
     # Require start and end.
     if task.start is None or task.end is None:
+        print 'start or end is none:', (task.start, task.end)
         task.invalidate()
         return
 
     # Require end to be > start.
     if task.end <= task.start:
+        print 'end is <= start:', (task.start, task.end)
         task.invalidate()
         return
 
     # Require start and end to be within transcript.
     if task.start < Decimal('0') or task.end > task.transcript.length:
+        print 'start or end is out of bounds:', (task.start, task.end)
         task.invalidate()
         return
 
@@ -353,6 +358,7 @@ def process_speaker_task(pk):
     if ((task.speaker is None and not has_new_name)
         or (task.speaker is not None and has_new_name)
         ):
+        print 'speaker XOR speaker name not given'
         task.invalidate()
         return
 
