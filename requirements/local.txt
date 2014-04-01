@@ -12,3 +12,5 @@ flake8 == 2.1.0
 
 django-werkzeug-debugger-runserver == 0.2
     Werkzeug == 0.9.4
+
+beautifulsoup4 == 4.3.2
