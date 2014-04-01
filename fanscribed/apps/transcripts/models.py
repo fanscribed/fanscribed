@@ -946,10 +946,12 @@ class TranscriptFragment(models.Model):
                     survivor = candidate_sentences.first()
 
                 def merge(s, o):
-                    s.fragments.add(*o.fragments.all())
-                    s.fragment_candidates.add(
-                        *o.fragment_candidates.all())
-                    o.delete()
+                    # TODO: investigate why 'other' is sometimes none.
+                    if o is not None:
+                        s.fragments.add(*o.fragments.all())
+                        s.fragment_candidates.add(
+                            *o.fragment_candidates.all())
+                        o.delete()
 
                 for other in sentences.all():
                     if other != survivor:
