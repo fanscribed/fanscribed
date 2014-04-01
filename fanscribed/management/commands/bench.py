@@ -40,7 +40,6 @@ class Command(BaseCommand):
                 break
             else:
                 self.verbose_write('  Response OK.')
-                #break
 
     def verbose_write(self, str):
         if self.verbosity > 0:
@@ -70,9 +69,7 @@ class Command(BaseCommand):
         csrf_input = soup.find('input', dict(name='csrfmiddlewaretoken'))
         csrf_token = csrf_input.attrs['value']
 
-        # task_type = random.choice(['any_sequential', 'any_eager'])
-        # task_type = 'transcribe'
-        task_type = 'any_sequential'
+        task_type = random.choice(['any_sequential', 'any_eager'])
 
         self.verbose_write('Requesting type: {task_type}'.format(**locals()))
         assign_path = reverse(
@@ -190,9 +187,9 @@ class Command(BaseCommand):
         end = Decimal(end_tag.attrs['value'])
 
         if not is_review:
-            duration = end - start
-            delta1 = Decimal(random.randint(0, int(duration * 100))) / Decimal(100)
-            delta2 = Decimal(random.randint(0, int(duration * 100))) / Decimal(100)
+            max_delta = (end - start) / 2
+            delta1 = Decimal(random.randint(0, int(max_delta * 100))) / 100
+            delta2 = Decimal(random.randint(0, int(max_delta * 100))) / 100
             delta_start, delta_end = sorted([delta1, delta2])
             self.verbose_write('    {}, {}'.format(delta_start, delta_end))
             start += delta_start
