@@ -1,3 +1,6 @@
+# TODO: port this tool to use an API when it's available
+from decimal import Decimal
+
 import random
 from urlparse import urljoin
 
@@ -101,11 +104,14 @@ class Command(BaseCommand):
         soup = BeautifulSoup(response.content)
         csrf_input = soup.find('input', dict(name='csrfmiddlewaretoken'))
         csrf_token = csrf_input.attrs['value']
+        data = dict(
+            csrfmiddlewaretoken=csrf_token,
+        )
 
         self.verbose_write('  performing:')
-        return perform(task_url, soup, csrf_token, is_review)
+        return perform(task_url, soup, data, is_review)
 
-    def perform_transcribe(self, url, soup, csrf_token, is_review):
+    def perform_transcribe(self, url, soup, data, is_review):
         if not is_review:
             # Make 1-4 random sentences with 2-6 words each.
             sentences = []
@@ -119,38 +125,117 @@ class Command(BaseCommand):
             text = '\n'.join(sentences)
         else:
             textarea = soup.find('textarea', dict(name='text'))
-            text = textarea.contents
+            text = ''.join(textarea.contents)
             alter = random.choice([True, False])
             if alter:
                 # Add another word to beginning.
                 text = '{} {}'.format(random.choice(WORDS), text)
+                self.verbose_write('    (changed text)')
 
-        data = dict(
-            text=text,
-            csrfmiddlewaretoken=csrf_token,
-        )
+        data['text'] = text
         return self.session.post(url, data)
 
-    def perform_stitch(self, url, soup, csrf_token, is_review):
-        if not is_review:
-            pass
-        else:
-            pass
+    def perform_stitch(self, url, soup, data, is_review):
+        # Find the set of left-side and right-side candidates.
+        left = set()
+        right = set()
+        for tag in soup.find_all('input', dict(type='radio')):
+            name = tag.attrs['name']
+            left.add(name)
+            value = tag.attrs['value']
+            if value != '-':
+                right.add(value)
+            if tag.attrs.get('checked') == 'checked':
+                data[name] = value
+        self.verbose_write(repr(left))
+        self.verbose_write(repr(right))
 
-    def perform_clean(self, url, soup, csrf_token, is_review):
         if not is_review:
-            pass
+            # Join a random number of fragments on the right to the left.
+            max_stitch_count = min(len(left), len(right))
+            stitch_count = random.randint(0, max_stitch_count)
+            for i in range(0, stitch_count):
+                value = random.choice(list(right))
+                right.remove(value)
+                name = random.choice(list(left))
+                left.remove(name)
+                data[name] = value
+                self.verbose_write('    {} <- {}'.format(name, value))
         else:
-            pass
+            alter = random.choice([True, False])
+            if alter:
+                name = random.choice(list(left))
+                data[name] = '-'
 
-    def perform_boundary(self, url, soup, csrf_token, is_review):
-        if not is_review:
-            pass
-        else:
-            pass
+        return self.session.post(url, data)
 
-    def perform_speaker(self, url, soup, csrf_token, is_review):
+    def perform_clean(self, url, soup, data, is_review):
+        # Do the same thing whether or not we are reviewing.
+        textarea = soup.find('textarea', dict(name='text'))
+        text = ''.join(textarea.contents)
+        alter = random.choice([True, False])
+
+        if alter:
+            # Add another word to beginning.
+            text = '{} {}'.format(random.choice(WORDS), text)
+            self.verbose_write('    (changed text)')
+
+        data['text'] = text
+        return self.session.post(url, data)
+
+    def perform_boundary(self, url, soup, data, is_review):
+        start_tag = soup.find('input', dict(name='start'))
+        end_tag = soup.find('input', dict(name='end'))
+        start = Decimal(start_tag.attrs['value'])
+        end = Decimal(end_tag.attrs['value'])
+
         if not is_review:
-            pass
+            duration = end - start
+            delta1 = Decimal(random.randint(0, int(duration * 100))) / Decimal(100)
+            delta2 = Decimal(random.randint(0, int(duration * 100))) / Decimal(100)
+            delta_start, delta_end = sorted([delta1, delta2])
+            self.verbose_write('    {}, {}'.format(delta_start, delta_end))
+            start += delta_start
+            end -= delta_end
+            self.verbose_write('    {} -> {}'.format(start, end))
         else:
-            pass
+            alter = random.choice([True, False])
+            if alter:
+                start -= Decimal('0.01')
+                end += Decimal('0.01')
+
+        data['start'] = str(start)
+        data['end'] = str(end)
+        return self.session.post(url, data)
+
+    def perform_speaker(self, url, soup, data, is_review):
+        speakers = []
+        speaker_inputs = soup.find_all('input', dict(type='radio'))
+        for tag in speaker_inputs:
+            value = tag.attrs.get('value')
+            if value:
+                speakers.append(value)
+                if tag.attrs.get('checked') == 'checked':
+                    data['speaker'] = value
+
+        if not is_review:
+            if len(speakers) == 0:
+                create_new = True
+            else:
+                create_new = (random.random() < 0.1)
+            if create_new:
+                new_name = random.choice(WORDS)
+                data['new_name'] = new_name
+                if 'speaker' in data:
+                    del data['speaker']
+                self.verbose_write('    new speaker: {}'.format(new_name))
+            else:
+                speaker = random.choice(speakers)
+                data['speaker'] = speaker
+                self.verbose_write('   existing speaker: {}'.format(speaker))
+        else:
+            alter = random.choice([True, False])
+            if alter:
+                data['speaker'] = random.choice(speakers)
+
+        return self.session.post(url, data)
