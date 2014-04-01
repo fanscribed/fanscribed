@@ -69,7 +69,8 @@ class Command(BaseCommand):
         csrf_input = soup.find('input', dict(name='csrfmiddlewaretoken'))
         csrf_token = csrf_input.attrs['value']
 
-        task_type = random.choice(['any_sequential', 'any_eager'])
+        # task_type = random.choice(['any_sequential', 'any_eager'])
+        task_type = 'any_eager'
 
         self.verbose_write('Requesting type: {task_type}'.format(**locals()))
         assign_path = reverse(
@@ -123,7 +124,7 @@ class Command(BaseCommand):
         else:
             textarea = soup.find('textarea', dict(name='text'))
             text = ''.join(textarea.contents)
-            alter = random.choice([True, False])
+            alter = (random.random() < 0.3)
             if alter:
                 # Add another word to beginning.
                 text = '{} {}'.format(random.choice(WORDS), text)
@@ -159,7 +160,7 @@ class Command(BaseCommand):
                 data[name] = value
                 self.verbose_write('    {} <- {}'.format(name, value))
         else:
-            alter = random.choice([True, False])
+            alter = (random.random() < 0.3)
             if alter:
                 name = random.choice(list(left))
                 data[name] = '-'
@@ -170,7 +171,7 @@ class Command(BaseCommand):
         # Do the same thing whether or not we are reviewing.
         textarea = soup.find('textarea', dict(name='text'))
         text = ''.join(textarea.contents)
-        alter = random.choice([True, False])
+        alter = (random.random() < 0.3)
 
         if alter:
             # Add another word to beginning.
@@ -196,7 +197,7 @@ class Command(BaseCommand):
             end -= delta_end
             self.verbose_write('    {} -> {}'.format(start, end))
         else:
-            alter = random.choice([True, False])
+            alter = (random.random() < 0.3)
             if alter:
                 start -= Decimal('0.01')
                 end += Decimal('0.01')
@@ -231,7 +232,7 @@ class Command(BaseCommand):
                 data['speaker'] = speaker
                 self.verbose_write('   existing speaker: {}'.format(speaker))
         else:
-            alter = random.choice([True, False])
+            alter = (random.random() < 0.3)
             if alter:
                 data['speaker'] = random.choice(speakers)
 
