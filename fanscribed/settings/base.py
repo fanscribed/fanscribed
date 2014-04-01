@@ -58,6 +58,8 @@ DATABASES = {
     }
 }
 
+ATOMIC_REQUESTS = True
+
 
 # DB MIGRATIONS
 # -------------
