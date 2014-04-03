@@ -1,17 +1,13 @@
 from .base import *
 
+from dj_database_url import parse
+
 
 TESTING = True
 
+DATABASE_URL = getenv('DATABASE_URL', 'postgres://fanscribed:fanscribed@localhost:5432/fanscribed')
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'fanscribed',
-        'USER': 'fanscribed',
-        'PASSWORD': 'fanscribed',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': parse(DATABASE_URL),
 }
 
 BROKER_BACKEND = 'memory'
