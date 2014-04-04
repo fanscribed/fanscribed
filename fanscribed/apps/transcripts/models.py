@@ -922,7 +922,7 @@ class TranscriptFragment(models.Model):
     @transition(state, 'transcript_reviewed', 'stitched', save=True,
                 conditions=[stitched_both_sides])
     def stitch(self):
-        pass
+        self._merge_sentences()
 
     @transition(state, 'stitched', 'stitch_reviewed', save=True,
                 conditions=[stitched_both_sides])
@@ -937,29 +937,32 @@ class TranscriptFragment(models.Model):
         for sf in latest_revision.sentence_fragments.all():
             sentences = sf.sentences
             candidate_sentences = sf.candidate_sentences
-            if sentences.count() > 1 or candidate_sentences.count() > 1:
-                # This fragment is in more than one sentence.
-                # Pick the first sentence selected as the survivor.
-                if sentences:
-                    survivor = sentences.first()
-                else:
-                    survivor = candidate_sentences.first()
 
+            # If fragment is in more than one sentence,
+            # pick the first sentence as the survivor.
+            if sentences.count() > 1:
+                survivor = sentences.first()
+            elif candidate_sentences.count() > 1:
+                survivor = candidate_sentences.first()
+            else:
+                survivor = None
+
+            if survivor is not None:
+                # Merge remaining sentences with survivor.
                 def merge(s, o):
-                    # TODO: investigate why 'other' is sometimes none.
-                    if o is not None:
-                        s.fragments.add(*o.fragments.all())
-                        s.fragment_candidates.add(
-                            *o.fragment_candidates.all())
-                        o.delete()
-
+                    s.fragments.add(*o.fragments.all())
+                    s.fragment_candidates.add(
+                        *o.fragment_candidates.all())
+                    o.delete()
                 for other in sentences.all():
                     if other != survivor:
                         merge(survivor, other)
-
                 for other in candidate_sentences.all():
                     if other != survivor:
                         merge(survivor, other)
+            else:
+                # No survivor means there was only one sentence involved.
+                pass
 
     def _complete_sentences(self):
         """Complete sentences in this fragment as applicable."""

@@ -307,7 +307,6 @@ class StitchTaskTestCase(TransactionTestCase):
             (u'partial', [u'B2', u'B3'], [u'B1']),
             (u'partial', [u'C2'], [u'C1']),
             (u'partial', [u'D'], []),
-            (u'partial', [u'B3'], []),
             (u'partial', [u'E'], []),
         ])
 
@@ -347,7 +346,6 @@ class StitchTaskTestCase(TransactionTestCase):
             (u'partial', [u'B2', u'B3'], []),
             (u'partial', [u'D'], []),
             (u'partial', [u'C2'], []),
-            (u'partial', [u'B3'], []),
             (u'partial', [u'E'], []),
         ])
 
@@ -358,12 +356,9 @@ class StitchTaskTestCase(TransactionTestCase):
 
         self.check_sentences([
             (u'partial', [u'A'], []),
-            (u'partial', [u'B1', u'B2'], []),
+            (u'partial', [u'B1', u'B2', u'B3'], []),
             (u'partial', [u'C1', u'C2'], []),
-            (u'partial', [u'B2', u'B3'], []),
             (u'partial', [u'D'], []),
-            (u'partial', [u'C2'], []),
-            (u'partial', [u'B3'], []),
             (u'partial', [u'E'], []),
         ])
 
@@ -416,18 +411,49 @@ class StitchTaskTestCase(TransactionTestCase):
             (1, 0),  # E1, E2
         ], submit=False)
         stitch23 = self.submit(stitch23)
+        self.check_sentences([
+            (u'partial', [u'B3'], []),
+            (u'partial', [u'E1', u'E2'], []),
+        ])
         review23 = self.review(2, 3, submit=False)
         stitch01 = self.submit(stitch01)
+        self.check_sentences([
+            (u'partial', [u'A'], []),
+            (u'partial', [u'B1', u'B2'], []),
+            (u'partial', [u'C1', u'C2'], []),
+            (u'partial', [u'B3'], []),
+            (u'partial', [u'E1', u'E2'], []),
+        ])
         review23 = self.submit(review23)
+        self.check_sentences([
+            (u'partial', [u'A'], []),
+            (u'partial', [u'B1', u'B2'], []),
+            (u'partial', [u'C1', u'C2'], []),
+            (u'partial', [u'B3'], []),
+            (u'partial', [u'E1'], [u'E2']),
+        ])
         stitch12 = self.stitch(1, 2, [
             (0, 0),  # B2, B3
         ], submit=False)
         stitch12 = self.submit(stitch12)
+        self.check_sentences([
+            (u'partial', [u'A'], []),
+            (u'partial', [u'B1', u'B2', u'B3'], []),
+            (u'partial', [u'C1', u'C2'], []),
+            (u'partial', [u'D'], []),
+            (u'partial', [u'E1'], [u'E2']),
+        ])
         review12 = self.review(1, 2, submit=False)
         review12 = self.submit(review12)
+        self.check_sentences([
+            (u'partial', [u'A'], []),
+            (u'partial', [u'B1'], [u'B2', u'B3']),
+            (u'partial', [u'C1'], [u'C2']),
+            (u'completed', [], [u'D']),  # TODO: should this be completed yet?
+            (u'completed', [], [u'E1', u'E2']),
+        ])
         review01 = self.review(0, 1, submit=False)
         review01 = self.submit(review01)
-
         self.check_sentences([
             (u'completed', [], [u'A']),
             (u'completed', [], [u'B1', u'B2', u'B3']),
