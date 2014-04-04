@@ -6,8 +6,8 @@ logutils == 0.3.3
 psycopg2 == 2.5.2
 South == 0.8.4
 
-ipython == 1.2.1
-    pyzmq == 14.0.1
+ipython == 2.0.0
+    pyzmq == 14.1.1
     tornado == 3.2
     Jinja2 == 2.7.2
     Pygments == 1.6
