@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+
+{% block nav_class_read %}
+  active
+{% endblock %}
+
+
+{% block content %}
+
+  <h1><a href="{% url 'transcripts:detail' pk=transcript.pk %}">{{ transcript.name }}</a></h1>
+
+  <table class="table table-condensed table-bordered">
+    <thead>
+      <tr>
+        <th>Start</th>
+        <th>End</th>
+        <th>Speaker</th>
+        <th>Text</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sentence in sentences %}
+        <tr>
+          <td>{{ sentence.latest_start }}</td>
+          <td>{{ sentence.latest_end }}</td>
+          <td>{{ sentence.latest_speaker }}</td>
+          <td>{{ sentence.latest_text }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% endblock %}

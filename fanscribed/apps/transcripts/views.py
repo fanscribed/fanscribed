@@ -20,6 +20,17 @@ class TranscriptDetailView(DetailView):
     model = m.Transcript
 
 
+class TranscriptTextView(DetailView):
+
+    model = m.Transcript
+    template_name_suffix = '_text'
+
+    def get_context_data(self, **kwargs):
+        d = super(TranscriptTextView, self).get_context_data(**kwargs)
+        d['sentences'] = self.object.sentences.filter(state='completed').order_by('latest_start')
+        return d
+
+
 # -----------------------------
 
 
