@@ -17,15 +17,17 @@ with open('/usr/share/dict/words', 'rb') as f:
 
 
 class Command(BaseCommand):
-    args = '<base-url> <transcript-id> <email> <password>'
+    args = '<base-url> <transcript-id> <email> <password> <revise-ratio>'
     help = "Benchmarks and stress-tests Fanscribed"
 
     def handle(self, *args, **options):
         self.verbosity = options.get('verbosity', 0)
-        if len(args) != 4:
+        try:
+            self.base_url, self.transcript_id, self.email, self.password, self.revise_ratio = args
+        except ValueError:
             raise CommandError(
-                'Provide base URL, transcript ID, email, and password')
-        self.base_url, self.transcript_id, self.email, self.password = args
+                'Provide base URL, transcript ID, email, password, and revise ratio.')
+        self.revise_ratio = float(self.revise_ratio)
         detail_path = reverse('transcripts:detail',
                               kwargs=dict(pk=self.transcript_id))
         self.transcript_url = urljoin(self.base_url, detail_path)
@@ -69,8 +71,7 @@ class Command(BaseCommand):
         csrf_input = soup.find('input', dict(name='csrfmiddlewaretoken'))
         csrf_token = csrf_input.attrs['value']
 
-        # task_type = random.choice(['any_sequential', 'any_eager'])
-        task_type = 'any_eager'
+        task_type = random.choice(['any_sequential', 'any_eager'])
 
         self.verbose_write('Requesting type: {task_type}'.format(**locals()))
         assign_path = reverse(
@@ -124,7 +125,7 @@ class Command(BaseCommand):
         else:
             textarea = soup.find('textarea', dict(name='text'))
             text = ''.join(textarea.contents)
-            alter = (random.random() < 0.3)
+            alter = (random.random() < self.revise_ratio)
             if alter:
                 # Add another word to beginning.
                 text = '{} {}'.format(random.choice(WORDS), text)
@@ -160,7 +161,7 @@ class Command(BaseCommand):
                 data[name] = value
                 self.verbose_write('    {} <- {}'.format(name, value))
         else:
-            alter = (random.random() < 0.3)
+            alter = (random.random() < self.revise_ratio)
             if alter:
                 name = random.choice(list(left))
                 data[name] = '-'
@@ -171,7 +172,7 @@ class Command(BaseCommand):
         # Do the same thing whether or not we are reviewing.
         textarea = soup.find('textarea', dict(name='text'))
         text = ''.join(textarea.contents)
-        alter = (random.random() < 0.3)
+        alter = (random.random() < self.revise_ratio)
 
         if alter:
             # Add another word to beginning.
@@ -197,7 +198,7 @@ class Command(BaseCommand):
             end -= delta_end
             self.verbose_write('    {} -> {}'.format(start, end))
         else:
-            alter = (random.random() < 0.3)
+            alter = (random.random() < self.revise_ratio)
             if alter:
                 start -= Decimal('0.01')
                 end += Decimal('0.01')
@@ -232,7 +233,7 @@ class Command(BaseCommand):
                 data['speaker'] = speaker
                 self.verbose_write('   existing speaker: {}'.format(speaker))
         else:
-            alter = (random.random() < 0.3)
+            alter = (random.random() < self.revise_ratio)
             if alter:
                 data['speaker'] = random.choice(speakers)
 
