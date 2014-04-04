@@ -3,7 +3,6 @@ import time
 
 from celery.app import shared_task
 from celery.exceptions import Reject
-from django.db import transaction
 
 from ..media import avlib
 from ..media.models import MediaFile
@@ -183,6 +182,7 @@ def process_stitch_task(pk):
         _make_sentence(sf)
     right_is_at_end = (task.right.fragment.end == task.transcript.length)
     if right_is_at_end:
+        print '** RIGHT IS AT END'
         # Special case when the right side is the last TranscriptFragment.
         for sf in task.right.sentence_fragments.all():
             _make_sentence(sf)
@@ -242,16 +242,18 @@ def process_stitch_task(pk):
             fragment_right.save()
 
     elif task.is_review and old_pairings == new_pairings:
+        if right_is_at_end: print '-- review'
         # No changes; commit sentence candidates.
         if fragment_left.stitched_left:
             for sf in task.left.sentence_fragments.all():
                 if sf.revision.fragment == fragment_left:
                     for sentence in sf.candidate_sentences.all():
                         sentence.commit_candidates(sf)
-        if fragment_right.stitched_right or right_is_at_end:
+        if fragment_right.stitched_right:
             for sf in task.right.sentence_fragments.all():
                 if sf.revision.fragment == fragment_right:
                     for sentence in sf.candidate_sentences.all():
+                        if right_is_at_end: print '-- commit', sf.id, 'to', sentence.id
                         sentence.commit_candidates(sf)
 
         # Update state of transcript fragments if fully stitched.
@@ -260,6 +262,7 @@ def process_stitch_task(pk):
             ):
             fragment_left.review_stitch()
 
+        if right_is_at_end: print '-- stitched_right', fragment_right.stitched_right, 'state', fragment_right.state
         if (fragment_right.stitched_right
             and fragment_right.state != 'stitch_reviewed'
             ):
