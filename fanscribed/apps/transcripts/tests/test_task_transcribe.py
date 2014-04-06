@@ -94,7 +94,7 @@ class TranscribeTaskTestCase(TestCase):
         )
 
         self.assertEqual(task.state, 'valid')
-        self.assertEqual(task.revision.fragment.state, 'transcript_reviewed')
+        self.assertEqual(task.revision.fragment.state, 'reviewed')
 
         f0, f1 = task.revision.sentence_fragments.all()
         self.assertEqual(f0.text, 'first')

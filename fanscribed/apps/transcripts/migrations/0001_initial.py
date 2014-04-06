@@ -209,8 +209,6 @@ class Migration(SchemaMigration):
             ('transcript', self.gf('django.db.models.fields.related.ForeignKey')(related_name='fragments', to=orm['transcripts.Transcript'])),
             ('start', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
             ('end', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
-            ('stitched_left', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('stitched_right', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='empty', max_length=50)),
             ('lock_state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='unlocked', max_length=50)),
         ))
@@ -218,6 +216,17 @@ class Migration(SchemaMigration):
 
         # Adding unique constraint on 'TranscriptFragment', fields ['transcript', 'start', 'end']
         db.create_unique(u'transcripts_transcriptfragment', ['transcript_id', 'start', 'end'])
+
+        # Adding model 'TranscriptStitch'
+        db.create_table(u'transcripts_transcriptstitch', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('transcript', self.gf('django.db.models.fields.related.ForeignKey')(related_name='stitches', to=orm['transcripts.Transcript'])),
+            ('left', self.gf('django.db.models.fields.related.OneToOneField')(related_name='right_stitch', unique=True, to=orm['transcripts.TranscriptFragment'])),
+            ('right', self.gf('django.db.models.fields.related.OneToOneField')(related_name='left_stitch', unique=True, to=orm['transcripts.TranscriptFragment'])),
+            ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='unstitched', max_length=50)),
+            ('lock_state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='unlocked', max_length=50)),
+        ))
+        db.send_create_signal(u'transcripts', ['TranscriptStitch'])
 
         # Adding model 'TranscriptFragmentRevision'
         db.create_table(u'transcripts_transcriptfragmentrevision', (
@@ -325,6 +334,9 @@ class Migration(SchemaMigration):
 
         # Deleting model 'TranscriptFragment'
         db.delete_table(u'transcripts_transcriptfragment')
+
+        # Deleting model 'TranscriptStitch'
+        db.delete_table(u'transcripts_transcriptstitch')
 
         # Deleting model 'TranscriptFragmentRevision'
         db.delete_table(u'transcripts_transcriptfragmentrevision')
@@ -517,8 +529,6 @@ class Migration(SchemaMigration):
             'lock_state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unlocked'", 'max_length': '50'}),
             'start': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
             'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'empty'", 'max_length': '50'}),
-            'stitched_left': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'stitched_right': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'transcript': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'fragments'", 'to': u"orm['transcripts.Transcript']"})
         },
         u'transcripts.transcriptfragmentrevision': {
@@ -540,6 +550,15 @@ class Migration(SchemaMigration):
             'media_file': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['media.MediaFile']"}),
             'start': ('django.db.models.fields.DecimalField', [], {'null': 'True', 'max_digits': '8', 'decimal_places': '2'}),
             'transcript': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.Transcript']"})
+        },
+        u'transcripts.transcriptstitch': {
+            'Meta': {'object_name': 'TranscriptStitch'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'left': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'right_stitch'", 'unique': 'True', 'to': u"orm['transcripts.TranscriptFragment']"}),
+            'lock_state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unlocked'", 'max_length': '50'}),
+            'right': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'left_stitch'", 'unique': 'True', 'to': u"orm['transcripts.TranscriptFragment']"}),
+            'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unstitched'", 'max_length': '50'}),
+            'transcript': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'stitches'", 'to': u"orm['transcripts.Transcript']"})
         }
     }
 

@@ -130,7 +130,7 @@ def process_transcribe_task(pk):
             pass
         else:
             # They are the same; finish reviewing.
-            task.revision.fragment.review_transcript()
+            task.revision.fragment.review()
 
     task.validate()
 

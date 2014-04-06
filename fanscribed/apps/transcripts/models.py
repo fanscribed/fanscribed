@@ -810,6 +810,7 @@ class Transcript(TimeStampedModel):
 
     def _create_fragments(self):  # TODO: unit test
         start = Decimal('0')
+        previous = None
         while start < self.length:
 
             # Find the end of the current fragment.
@@ -819,15 +820,22 @@ class Transcript(TimeStampedModel):
             if remaining < settings.TRANSCRIPT_FRAGMENT_LENGTH:
                 end = self.length
 
-            self.fragments.create(
+            current = self.fragments.create(
                 start=start,
                 end=end,
-                # First and last fragments are 'stitched' to each end. :)
-                stitched_left=True if start == Decimal('0') else False,
-                stitched_right=True if end == self.length else False,
+                # # First and last fragments are 'stitched' to each end. :)
+                # stitched_left=True if start == Decimal('0') else False,
+                # stitched_right=True if end == self.length else False,
             )
 
+            if previous is not None:
+                self.stitches.create(
+                    left=previous,
+                    right=current,
+                )
+
             start = end
+            previous = current
 
 
 # ---------------------
@@ -843,14 +851,8 @@ class TranscriptFragmentManager(models.Manager):
     def transcribed(self):
         return self.filter(state='transcribed')
 
-    def transcript_reviewed(self):
+    def reviewed(self):
         return self.filter(state='transcript_reviewed')
-
-    def stitched(self):
-        return self.filter(state='stitched')
-
-    def stitch_reviewed(self):
-        return self.filter(state='stitch_reviewed')
 
     def locked(self):
         return self.filter(lock_state='locked')
@@ -868,10 +870,8 @@ class TranscriptFragment(models.Model):
     @startuml
     [*] --> empty
     empty --> transcribed
-    transcribed --> transcript_reviewed
-    transcript_reviewed --> stitched
-    stitched --> stitch_reviewed
-    stitch_reviewed --> [*]
+    transcribed --> reviewed
+    reviewed --> [*]
     @enduml
 
     lock_state
@@ -887,8 +887,8 @@ class TranscriptFragment(models.Model):
     transcript = models.ForeignKey('Transcript', related_name='fragments')
     start = models.DecimalField(max_digits=8, decimal_places=2)
     end = models.DecimalField(max_digits=8, decimal_places=2)
-    stitched_left = models.BooleanField(default=False)
-    stitched_right = models.BooleanField(default=False)
+    # stitched_left = models.BooleanField(default=False)
+    # stitched_right = models.BooleanField(default=False)
     state = FSMField(default='empty', protected=True)
     lock_state = FSMField(default='unlocked', protected=True)
 
@@ -915,69 +915,138 @@ class TranscriptFragment(models.Model):
     def transcribe(self):
         pass
 
-    @transition(state, 'transcribed', 'transcript_reviewed', save=True)
-    def review_transcript(self):
+    @transition(state, 'transcribed', 'reviewed', save=True)
+    def review(self):
         pass
 
-    @transition(state, 'transcript_reviewed', 'stitched', save=True,
-                conditions=[stitched_both_sides])
+    # @transition(state, 'transcript_reviewed', 'stitched', save=True,
+    #             conditions=[stitched_both_sides])
+    # def stitch(self):
+    #     self._merge_sentences()
+    #
+    # @transition(state, 'stitched', 'stitch_reviewed', save=True,
+    #             conditions=[stitched_both_sides])
+    # def review_stitch(self):
+    #     self._merge_sentences()
+    #     self._complete_sentences()
+    #
+    # def _merge_sentences(self):
+    #     """Merge overlapping Sentence instances."""
+    #     latest_revision = self.revisions.latest()
+    #     deletion_candidates = []
+    #     for sf in latest_revision.sentence_fragments.all():
+    #         sentences = sf.sentences
+    #         candidate_sentences = sf.candidate_sentences
+    #
+    #         # If fragment is in more than one sentence,
+    #         # pick the first sentence as the survivor.
+    #         if sentences.count() > 1:
+    #             survivor = sentences.first()
+    #         elif candidate_sentences.count() > 1:
+    #             survivor = candidate_sentences.first()
+    #         else:
+    #             survivor = None
+    #
+    #         if survivor is not None:
+    #             # Merge remaining sentences with survivor.
+    #             def merge(s, o):
+    #                 s.fragments.add(*o.fragments.all())
+    #                 s.fragment_candidates.add(
+    #                     *o.fragment_candidates.all())
+    #                 o.delete()
+    #             for other in sentences.all():
+    #                 if other != survivor:
+    #                     merge(survivor, other)
+    #             for other in candidate_sentences.all():
+    #                 if other != survivor:
+    #                     merge(survivor, other)
+    #         else:
+    #             # No survivor means there was only one sentence involved.
+    #             pass
+    #
+    # def _complete_sentences(self):
+    #     """Complete sentences in this fragment as applicable."""
+    #     latest = self.revisions.latest()
+    #     for candidate_sf in latest.sentence_fragments.all():
+    #         for sentence in candidate_sf.sentences.filter(state='partial'):
+    #             if sentence.fragment_candidates.count() > 0:
+    #                 # The sentence is still being worked on.
+    #                 continue
+    #             if all(
+    #                 other_sf.revision.fragment.state == 'stitch_reviewed'
+    #                 for other_sf in sentence.fragments.all()
+    #                 if other_sf != candidate_sf
+    #             ):
+    #                 sentence.complete()
+
+
+# ---------------------
+
+
+class TranscriptStitchManager(models.Manager):
+
+    def unstitched(self):
+        return self.filter(state='unstitched')
+
+    def stitched(self):
+        return self.filter(state='stitched')
+
+    def reviewed(self):
+        return self.filter(state='reviewed')
+
+    def locked(self):
+        return self.filter(lock_state='locked')
+
+    def unlocked(self):
+        return self.filter(lock_state='unlocked')
+
+
+class TranscriptStitch(models.Model):
+    """A stitch between two fragments of a transcript.
+
+    state
+    -----
+
+    @startuml
+    [*] --> unstitched
+    unstitched --> stitched
+    stitched --> reviewed
+    reviewed --> [*]
+    @enduml
+
+    lock_state
+    ------------
+
+    @startuml
+    [*] --> unlocked
+    unlocked --> locked
+    locked --> unlocked
+    @enduml
+    """
+
+    transcript = models.ForeignKey('Transcript', related_name='stitches')
+    left = models.OneToOneField('TranscriptFragment', related_name='right_stitch')
+    right = models.OneToOneField('TranscriptFragment', related_name='left_stitch')
+    state = FSMField(default='unstitched', protected=True)
+    lock_state = FSMField(default='unlocked', protected=True)
+
+    objects = TranscriptStitchManager()
+
+    @transition(lock_state, 'unlocked', 'locked', save=True)
+    def lock(self):
+        pass
+
+    @transition(lock_state, 'locked', 'unlocked', save=True)
+    def unlock(self):
+        pass
+
+    @transition(state, 'unstitched', 'stitched', save=True)
     def stitch(self):
-        self._merge_sentences()
+        pass
 
-    @transition(state, 'stitched', 'stitch_reviewed', save=True,
-                conditions=[stitched_both_sides])
-    def review_stitch(self):
-        self._merge_sentences()
-        self._complete_sentences()
-
-    def _merge_sentences(self):
-        """Merge overlapping Sentence instances."""
-        latest_revision = self.revisions.latest()
-        deletion_candidates = []
-        for sf in latest_revision.sentence_fragments.all():
-            sentences = sf.sentences
-            candidate_sentences = sf.candidate_sentences
-
-            # If fragment is in more than one sentence,
-            # pick the first sentence as the survivor.
-            if sentences.count() > 1:
-                survivor = sentences.first()
-            elif candidate_sentences.count() > 1:
-                survivor = candidate_sentences.first()
-            else:
-                survivor = None
-
-            if survivor is not None:
-                # Merge remaining sentences with survivor.
-                def merge(s, o):
-                    s.fragments.add(*o.fragments.all())
-                    s.fragment_candidates.add(
-                        *o.fragment_candidates.all())
-                    o.delete()
-                for other in sentences.all():
-                    if other != survivor:
-                        merge(survivor, other)
-                for other in candidate_sentences.all():
-                    if other != survivor:
-                        merge(survivor, other)
-            else:
-                # No survivor means there was only one sentence involved.
-                pass
-
-    def _complete_sentences(self):
-        """Complete sentences in this fragment as applicable."""
-        latest = self.revisions.latest()
-        for candidate_sf in latest.sentence_fragments.all():
-            for sentence in candidate_sf.sentences.filter(state='partial'):
-                if sentence.fragment_candidates.count() > 0:
-                    # The sentence is still being worked on.
-                    continue
-                if all(
-                    other_sf.revision.fragment.state == 'stitch_reviewed'
-                    for other_sf in sentence.fragments.all()
-                    if other_sf != candidate_sf
-                ):
-                    sentence.complete()
+    @transition(state, 'stitched', 'reviewed', save=True)
+    def review(self):
+        pass
 
 
 # ---------------------

@@ -21,32 +21,37 @@ class TranscriptsTestCase(TestCase):
         transcript = m.Transcript.objects.create(name='test')
         self.assertEqual(transcript.length, None)
 
-    def test_setting_transcript_length_creates_fragments(self):
+    def test_setting_transcript_length_creates_fragments_and_stitches(self):
         t = m.Transcript.objects.create(name='test')
         t.set_length('3.33')
         f0, = t.fragments.all()
         self.assertEqual(f0.start, Decimal('0.00'))
         self.assertEqual(f0.end, Decimal('3.33'))
-        self.assertEqual(f0.stitched_left, True)
-        self.assertEqual(f0.stitched_right, True)
+        self.assertEqual(t.stitches.count(), 0)
 
         t = m.Transcript.objects.create(name='test')
         t.set_length('7.77')
         f0, = t.fragments.all()
         self.assertEqual(f0.start, Decimal('0.00'))
         self.assertEqual(f0.end, Decimal('7.77'))
+        self.assertEqual(t.stitches.count(), 0)
 
         t = m.Transcript.objects.create(name='test')
-        t.set_length('13.33')
-        f0, f1 = t.fragments.all()
+        t.set_length('17.77')
+        f0, f1, f2 = t.fragments.all()
         self.assertEqual(f0.start, Decimal('0.00'))
         self.assertEqual(f0.end, Decimal('5.00'))
-        self.assertEqual(f0.stitched_left, True)
-        self.assertEqual(f0.stitched_right, False)
         self.assertEqual(f1.start, Decimal('5.00'))
-        self.assertEqual(f1.end, Decimal('13.33'))
-        self.assertEqual(f1.stitched_left, False)
-        self.assertEqual(f1.stitched_right, True)
+        self.assertEqual(f1.end, Decimal('10.00'))
+        self.assertEqual(f2.start, Decimal('10.00'))
+        self.assertEqual(f2.end, Decimal('17.77'))
+        s0, s1 = t.stitches.all()
+        self.assertEqual(s0.left, f0)
+        self.assertEqual(s0.right, f1)
+        self.assertEqual(s0.state, 'unstitched')
+        self.assertEqual(s1.left, f1)
+        self.assertEqual(s1.right, f2)
+        self.assertEqual(s1.state, 'unstitched')
 
 
 if os.environ.get('FAST_TEST') != '1':
