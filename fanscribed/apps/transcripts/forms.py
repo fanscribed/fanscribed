@@ -26,20 +26,19 @@ class StitchTaskForm(DefaultTaskForm):
 
     class Meta:
         model = m.StitchTask
-        exclude = ('transcript', 'is_review', 'state', 'assignee',
-                   'left', 'right')
+        exclude = ('transcript', 'is_review', 'state', 'assignee', 'stitch')
 
     def __init__(self, *args, **kwargs):
         super(StitchTaskForm, self).__init__(*args, **kwargs)
         task = self.instance
         right_sentence_choices = [('-', '(None)')] + [
             (sf.id, sf.text)
-            for sf in task.right.sentence_fragments.all()
+            for sf in task.stitch.right.revisions.latest().sentence_fragments.all()
         ]
-        for fragment in task.left.sentence_fragments.all():
+        for fragment in task.stitch.left.revisions.latest().sentence_fragments.all():
             field_name = 'fragment_{}'.format(fragment.id)
             try:
-                pairing = task.task_pairings.get(left=fragment)
+                pairing = task.pairings.get(left=fragment)
             except m.StitchTaskPairing.DoesNotExist:
                 initial = '-'
             else:
@@ -58,12 +57,12 @@ class StitchTaskForm(DefaultTaskForm):
         for field_name, value in self.cleaned_data.items():
             # Get the left and right sentence fragments chosen by the user.
             left_id = int(field_name.split('_', 1)[1])
-            left = task.left.sentence_fragments.get(id=left_id)
+            left = task.stitch.left.revisions.latest().sentence_fragments.get(id=left_id)
             if value != '-':
                 right_id = int(value)
-                right = task.right.sentence_fragments.get(id=right_id)
-                task.task_pairings.filter(left=left).delete()
-                task.task_pairings.create(left=left, right=right)
+                right = task.stitch.right.revisions.latest().sentence_fragments.get(id=right_id)
+                task.pairings.filter(left=left).delete()
+                task.pairings.create(left=left, right=right)
             else:
                 # (none) was selected
                 pass

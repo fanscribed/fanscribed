@@ -222,7 +222,7 @@ class Migration(SchemaMigration):
             ('transcript', self.gf('django.db.models.fields.related.ForeignKey')(related_name='stitches', to=orm['transcripts.Transcript'])),
             ('left', self.gf('django.db.models.fields.related.OneToOneField')(related_name='stitch_at_right', unique=True, to=orm['transcripts.TranscriptFragment'])),
             ('right', self.gf('django.db.models.fields.related.OneToOneField')(related_name='stitch_at_left', unique=True, to=orm['transcripts.TranscriptFragment'])),
-            ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='unstitched', max_length=50)),
+            ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='notready', max_length=50)),
             ('lock_state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='unlocked', max_length=50)),
         ))
         db.send_create_signal(u'transcripts', ['TranscriptStitch'])
@@ -561,7 +561,7 @@ class Migration(SchemaMigration):
             'left': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'stitch_at_right'", 'unique': 'True', 'to': u"orm['transcripts.TranscriptFragment']"}),
             'lock_state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unlocked'", 'max_length': '50'}),
             'right': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'stitch_at_left'", 'unique': 'True', 'to': u"orm['transcripts.TranscriptFragment']"}),
-            'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unstitched'", 'max_length': '50'}),
+            'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'notready'", 'max_length': '50'}),
             'transcript': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'stitches'", 'to': u"orm['transcripts.Transcript']"})
         }
     }

@@ -83,16 +83,8 @@
           <td>{{ transcript.fragments.transcribed.count }}</td>
         </tr>
         <tr>
-          <th>Transcript Reviewed</th>
-          <td>{{ transcript.fragments.transcript_reviewed.count }}</td>
-        </tr>
-        <tr>
-          <th>Stitched</th>
-          <td>{{ transcript.fragments.stitched.count }}</td>
-        </tr>
-        <tr>
-          <th>Stitch Reviewed</th>
-          <td>{{ transcript.fragments.stitch_reviewed.count }}</td>
+          <th>Reviewed</th>
+          <td>{{ transcript.fragments.reviewed.count }}</td>
         </tr>
         <tr>
           <th>Locked</th>
@@ -101,6 +93,41 @@
         <tr>
           <th>Unlocked</th>
           <td>{{ transcript.fragments.unlocked.count }}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="col-md-4">
+      <h3>Stitches</h3>
+
+      <table class="table table-condensed table-bordered">
+        <tr>
+          <th>Total</th>
+          <td>{{ transcript.stitches.count }}</td>
+        </tr>
+        <tr>
+          <th>Not Ready</th>
+          <td>{{ transcript.stitches.notready.count }}</td>
+        </tr>
+        <tr>
+          <th>Unstitched</th>
+          <td>{{ transcript.stitches.unstitched.count }}</td>
+        </tr>
+        <tr>
+          <th>Stitched</th>
+          <td>{{ transcript.stitches.stitched.count }}</td>
+        </tr>
+        <tr>
+          <th>Reviewed</th>
+          <td>{{ transcript.stitches.reviewed.count }}</td>
+        </tr>
+        <tr>
+          <th>Locked</th>
+          <td>{{ transcript.stitches.locked.count }}</td>
+        </tr>
+        <tr>
+          <th>Unlocked</th>
+          <td>{{ transcript.stitches.unlocked.count }}</td>
         </tr>
       </table>
     </div>

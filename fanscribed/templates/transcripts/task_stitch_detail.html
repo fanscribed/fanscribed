@@ -40,7 +40,7 @@
     <h4>Left</h4>
 
     <ul>
-      {% for sentence_fragment in task.left.sentence_fragments.all %}
+      {% for sentence_fragment in task.stitch.left.revisions.latest.sentence_fragments.all %}
         <li>{{ sentence_fragment.text }}</li>
       {% endfor %}
     </ul>
@@ -48,7 +48,7 @@
     <h4>Right</h4>
 
     <ul>
-      {% for sentence_fragment in task.right.sentence_fragments.all %}
+      {% for sentence_fragment in task.stitch.right.revisions.latest.sentence_fragments.all %}
         <li>{{ sentence_fragment.text }}</li>
       {% endfor %}
     </ul>
@@ -63,7 +63,7 @@
       </tr>
       </thead>
       <tbody>
-      {% for pairing in task.task_pairings.all %}
+      {% for pairing in task.pairings.all %}
         <tr>
           <th>{{ pairing.left.text }}</th>
           <th>{{ pairing.right.text }}</th>

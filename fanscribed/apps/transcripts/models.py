@@ -435,12 +435,12 @@ class StitchTaskManager(TaskManager):
 
     def _available_stitches(self, transcript, is_review):
         if not is_review:
-            return transcript.fragments.filter(
+            return transcript.stitches.filter(
                 state='unstitched',
                 lock_state='unlocked',
             )
         else:
-            return transcript.fragments.filter(
+            return transcript.stitches.filter(
                 state='stitched',
                 lock_state='unlocked',
             )
@@ -857,8 +857,6 @@ class TranscriptFragment(models.Model):
     transcript = models.ForeignKey('Transcript', related_name='fragments')
     start = models.DecimalField(max_digits=8, decimal_places=2)
     end = models.DecimalField(max_digits=8, decimal_places=2)
-    # stitched_left = models.BooleanField(default=False)
-    # stitched_right = models.BooleanField(default=False)
     state = FSMField(default='empty', protected=True)
     lock_state = FSMField(default='unlocked', protected=True)
 
@@ -887,13 +885,24 @@ class TranscriptFragment(models.Model):
 
     @transition(state, 'transcribed', 'reviewed', save=True)
     def review(self):
-        pass
+        # Ready related stitches if other fragments are transcribed.
+        if self.start != Decimal(0):
+            L = self.stitch_at_left
+            if L.left.state == 'reviewed':
+                L.ready()
+        if self.end != self.transcript.length:
+            R = self.stitch_at_right
+            if R.right.state == 'reviewed':
+                R.ready()
 
 
 # ---------------------
 
 
 class TranscriptStitchManager(models.Manager):
+
+    def notready(self):
+        return self.filter(state='notready')
 
     def unstitched(self):
         return self.filter(state='unstitched')
@@ -918,7 +927,8 @@ class TranscriptStitch(models.Model):
     -----
 
     @startuml
-    [*] --> unstitched
+    [*] --> notready
+    notready --> unstitched
     unstitched --> stitched
     stitched --> reviewed
     reviewed --> [*]
@@ -937,7 +947,7 @@ class TranscriptStitch(models.Model):
     transcript = models.ForeignKey('Transcript', related_name='stitches')
     left = models.OneToOneField('TranscriptFragment', related_name='stitch_at_right')
     right = models.OneToOneField('TranscriptFragment', related_name='stitch_at_left')
-    state = FSMField(default='unstitched', protected=True)
+    state = FSMField(default='notready', protected=True)
     lock_state = FSMField(default='unlocked', protected=True)
 
     objects = TranscriptStitchManager()
@@ -954,6 +964,10 @@ class TranscriptStitch(models.Model):
 
     @transition(lock_state, 'locked', 'unlocked', save=True)
     def unlock(self):
+        pass
+
+    @transition(state, 'notready', 'unstitched', save=True)
+    def ready(self):
         pass
 
     @transition(state, 'unstitched', 'stitched', save=True)

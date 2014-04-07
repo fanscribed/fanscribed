@@ -48,10 +48,10 @@ class TranscriptsTestCase(TestCase):
         s0, s1 = t.stitches.all()
         self.assertEqual(s0.left, f0)
         self.assertEqual(s0.right, f1)
-        self.assertEqual(s0.state, 'unstitched')
+        self.assertEqual(s0.state, 'notready')
         self.assertEqual(s1.left, f1)
         self.assertEqual(s1.right, f2)
-        self.assertEqual(s1.state, 'unstitched')
+        self.assertEqual(s1.state, 'notready')
 
 
 if os.environ.get('FAST_TEST') != '1':
