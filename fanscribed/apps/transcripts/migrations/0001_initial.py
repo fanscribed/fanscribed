@@ -131,15 +131,14 @@ class Migration(SchemaMigration):
             ('is_review', self.gf('django.db.models.fields.BooleanField')()),
             ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='unassigned', max_length=50)),
             ('assignee', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True, blank=True)),
-            ('left', self.gf('django.db.models.fields.related.ForeignKey')(related_name='+', to=orm['transcripts.TranscriptFragmentRevision'])),
-            ('right', self.gf('django.db.models.fields.related.ForeignKey')(related_name='+', to=orm['transcripts.TranscriptFragmentRevision'])),
+            ('stitch', self.gf('django.db.models.fields.related.ForeignKey')(related_name='+', to=orm['transcripts.TranscriptStitch'])),
         ))
         db.send_create_signal(u'transcripts', ['StitchTask'])
 
         # Adding model 'StitchTaskPairing'
         db.create_table(u'transcripts_stitchtaskpairing', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('task', self.gf('django.db.models.fields.related.ForeignKey')(related_name='task_pairings', to=orm['transcripts.StitchTask'])),
+            ('task', self.gf('django.db.models.fields.related.ForeignKey')(related_name='pairings', to=orm['transcripts.StitchTask'])),
             ('left', self.gf('django.db.models.fields.related.ForeignKey')(related_name='+', to=orm['transcripts.SentenceFragment'])),
             ('right', self.gf('django.db.models.fields.related.ForeignKey')(related_name='+', to=orm['transcripts.SentenceFragment'])),
         ))
@@ -228,6 +227,9 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'transcripts', ['TranscriptStitch'])
 
+        # Adding unique constraint on 'TranscriptStitch', fields ['transcript', 'left']
+        db.create_unique(u'transcripts_transcriptstitch', ['transcript_id', 'left_id'])
+
         # Adding model 'TranscriptFragmentRevision'
         db.create_table(u'transcripts_transcriptfragmentrevision', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -265,6 +267,9 @@ class Migration(SchemaMigration):
 
         # Removing unique constraint on 'TranscriptFragmentRevision', fields ['fragment', 'sequence']
         db.delete_unique(u'transcripts_transcriptfragmentrevision', ['fragment_id', 'sequence'])
+
+        # Removing unique constraint on 'TranscriptStitch', fields ['transcript', 'left']
+        db.delete_unique(u'transcripts_transcriptstitch', ['transcript_id', 'left_id'])
 
         # Removing unique constraint on 'TranscriptFragment', fields ['transcript', 'start', 'end']
         db.delete_unique(u'transcripts_transcriptfragment', ['transcript_id', 'start', 'end'])
@@ -486,10 +491,9 @@ class Migration(SchemaMigration):
             'created': ('model_utils.fields.AutoCreatedField', [], {'default': 'datetime.datetime.now'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_review': ('django.db.models.fields.BooleanField', [], {}),
-            'left': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['transcripts.TranscriptFragmentRevision']"}),
             'modified': ('model_utils.fields.AutoLastModifiedField', [], {'default': 'datetime.datetime.now'}),
-            'right': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['transcripts.TranscriptFragmentRevision']"}),
             'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unassigned'", 'max_length': '50'}),
+            'stitch': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['transcripts.TranscriptStitch']"}),
             'transcript': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.Transcript']"})
         },
         u'transcripts.stitchtaskpairing': {
@@ -497,7 +501,7 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'left': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['transcripts.SentenceFragment']"}),
             'right': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['transcripts.SentenceFragment']"}),
-            'task': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'task_pairings'", 'to': u"orm['transcripts.StitchTask']"})
+            'task': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'pairings'", 'to': u"orm['transcripts.StitchTask']"})
         },
         u'transcripts.transcribetask': {
             'Meta': {'object_name': 'TranscribeTask'},
@@ -552,7 +556,7 @@ class Migration(SchemaMigration):
             'transcript': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.Transcript']"})
         },
         u'transcripts.transcriptstitch': {
-            'Meta': {'object_name': 'TranscriptStitch'},
+            'Meta': {'ordering': "('left__start',)", 'unique_together': "[('transcript', 'left')]", 'object_name': 'TranscriptStitch'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'left': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'right_stitch'", 'unique': 'True', 'to': u"orm['transcripts.TranscriptFragment']"}),
             'lock_state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unlocked'", 'max_length': '50'}),

@@ -145,6 +145,9 @@ def process_stitch_task(pk):
 
     task = _get_task(StitchTask, pk)
 
+    left_fragment_revision = task.stitch.left.revisions.latest()
+    right_fragment_revision = task.stitch.right.revisions.latest()
+
     if not task.is_review:
         old_pairings = set([])
     else:
@@ -152,14 +155,14 @@ def process_stitch_task(pk):
         old_pairings = set([
             # (left_sentence_fragment_id, right_sentence_fragment_id),
         ])
-        for left_fragment in task.left.sentence_fragments.all():
+        for left_fragment in left_fragment_revision.sentence_fragments.all():
             for left_sentence in left_fragment.candidate_sentences.all():
                 left_sf = None
                 right_sf = None
                 for candidate in left_sentence.fragment_candidates.all():
-                    if candidate.revision == task.left:
+                    if candidate.revision == left_fragment_revision:
                         left_sf = candidate
-                    if candidate.revision == task.right:
+                    if candidate.revision == right_fragment_revision:
                         right_sf = candidate
                 if left_sf is not None and right_sf is not None:
                     old_pairings.add((left_sf.id, right_sf.id))
@@ -178,18 +181,19 @@ def process_stitch_task(pk):
                 tf_sequence=sentence_fragment.sequence,
             )
             s.add_candidates(sentence_fragment)
-    for sf in task.left.sentence_fragments.all():
+    for sf in left_fragment_revision.sentence_fragments.all():
         _make_sentence(sf)
-    right_is_at_end = (task.right.fragment.end == task.transcript.length)
+    right_is_at_end = (task.stitch.right.end == task.transcript.length)
     if right_is_at_end:
         print '** RIGHT IS AT END'
         # Special case when the right side is the last TranscriptFragment.
-        for sf in task.right.sentence_fragments.all():
+        for sf in right_fragment_revision.sentence_fragments.all():
+            print 'sf', sf.text
             _make_sentence(sf)
 
-    for task_pairing in task.task_pairings.all():
-        new_pairings.add(
-            (task_pairing.left.id, task_pairing.right.id))
+    for pairing in task.pairings.all():
+        print 'adding new_pairing', (pairing.left.text, pairing.right.text)
+        new_pairings.add((pairing.left.id, pairing.right.id))
 
     # Add new pairings.
     for left_sf_id, right_sf_id in new_pairings - old_pairings:
@@ -225,51 +229,35 @@ def process_stitch_task(pk):
         if left_sf.candidate_sentences.count() == 0:
             _make_sentence(left_sf)
 
-    fragment_left = task.left.fragment
-    fragment_right = task.right.fragment
+    fragment_left = task.stitch.left
+    fragment_right = task.stitch.right
     if not task.is_review:
         # First time.
-        fragment_left.stitched_right = True
-        if fragment_left.stitched_left:
-            fragment_left.stitch()
-        else:
-            fragment_left.save()
-
-        fragment_right.stitched_left = True
-        if fragment_right.stitched_right:
-            fragment_right.stitch()
-        else:
-            fragment_right.save()
+        task.stitch.stitch()
 
     elif task.is_review and old_pairings == new_pairings:
         if right_is_at_end: print '-- review'
         # No changes; commit sentence candidates.
-        if fragment_left.stitched_left:
-            for sf in task.left.sentence_fragments.all():
+        # TODO: review if-statement conditions
+        if True or fragment_left.stitched_left:
+            for sf in left_fragment_revision.sentence_fragments.all():
                 if sf.revision.fragment == fragment_left:
                     for sentence in sf.candidate_sentences.all():
                         sentence.commit_candidates(sf)
-        if fragment_right.stitched_right:
-            for sf in task.right.sentence_fragments.all():
+        if True or fragment_right.stitched_right:
+            for sf in right_fragment_revision.sentence_fragments.all():
                 if sf.revision.fragment == fragment_right:
                     for sentence in sf.candidate_sentences.all():
                         if right_is_at_end: print '-- commit', sf.id, 'to', sentence.id
                         sentence.commit_candidates(sf)
 
-        # Update state of transcript fragments if fully stitched.
-        if (fragment_left.stitched_left
-            and fragment_left.state != 'stitch_reviewed'
-            ):
-            fragment_left.review_stitch()
-
-        if right_is_at_end: print '-- stitched_right', fragment_right.stitched_right, 'state', fragment_right.state
-        if (fragment_right.stitched_right
-            and fragment_right.state != 'stitch_reviewed'
-            ):
-            fragment_right.review_stitch()
+        task.stitch.review()
 
     else:
         # Changes detected; review one more time.
+        print '-- review, changes detected:'
+        print 'old_pairings', old_pairings
+        print 'new_pairings', new_pairings
         pass
 
     task.validate()
