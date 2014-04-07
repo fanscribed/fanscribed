@@ -87,6 +87,11 @@ class Sentence(models.Model):
     def text(self):
         return u' '.join(fragment.text for fragment in self.fragments.all())
 
+    @property
+    def candidate_text(self):
+        return u' '.join(
+            fragment.text for fragment in self.fragment_candidates.all())
+
     # --
 
     @transition(state, ['empty', 'partial'], 'partial', save=True)
@@ -927,8 +932,8 @@ class TranscriptStitch(models.Model):
     """
 
     transcript = models.ForeignKey('Transcript', related_name='stitches')
-    left = models.OneToOneField('TranscriptFragment', related_name='right_stitch')
-    right = models.OneToOneField('TranscriptFragment', related_name='left_stitch')
+    left = models.OneToOneField('TranscriptFragment', related_name='stitch_at_right')
+    right = models.OneToOneField('TranscriptFragment', related_name='stitch_at_left')
     state = FSMField(default='unstitched', protected=True)
     lock_state = FSMField(default='unlocked', protected=True)
 
@@ -995,41 +1000,86 @@ class TranscriptStitch(models.Model):
                     pass
 
     def _complete_sentences(self):
-        """Complete sentences in this fragment as applicable."""
+        """Complete sentences in this stitch (when they are ready)."""
+
         left_fragment_revision = self.left.revisions.latest()
         right_fragment_revision = self.right.revisions.latest()
 
-        for revision in [left_fragment_revision, right_fragment_revision]:
+        # Look for partial sentences in these revisions and complete them.
+        revisions_to_complete = [
+            left_fragment_revision,
+            right_fragment_revision,
+        ]
+
+        # Also look for partial sentences in adjacent reviewed stitches.
+        if self.left.start != Decimal(0):
+            stitch_at_left = TranscriptStitch.objects.get(right=self.left)
+            if stitch_at_left.state == 'reviewed':
+                revisions_to_complete.append(stitch_at_left.left.revisions.latest())
+
+        if self.right.end != self.transcript.length:
+            stitch_at_right = TranscriptStitch.objects.get(left=self.right)
+            if stitch_at_right.state == 'reviewed':
+                revisions_to_complete.append(stitch_at_right.right.revisions.latest())
+
+        print 'Completing sentences.'
+        sentences_checked = set()
+        for revision in revisions_to_complete:
             for candidate_sf in revision.sentence_fragments.all():
                 for sentence in candidate_sf.sentences.filter(state='partial'):
+
+                    if sentence.id in sentences_checked:
+                        print 'Already checked sentence id', sentence.id
+                        continue
+
+                    sentences_checked.add(sentence.id)
+                    print 'Checking partial sentence, candidates={!r}, text={!r}'.format(sentence.candidate_text, sentence.text)
+
                     if sentence.fragment_candidates.count() > 0:
                         # The sentence is still being worked on.
                         continue
                     else:
                         # Complete the sentence if all related stitches
-                        # are reviewed.
+                        # are reviewed, AND adjacent stitches are reviewed.
                         for other_sf in sentence.fragments.all():
                             if other_sf != candidate_sf:
-                                tfragment = other_sf.revision.fragment
+                                other_tf = other_sf.revision.fragment
+                                must_be_reviewed = set()
+
+                                # Find each stitch related to the sentence
+                                # fragment, and its neighbor.
                                 try:
-                                    left_stitch_state = tfragment.left_stitch.state
+                                    stitch_at_left = other_tf.stitch_at_left
+                                    must_be_reviewed.add(stitch_at_left)
+                                    left_of_left = TranscriptStitch.objects.get(
+                                        right=stitch_at_left.left)
+                                    must_be_reviewed.add(left_of_left)
                                 except TranscriptStitch.DoesNotExist:
-                                    # At beginning of transcript,
-                                    # so we're effectively stitched to the left.
-                                    left_stitch_state = 'reviewed'
+                                    pass
+
                                 try:
-                                    right_stitch_state = tfragment.right_stitch.state
+                                    stitch_at_right = other_tf.stitch_at_right
+                                    must_be_reviewed.add(stitch_at_right)
+                                    right_of_right = TranscriptStitch.objects.get(
+                                        left=stitch_at_right.right)
+                                    must_be_reviewed.add(right_of_right)
                                 except TranscriptStitch.DoesNotExist:
-                                    # At beginning of transcript,
-                                    # so we're effectively stitched to the right.
-                                    right_stitch_state = 'reviewed'
-                                if (left_stitch_state != 'reviewed'
-                                    or right_stitch_state != 'reviewed'
-                                ):
+                                    pass
+
+                                # Ignore the stitch currently being reviewed.
+                                if self in must_be_reviewed:
+                                    must_be_reviewed.remove(self)
+
+                                states = [s.state for s in must_be_reviewed]
+                                if any(state != 'reviewed' for state in states):
+                                    print 'not completing:', states
                                     break
+                                else:
+                                    print 'may complete:', states
                         else:
                             # All stitches involved in the sentence
                             # are reviewed.
+                            print 'completing'
                             sentence.complete()
 
 

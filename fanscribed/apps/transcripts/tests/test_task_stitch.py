@@ -228,67 +228,68 @@ class StitchTaskTestCase(TransactionTestCase):
             (u'completed', [], [u'sentence 3']),
             (u'completed', [], [u'sentence 4']),
         ])
-    #
-    # def test_complex_stitching_interleaved_review(self):
-    #     self.setup_transcript()
-    #
-    #     self.transcribe_and_review(0, """
-    #         A
-    #         B1
-    #         C1
-    #         """)
-    #     self.transcribe_and_review(1, """
-    #         B2
-    #         D
-    #         C2
-    #         """)
-    #     self.transcribe_and_review(2, """
-    #         B3
-    #         E
-    #         """)
-    #
-    #     stitch_1_pairs = [
-    #         (1, 0),  # B1, B2
-    #         (2, 2),  # C1, C2
-    #     ]
-    #     self.stitch(0, 1, stitch_1_pairs)  # B1 + B2, C1 + C2
-    #
-    #     self.check_sentences([
-    #         (u'partial', [u'A'], []),
-    #         (u'partial', [u'B1', u'B2'], []),
-    #         (u'partial', [u'C1', u'C2'], []),
-    #     ])
-    #
-    #     self.review(0, 1, stitch_1_pairs)
-    #
-    #     self.check_sentences([
-    #         (u'completed', [], [u'A']),
-    #         (u'partial', [u'B2'], [u'B1']),
-    #         (u'partial', [u'C2'], [u'C1']),
-    #     ])
-    #
-    #     stitch_2_pairs = [
-    #         (0, 0),  # B2, B3
-    #     ]
-    #     self.stitch(1, 2, stitch_2_pairs)  # B2 + B3
-    #
-    #     self.check_sentences([
-    #         (u'completed', [], [u'A']),
-    #         (u'partial', [u'B2', u'B3'], [u'B1']),
-    #         (u'partial', [u'C2'], [u'C1']),
-    #         (u'partial', [u'D'], []),
-    #         (u'partial', [u'E'], []),
-    #     ])
-    #
-    #     self.review(1, 2, verify=stitch_2_pairs)
-    #
-    #     self.check_sentences([
-    #         (u'completed', [], [u'A']),
-    #         (u'completed', [], [u'B1', u'B2', u'B3']),
-    #         (u'completed', [], [u'C1', u'C2']),
-    #         (u'completed', [], [u'D']),
-    #         (u'completed', [], [u'E']),
-    #     ])
+
+    def test_complex_stitching_interleaved_review(self):
+        self.setup_transcript()
+
+        self.transcribe_and_review(0, """
+            A
+            B1
+            C1
+            """)
+        self.transcribe_and_review(1, """
+            B2
+            D
+            C2
+            """)
+        self.transcribe_and_review(2, """
+            B3
+            E
+            """)
+
+        stitch_1_pairs = [
+            (1, 0),  # B1, B2
+            (2, 2),  # C1, C2
+        ]
+        self.stitch(0, 1, stitch_1_pairs)  # B1 + B2, C1 + C2
+
+        self.check_sentences([
+            (u'partial', [u'A'], []),
+            (u'partial', [u'B1', u'B2'], []),
+            (u'partial', [u'C1', u'C2'], []),
+        ])
+
+        self.review(0, 1, stitch_1_pairs)
+
+        self.check_sentences([
+            (u'completed', [], [u'A']),
+            (u'partial', [], [u'B1', u'B2']),
+            (u'partial', [], [u'C1', u'C2']),
+        ])
+
+        stitch_2_pairs = [
+            (0, 0),  # B2, B3
+        ]
+        self.stitch(1, 2, stitch_2_pairs)  # B2 + B3
+
+        self.check_sentences([
+            (u'completed', [], [u'A']),
+            (u'partial', [], [u'B1', u'B2']),
+            (u'partial', [], [u'C1', u'C2']),
+            (u'partial', [u'D'], []),
+            (u'partial', [u'B2', u'B3'], []),
+            (u'partial', [u'E'], []),
+        ])
+
+        self.review(1, 2, verify=stitch_2_pairs)
+
+        self.check_sentences([
+            (u'completed', [], [u'A']),
+            (u'completed', [], [u'B1', u'B2', u'B3']),
+            (u'completed', [], [u'C1', u'C2']),
+            (u'completed', [], [u'D']),
+            (u'completed', [], [u'E']),
+        ])
     #
     # def test_complex_stitching_outoforder_review(self):
     #     self.setup_transcript()

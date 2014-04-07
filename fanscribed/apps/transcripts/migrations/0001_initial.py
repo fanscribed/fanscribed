@@ -220,8 +220,8 @@ class Migration(SchemaMigration):
         db.create_table(u'transcripts_transcriptstitch', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('transcript', self.gf('django.db.models.fields.related.ForeignKey')(related_name='stitches', to=orm['transcripts.Transcript'])),
-            ('left', self.gf('django.db.models.fields.related.OneToOneField')(related_name='right_stitch', unique=True, to=orm['transcripts.TranscriptFragment'])),
-            ('right', self.gf('django.db.models.fields.related.OneToOneField')(related_name='left_stitch', unique=True, to=orm['transcripts.TranscriptFragment'])),
+            ('left', self.gf('django.db.models.fields.related.OneToOneField')(related_name='stitch_at_right', unique=True, to=orm['transcripts.TranscriptFragment'])),
+            ('right', self.gf('django.db.models.fields.related.OneToOneField')(related_name='stitch_at_left', unique=True, to=orm['transcripts.TranscriptFragment'])),
             ('state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='unstitched', max_length=50)),
             ('lock_state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='unlocked', max_length=50)),
         ))
@@ -558,9 +558,9 @@ class Migration(SchemaMigration):
         u'transcripts.transcriptstitch': {
             'Meta': {'ordering': "('left__start',)", 'unique_together': "[('transcript', 'left')]", 'object_name': 'TranscriptStitch'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'left': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'right_stitch'", 'unique': 'True', 'to': u"orm['transcripts.TranscriptFragment']"}),
+            'left': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'stitch_at_right'", 'unique': 'True', 'to': u"orm['transcripts.TranscriptFragment']"}),
             'lock_state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unlocked'", 'max_length': '50'}),
-            'right': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'left_stitch'", 'unique': 'True', 'to': u"orm['transcripts.TranscriptFragment']"}),
+            'right': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'stitch_at_left'", 'unique': 'True', 'to': u"orm['transcripts.TranscriptFragment']"}),
             'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unstitched'", 'max_length': '50'}),
             'transcript': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'stitches'", 'to': u"orm['transcripts.Transcript']"})
         }
