@@ -965,7 +965,7 @@ class TranscriptStitch(models.Model):
     def _merge_sentences(self):
         """Merge overlapping Sentence instances."""
         left_fragment_revision = self.left.revisions.latest()
-        right_fragment_revision = self.left.revisions.latest()
+        right_fragment_revision = self.right.revisions.latest()
 
         for revision in [left_fragment_revision, right_fragment_revision]:
             deletion_candidates = []

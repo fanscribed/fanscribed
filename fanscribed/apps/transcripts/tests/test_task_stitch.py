@@ -290,69 +290,69 @@ class StitchTaskTestCase(TransactionTestCase):
             (u'completed', [], [u'D']),
             (u'completed', [], [u'E']),
         ])
-    #
-    # def test_complex_stitching_outoforder_review(self):
-    #     self.setup_transcript()
-    #
-    #     self.transcribe_and_review(0, """
-    #         A
-    #         B1
-    #         C1
-    #         """)
-    #     self.transcribe_and_review(1, """
-    #         B2
-    #         D
-    #         C2
-    #         """)
-    #     self.transcribe_and_review(2, """
-    #         B3
-    #         E
-    #         """)
-    #
-    #     self.stitch(1, 2, [
-    #         (0, 0),  # B2, B3
-    #     ])
-    #
-    #     self.check_sentences([
-    #         (u'partial', [u'B2', u'B3'], []),
-    #         (u'partial', [u'D'], []),
-    #         (u'partial', [u'C2'], []),
-    #         (u'partial', [u'E'], []),
-    #     ])
-    #
-    #     self.stitch(0, 1, [
-    #         (1, 0),  # B1, B2
-    #         (2, 2),  # C1, C2
-    #     ])
-    #
-    #     self.check_sentences([
-    #         (u'partial', [u'A'], []),
-    #         (u'partial', [u'B1', u'B2', u'B3'], []),
-    #         (u'partial', [u'C1', u'C2'], []),
-    #         (u'partial', [u'D'], []),
-    #         (u'partial', [u'E'], []),
-    #     ])
-    #
-    #     self.review(1, 2)
-    #
-    #     self.check_sentences([
-    #         (u'partial', [u'A'], []),
-    #         (u'partial', [u'B1'], [u'B2', u'B3']),
-    #         (u'partial', [u'C1'], [u'C2']),
-    #         (u'completed', [], [u'D']),
-    #         (u'completed', [], [u'E']),
-    #     ])
-    #
-    #     self.review(0, 1)
-    #
-    #     self.check_sentences([
-    #         (u'completed', [], [u'A']),
-    #         (u'completed', [], [u'B1', u'B2', u'B3']),
-    #         (u'completed', [], [u'C1', u'C2']),
-    #         (u'completed', [], [u'D']),
-    #         (u'completed', [], [u'E']),
-    #     ])
-    #
+
+    def test_complex_stitching_outoforder_review(self):
+        self.setup_transcript()
+
+        self.transcribe_and_review(0, """
+            A
+            B1
+            C1
+            """)
+        self.transcribe_and_review(1, """
+            B2
+            D
+            C2
+            """)
+        self.transcribe_and_review(2, """
+            B3
+            E
+            """)
+
+        self.stitch(1, 2, [
+            (0, 0),  # B2, B3
+        ])
+
+        self.check_sentences([
+            (u'partial', [u'B2', u'B3'], []),
+            (u'partial', [u'D'], []),
+            (u'partial', [u'C2'], []),
+            (u'partial', [u'E'], []),
+        ])
+
+        self.stitch(0, 1, [
+            (1, 0),  # B1, B2
+            (2, 2),  # C1, C2
+        ])
+
+        self.check_sentences([
+            (u'partial', [u'A'], []),
+            (u'partial', [u'B1', u'B2', u'B3'], []),
+            (u'partial', [u'C1', u'C2'], []),
+            (u'partial', [u'D'], []),
+            (u'partial', [u'E'], []),
+        ])
+
+        self.review(1, 2)
+
+        self.check_sentences([
+            (u'partial', [u'A'], []),
+            (u'partial', [u'B1'], [u'B2', u'B3']),
+            (u'partial', [u'C1'], [u'C2']),
+            (u'completed', [], [u'D']),
+            (u'completed', [], [u'E']),
+        ])
+
+        self.review(0, 1)
+
+        self.check_sentences([
+            (u'completed', [], [u'A']),
+            (u'completed', [], [u'B1', u'B2', u'B3']),
+            (u'completed', [], [u'C1', u'C2']),
+            (u'completed', [], [u'D']),
+            (u'completed', [], [u'E']),
+        ])
+
     # def test_complex_stitching_outoforder_review_overlapping_tasks_1(self):
     #     self.setup_transcript(Decimal('20.00'), 4)
     #
