@@ -1042,7 +1042,7 @@ class TranscriptStitch(models.Model):
                         # Complete the sentence if all related stitches
                         # are reviewed, AND adjacent stitches are reviewed.
                         for other_sf in sentence.fragments.all():
-                            if other_sf != candidate_sf:
+                            if True or other_sf != candidate_sf:
                                 other_tf = other_sf.revision.fragment
                                 must_be_reviewed = set()
 
