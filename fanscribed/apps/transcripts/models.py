@@ -1005,12 +1005,32 @@ class TranscriptStitch(models.Model):
                     if sentence.fragment_candidates.count() > 0:
                         # The sentence is still being worked on.
                         continue
-                    if all(
-                        other_sf.revision.fragment.state == 'stitch_reviewed'
-                        for other_sf in sentence.fragments.all()
-                        if other_sf != candidate_sf
-                    ):
-                        sentence.complete()
+                    else:
+                        # Complete the sentence if all related stitches
+                        # are reviewed.
+                        for other_sf in sentence.fragments.all():
+                            if other_sf != candidate_sf:
+                                tfragment = other_sf.revision.fragment
+                                try:
+                                    left_stitch_state = tfragment.left_stitch.state
+                                except TranscriptStitch.DoesNotExist:
+                                    # At beginning of transcript,
+                                    # so we're effectively stitched to the left.
+                                    left_stitch_state = 'reviewed'
+                                try:
+                                    right_stitch_state = tfragment.right_stitch.state
+                                except TranscriptStitch.DoesNotExist:
+                                    # At beginning of transcript,
+                                    # so we're effectively stitched to the right.
+                                    right_stitch_state = 'reviewed'
+                                if (left_stitch_state != 'reviewed'
+                                    or right_stitch_state != 'reviewed'
+                                ):
+                                    break
+                        else:
+                            # All stitches involved in the sentence
+                            # are reviewed.
+                            sentence.complete()
 
 
 # ---------------------

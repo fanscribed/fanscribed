@@ -140,9 +140,9 @@ class StitchTaskTestCase(TransactionTestCase):
     def test_no_stitching(self):
         self.setup_transcript()
 
-        self.transcribe_and_review(0, 'sentence 1')
-        self.transcribe_and_review(1, 'sentence 2')
-        self.transcribe_and_review(2, 'sentence 3')
+        self.transcribe_and_review(0, u'sentence 1')
+        self.transcribe_and_review(1, u'sentence 2')
+        self.transcribe_and_review(2, u'sentence 3')
 
         self.stitch(0, 1, [])
         stitch01 = self.tstitches[0]
@@ -180,55 +180,54 @@ class StitchTaskTestCase(TransactionTestCase):
             (u'completed', [], [u'sentence 3']),
         ])
 
-    # def test_simple_stitching_immediate_review(self):
-    #     self.setup_transcript()
-    #
-    #     self.transcribe_and_review(0, """
-    #         sentence 1
-    #         sentence 2a
-    #         """)
-    #     self.transcribe_and_review(1, """
-    #         sentence 2b
-    #         sentence 3
-    #         """)
-    #     self.transcribe_and_review(2, """
-    #         sentence 4
-    #         """)
-    #
-    #     stitch_1_pairs = [
-    #         (1, 0),
-    #     ]
-    #     self.stitch(0, 1, stitch_1_pairs)  # 2a + 2b
-    #
-    #     self.check_sentences([
-    #         ('partial', ['sentence 1'], []),
-    #         ('partial', ['sentence 2a', 'sentence 2b'], []),
-    #     ])
-    #
-    #     self.review(0, 1, stitch_1_pairs)
-    #
-    #     self.check_sentences([
-    #         ('completed', [], ['sentence 1']),
-    #         ('partial', ['sentence 2b'], ['sentence 2a']),
-    #     ])
-    #
-    #     self.stitch(1, 2, [])
-    #
-    #     self.check_sentences([
-    #         ('completed', [], ['sentence 1']),
-    #         ('partial', ['sentence 2b'], ['sentence 2a']),
-    #         ('partial', ['sentence 3'], []),
-    #         ('partial', ['sentence 4'], []),
-    #     ])
-    #
-    #     self.review(1, 2, [])
-    #
-    #     self.check_sentences([
-    #         ('completed', [], ['sentence 1']),
-    #         ('completed', [], ['sentence 2a', 'sentence 2b']),
-    #         ('completed', [], ['sentence 3']),
-    #         ('completed', [], ['sentence 4']),
-    #     ])
+    def test_simple_stitching_immediate_review(self):
+        self.setup_transcript()
+
+        self.transcribe_and_review(0, u"""
+            sentence 1
+            sentence 2a
+            """)
+        self.transcribe_and_review(1, u"""
+            sentence 2b
+            sentence 3
+            """)
+        self.transcribe_and_review(2, u"""
+            sentence 4
+            """)
+
+        self.stitch(0, 1, [
+            (1, 0),  # 2a + 2b
+        ])
+
+        self.check_sentences([
+            (u'partial', [u'sentence 1'], []),
+            (u'partial', [u'sentence 2a', u'sentence 2b'], []),
+        ])
+
+        self.review(0, 1)
+
+        self.check_sentences([
+            (u'completed', [], [u'sentence 1']),
+            (u'partial', [], [u'sentence 2a', u'sentence 2b']),
+        ])
+
+        self.stitch(1, 2, [])
+
+        self.check_sentences([
+            (u'completed', [], [u'sentence 1']),
+            (u'partial', [], [u'sentence 2a', u'sentence 2b']),
+            (u'partial', [u'sentence 3'], []),
+            (u'partial', [u'sentence 4'], []),
+        ])
+
+        self.review(1, 2)
+
+        self.check_sentences([
+            (u'completed', [], [u'sentence 1']),
+            (u'completed', [], [u'sentence 2a', u'sentence 2b']),
+            (u'completed', [], [u'sentence 3']),
+            (u'completed', [], [u'sentence 4']),
+        ])
     #
     # def test_complex_stitching_interleaved_review(self):
     #     self.setup_transcript()
