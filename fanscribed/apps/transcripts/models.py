@@ -83,6 +83,9 @@ class Sentence(models.Model):
 
     objects = SentenceManager()
 
+    def __unicode__(self):
+        return u'{self.state} sentence'.format(**locals())
+
     @property
     def text(self):
         return u' '.join(fragment.text for fragment in self.fragments.all())

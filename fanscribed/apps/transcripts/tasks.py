@@ -201,8 +201,12 @@ def process_stitch_task(pk):
         right_sf = SentenceFragment.objects.get(id=right_sf_id)
         if left_sf.candidate_sentences.count():
             left_sf.candidate_sentences.first().add_candidates(right_sf)
-        else:
+        elif right_sf.candidate_sentences.count():
             right_sf.candidate_sentences.first().add_candidates(left_sf)
+        elif left_sf.sentences.count():
+            left_sf.sentences.first().add_candidates(right_sf)
+        else:
+            right_sf.sentences.first().add_candidates(left_sf)
 
     # Delete removed pairings.
     for left_sf_id, right_sf_id in old_pairings - new_pairings:
