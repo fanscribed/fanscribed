@@ -58,3 +58,5 @@ django-supervisor == 0.3.2
     pathtools == 0.1.2
 
 dj-database-url == 0.3.0
+
+django-storages == 1.1.8

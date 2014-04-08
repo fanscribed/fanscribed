@@ -244,27 +244,8 @@ class Migration(SchemaMigration):
         # Adding unique constraint on 'TranscriptFragmentRevision', fields ['fragment', 'sequence']
         db.create_unique(u'transcripts_transcriptfragmentrevision', ['fragment_id', 'sequence'])
 
-        # Adding model 'TranscriptMedia'
-        db.create_table(u'transcripts_transcriptmedia', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('transcript', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['transcripts.Transcript'])),
-            ('media_file', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['media.MediaFile'])),
-            ('is_processed', self.gf('django.db.models.fields.BooleanField')()),
-            ('is_full_length', self.gf('django.db.models.fields.BooleanField')()),
-            ('created', self.gf('model_utils.fields.AutoCreatedField')(default=datetime.datetime.now)),
-            ('start', self.gf('django.db.models.fields.DecimalField')(null=True, max_digits=8, decimal_places=2)),
-            ('end', self.gf('django.db.models.fields.DecimalField')(null=True, max_digits=8, decimal_places=2)),
-        ))
-        db.send_create_signal(u'transcripts', ['TranscriptMedia'])
-
-        # Adding unique constraint on 'TranscriptMedia', fields ['transcript', 'is_processed', 'is_full_length', 'start', 'end']
-        db.create_unique(u'transcripts_transcriptmedia', ['transcript_id', 'is_processed', 'is_full_length', 'start', 'end'])
-
 
     def backwards(self, orm):
-        # Removing unique constraint on 'TranscriptMedia', fields ['transcript', 'is_processed', 'is_full_length', 'start', 'end']
-        db.delete_unique(u'transcripts_transcriptmedia', ['transcript_id', 'is_processed', 'is_full_length', 'start', 'end'])
-
         # Removing unique constraint on 'TranscriptFragmentRevision', fields ['fragment', 'sequence']
         db.delete_unique(u'transcripts_transcriptfragmentrevision', ['fragment_id', 'sequence'])
 
@@ -346,9 +327,6 @@ class Migration(SchemaMigration):
         # Deleting model 'TranscriptFragmentRevision'
         db.delete_table(u'transcripts_transcriptfragmentrevision')
 
-        # Deleting model 'TranscriptMedia'
-        db.delete_table(u'transcripts_transcriptmedia')
-
 
     models = {
         u'auth.group': {
@@ -386,11 +364,6 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        u'media.mediafile': {
-            'Meta': {'object_name': 'MediaFile'},
-            'data_url': ('django.db.models.fields.URLField', [], {'unique': 'True', 'max_length': '1024'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
         },
         u'transcripts.boundarytask': {
             'Meta': {'object_name': 'BoundaryTask'},
@@ -543,17 +516,6 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified': ('model_utils.fields.AutoLastModifiedField', [], {'default': 'datetime.datetime.now'}),
             'sequence': ('django.db.models.fields.PositiveIntegerField', [], {})
-        },
-        u'transcripts.transcriptmedia': {
-            'Meta': {'unique_together': "(('transcript', 'is_processed', 'is_full_length', 'start', 'end'),)", 'object_name': 'TranscriptMedia'},
-            'created': ('model_utils.fields.AutoCreatedField', [], {'default': 'datetime.datetime.now'}),
-            'end': ('django.db.models.fields.DecimalField', [], {'null': 'True', 'max_digits': '8', 'decimal_places': '2'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_full_length': ('django.db.models.fields.BooleanField', [], {}),
-            'is_processed': ('django.db.models.fields.BooleanField', [], {}),
-            'media_file': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['media.MediaFile']"}),
-            'start': ('django.db.models.fields.DecimalField', [], {'null': 'True', 'max_digits': '8', 'decimal_places': '2'}),
-            'transcript': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['transcripts.Transcript']"})
         },
         u'transcripts.transcriptstitch': {
             'Meta': {'ordering': "('left__start',)", 'unique_together': "[('transcript', 'left')]", 'object_name': 'TranscriptStitch'},

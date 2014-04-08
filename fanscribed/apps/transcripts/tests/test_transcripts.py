@@ -5,9 +5,10 @@ from django.test import TestCase
 
 from unipath import Path
 
-from ...media.models import MediaFile
+from ....utils import refresh
 from ...media import tests
-from .. import models as m
+from ...media.models import TranscriptMedia
+from ..models import Transcript
 
 MEDIA_TESTDATA_PATH = Path(tests.__file__).parent.child('testdata')
 
@@ -18,25 +19,25 @@ RAW_MEDIA_PATH = MEDIA_TESTDATA_PATH.child('raw').child(
 class TranscriptsTestCase(TestCase):
 
     def test_transcript_starts_out_with_unknown_length(self):
-        transcript = m.Transcript.objects.create(name='test')
+        transcript = Transcript.objects.create(name='test')
         self.assertEqual(transcript.length, None)
 
     def test_setting_transcript_length_creates_fragments_and_stitches(self):
-        t = m.Transcript.objects.create(name='test')
+        t = Transcript.objects.create(name='test')
         t.set_length('3.33')
         f0, = t.fragments.all()
         self.assertEqual(f0.start, Decimal('0.00'))
         self.assertEqual(f0.end, Decimal('3.33'))
         self.assertEqual(t.stitches.count(), 0)
 
-        t = m.Transcript.objects.create(name='test')
+        t = Transcript.objects.create(name='test')
         t.set_length('7.77')
         f0, = t.fragments.all()
         self.assertEqual(f0.start, Decimal('0.00'))
         self.assertEqual(f0.end, Decimal('7.77'))
         self.assertEqual(t.stitches.count(), 0)
 
-        t = m.Transcript.objects.create(name='test')
+        t = Transcript.objects.create(name='test')
         t.set_length('17.77')
         f0, f1, f2 = t.fragments.all()
         self.assertEqual(f0.start, Decimal('0.00'))
@@ -56,26 +57,30 @@ class TranscriptsTestCase(TestCase):
 
 if os.environ.get('FAST_TEST') != '1':
 
+    from django.core.files import File
+
+
     class SlowTranscriptsTestCase(TestCase):
 
         def test_transcript_with_processed_media_has_length(self):
-            media_file = MediaFile.objects.create(
-                data_url='file://{}'.format(RAW_MEDIA_PATH),
-            )
-            transcript = m.Transcript.objects.create(
+
+            transcript = Transcript.objects.create(
                 name='test transcript',
             )
-            transcript_media = m.TranscriptMedia.objects.create(
+            raw_media = TranscriptMedia(
                 transcript=transcript,
-                media_file=media_file,
                 is_processed=False,
                 is_full_length=True,
             )
-            transcript_media.create_processed()
+            with open(RAW_MEDIA_PATH, 'rb') as f:
+                raw_media.file.save('{}/raw.mp3'.format(transcript.id), File(f))
+            raw_media.save()
 
-            # Reload changed objects.
-            transcript = m.Transcript.objects.get(pk=transcript.pk)
+            # Process raw media.
+            raw_media.create_processed()
+            transcript = refresh(transcript)
 
             # Check length.
             expected_length = 5 * 60  # 5 minutes.
-            self.assertAlmostEqual(transcript.length, expected_length, delta=0.2)
+            self.assertAlmostEqual(
+                transcript.length, expected_length, delta=0.2)

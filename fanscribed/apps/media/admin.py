@@ -1,11 +1,11 @@
 from django.contrib import admin
 
-from .models import MediaFile
+from .models import TranscriptMedia
 
 
-class MediaFileAdmin(admin.ModelAdmin):
+class TranscriptMediaAdmin(admin.ModelAdmin):
 
     list_display = ('data_url',)
 
 
-admin.site.register(MediaFile, MediaFileAdmin)
+admin.site.register(TranscriptMedia, TranscriptMediaAdmin)

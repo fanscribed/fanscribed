@@ -99,6 +99,9 @@ MEDIA_ROOT = normpath(join(PACKAGE_ROOT, 'media'))
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = '/media/'
 
+# Used for local caching of media files for faster processing.
+MEDIA_CACHE_PATH = join(PACKAGE_ROOT, '..', '.mediafile-cache')
+
 
 # STATIC
 # ------
@@ -331,13 +334,6 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MAILCHIMP_API_KEY = ''  # Set this in .production based on env vars
 MAILCHIMP_LIST_ID = ''  # Set this in .production based on env vars
-
-
-# MEDIA FILES
-# -----------
-
-MEDIAFILE_CACHE_PATH = join(PACKAGE_ROOT, '..', '.mediafile-cache')
-MEDIAFILE_STORAGE_PATH = join(PACKAGE_ROOT, '..', '.mediafile-storage')
 
 
 # SHELL_PLUS

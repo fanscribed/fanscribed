@@ -5,12 +5,8 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
-from model_utils.models import AutoCreatedField, TimeStampedModel
-
 from django_fsm.db.fields import FSMField, transition
-
-from .tasks import create_processed_transcript_media
+from model_utils.models import TimeStampedModel
 
 
 # ---------------------
@@ -1121,38 +1117,3 @@ class TranscriptFragmentRevision(TimeStampedModel):
     def text(self):
         return '\n\n'.join(
             sf.text for sf in self.sentence_fragments.all())
-
-
-# ---------------------
-
-
-class TranscriptMedia(models.Model):
-
-    # TODO: state machine around conversion process
-
-    transcript = models.ForeignKey('Transcript')
-    media_file = models.ForeignKey('media.MediaFile')
-    is_processed = models.BooleanField(help_text='Is it processed media?')
-    is_full_length = models.BooleanField(
-        help_text='Is it the full length of media to be transcribed?')
-    created = AutoCreatedField()
-    start = models.DecimalField(max_digits=8, decimal_places=2, null=True)
-    end = models.DecimalField(max_digits=8, decimal_places=2, null=True)
-
-    class Meta:
-        unique_together = (
-            'transcript',
-            'is_processed',
-            'is_full_length',
-            'start',
-            'end',
-        )
-
-    def __unicode__(self):
-        if self.is_processed:
-            return u'Processed media for {self.transcript}'.format(**locals())
-        else:
-            return u'Raw media for {self.transcript}'.format(**locals())
-
-    def create_processed(self):
-        create_processed_transcript_media.delay(self.pk)
