@@ -37,6 +37,7 @@ raven == 4.0.4
 redis == 2.9.1
 requests == 2.2.1
 requests-oauthlib == 0.4.0
+setuptools == 3.4.3
 South == 0.8.4
 supervisor == 3.0
 tornado == 3.2
