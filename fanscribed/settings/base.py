@@ -94,7 +94,7 @@ USE_TZ = True
 # -----
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#media-root
-MEDIA_ROOT = normpath(join(PACKAGE_ROOT, 'media'))
+MEDIA_ROOT = normpath(join(PACKAGE_ROOT, '..', 'media'))
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = '/media/'
@@ -350,6 +350,7 @@ IPYTHON_ARGUMENTS = [
 # -------------
 
 TRANSCRIPT_FRAGMENT_LENGTH = Decimal('5.00')
+TRANSCRIPT_FRAGMENT_OVERLAP = Decimal('1.50')
 
 
 # TESTING

@@ -24,8 +24,9 @@ build
 .vagrant
 Vagrantfile
 
-# Media cache:
+# Media:
 .mediafile-cache/
+media/
 
 # Ipython notebook:
 .ipynb_checkpoints/

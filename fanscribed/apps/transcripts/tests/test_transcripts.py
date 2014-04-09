@@ -7,8 +7,7 @@ from unipath import Path
 
 from ....utils import refresh
 from ...media import tests
-from ...media.models import TranscriptMedia
-from ..models import Transcript
+from ..models import Transcript, TranscriptMedia
 
 MEDIA_TESTDATA_PATH = Path(tests.__file__).parent.child('testdata')
 
@@ -77,7 +76,7 @@ if os.environ.get('FAST_TEST') != '1':
             raw_media.save()
 
             # Process raw media.
-            raw_media.create_processed()
+            raw_media.create_processed_task()
             transcript = refresh(transcript)
 
             # Check length.

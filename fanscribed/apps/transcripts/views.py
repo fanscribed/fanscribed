@@ -1,26 +1,27 @@
-from django.http import HttpResponse
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 
-from vanilla import DetailView, UpdateView, ListView, RedirectView
+import vanilla
 
+from ...utils import refresh
 from . import forms as f
 from . import models as m
-
 
 # -----------------------------
 
 
-class TranscriptListView(ListView):
+class TranscriptListView(vanilla.ListView):
 
     model = m.Transcript
 
 
-class TranscriptDetailView(DetailView):
+class TranscriptDetailView(vanilla.DetailView):
 
     model = m.Transcript
 
 
-class TranscriptTextView(DetailView):
+class TranscriptTextView(vanilla.DetailView):
 
     model = m.Transcript
     template_name_suffix = '_text'
@@ -34,7 +35,7 @@ class TranscriptTextView(DetailView):
 # -----------------------------
 
 
-class TaskAssignView(RedirectView):
+class TaskAssignView(vanilla.RedirectView):
 
     http_method_names = ['post']
 
@@ -51,27 +52,29 @@ class TaskAssignView(RedirectView):
                     ('transcribe', True),
                     ('stitch', False),
                     ('stitch', True),
-                    ('clean', False),
-                    ('clean', True),
                     ('boundary', False),
                     ('boundary', True),
+                    ('clean', False),
+                    ('clean', True),
                     ('speaker', False),
                     ('speaker', True),
                 ]
-            if task_type == 'any_eager':
+            elif task_type == 'any_eager':
                 L = [
                     # (task_class, is_review),
-                    ('clean', True),
                     ('boundary', True),
+                    ('clean', True),
                     ('speaker', True),
-                    ('clean', False),
                     ('boundary', False),
+                    ('clean', False),
                     ('speaker', False),
                     ('stitch', True),
                     ('stitch', False),
                     ('transcribe', True),
                     ('transcribe', False),
                 ]
+            else:
+                L = []
             for task_type, is_review in L:
                 tasks = m.TASK_MODEL[task_type].objects
                 if tasks.can_create(transcript, is_review):
@@ -99,7 +102,7 @@ class TaskAssignView(RedirectView):
             return HttpResponse('no tasks available')
 
 
-class TaskPerformView(UpdateView):
+class TaskPerformView(vanilla.UpdateView):
 
     context_object_name = 'task'
 
@@ -118,3 +121,34 @@ class TaskPerformView(UpdateView):
         return [
             'transcripts/task_{}_detail.html'.format(task_type),
         ]
+
+    def get_success_url(self):
+        return reverse('transcripts:detail',
+                       kwargs=dict(pk=self.object.transcript.id))
+
+
+class TaskAudioView(vanilla.DetailView):
+
+    def get_queryset(self):
+        print 'get queryset'
+        task_type = self.kwargs['type']
+        model = m.TASK_MODEL[task_type]
+        print 'model', model
+        return model
+
+    def get_object(self):
+        print 'get object'
+        task = super(TaskAudioView, self).get_object()
+        media = task.media
+        print 'media', media
+        return media
+
+    def render_to_response(self, context):
+        print 'render'
+        media = context['object']
+        if not media.file:
+            result = media.create_file_task()
+            # Wait for it before continuing.
+            result.get()
+            media = refresh(media)
+        return HttpResponseRedirect(media.file.url)

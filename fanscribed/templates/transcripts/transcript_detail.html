@@ -24,6 +24,7 @@
       <button class="btn btn-primary" type="submit" name="type" value="any_eager">
         Assign Any (Eager)
       </button>
+      <a class="btn btn-default" href="{% url 'transcripts:text' pk=transcript.pk %}">Read Text</a>
     </form>
   {% else %}
     <a class="btn btn-primary"

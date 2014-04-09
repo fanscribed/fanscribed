@@ -3,7 +3,7 @@ from django.conf.urls import patterns, url
 from ...urls import LOGGED_IN_USER
 
 from .views import (
-    TaskAssignView, TaskPerformView,
+    TaskAssignView, TaskPerformView, TaskAudioView,
     TranscriptDetailView, TranscriptListView,
     TranscriptTextView,
 )
@@ -27,6 +27,11 @@ urlpatterns = patterns(
     url(r'^(?P<transcript_pk>\d+)/tasks/(?P<type>\w+)/(?P<pk>\d+)/$',
         name='task_perform',
         view=TaskPerformView.as_view(),
+        kwargs=LOGGED_IN_USER),
+
+    url(r'^(?P<transcript_pk>\d+)/tasks/(?P<type>\w+)/(?P<pk>\d+)/audio/$',
+        name='task_audio',
+        view=TaskAudioView.as_view(),
         kwargs=LOGGED_IN_USER),
 
     url(r'^(?P<pk>\d+)/tasks/assign/$',

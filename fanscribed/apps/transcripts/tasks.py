@@ -1,11 +1,22 @@
 from decimal import Decimal
+from hashlib import sha1
+from shutil import move
+import os
+import random
 import time
 
 from celery.app import shared_task
 from celery.exceptions import Reject
+from django.conf import settings
+from django.core.files import File
+from unipath import Path
+
+from ..media import avlib, mp3splt
 
 
-# =====================
+# ================================================================
+#                            TASKS
+# ================================================================
 
 
 def _get_task(task_class, pk):
@@ -304,3 +315,141 @@ def process_speaker_task(pk):
     )
 
     task.validate()
+
+
+# ================================================================
+#                            MEDIA
+# ================================================================
+
+
+# These settings are optimal for creating single-channel,
+# 44.1KHz, 64k bitstream MP3 audio files.
+PROCESSED_MEDIA_AVCONV_SETTINGS = [
+    '-ac', '1',
+    '-ar', '44100',
+    '-b', '64k',
+    '-c:a', 'libmp3lame',
+    '-f', 'mp2',
+]
+
+CACHE_PATH = Path(settings.MEDIA_CACHE_PATH).absolute()
+CHUNK_SIZE = 262144
+
+
+def _local_cache_path(fieldfile):
+    """Return local cache path for this media file, fetching as needed."""
+
+    url_hash = sha1(fieldfile.url).hexdigest()
+    if not os.path.exists(CACHE_PATH):
+        os.makedirs(CACHE_PATH)
+    path = CACHE_PATH.child(url_hash)
+
+    # If it's already cached, use it.
+    if path.exists():
+        return path
+
+    # Not cached; retrieve and store it.
+    # Start out with a temp file, to avoid one process clobbering another.
+    temp_path = '{}_{}'.format(path, random.randint(10000, 99999))
+
+    fieldfile.open()
+    with open(temp_path, 'wb') as out_file, fieldfile as in_file:
+        chunk = in_file.read(CHUNK_SIZE)
+        while chunk != '':
+            out_file.write(chunk)
+            chunk = in_file.read(CHUNK_SIZE)
+
+    move(temp_path, path)
+    return path
+
+
+@shared_task
+def create_processed_transcript_media(transcript_media_pk):
+
+    from .models import TranscriptMedia
+
+    raw_transcript_media = TranscriptMedia.objects.get(pk=transcript_media_pk)
+    transcript = raw_transcript_media.transcript
+
+    # Fail if processed already.
+    if raw_transcript_media.is_processed:
+        # TODO: What's a better exception class?
+        raise Exception('Cannot process already-processed media.')
+
+    # Fail if not full-length.
+    if not raw_transcript_media.is_full_length:
+        # TODO: What's a better exception class?
+        raise Exception('Cannot process media that is not full length.')
+
+    # Succeed if we've already converted it.
+    processed_media = dict(
+        transcript=transcript,
+        is_processed=True,
+        is_full_length=True,
+        )
+    if TranscriptMedia.objects.filter(**processed_media).exists():
+        return
+
+    # Convert raw media to processed audio.
+    raw_path = _local_cache_path(raw_transcript_media.file)
+    processed_media = TranscriptMedia.objects.create(
+        transcript=transcript,
+        # file will be set below.
+        is_processed=True,
+        is_full_length=True,
+        start=0.00,
+        # end will be set below.
+    )
+    processed_media.create_file()
+
+    processed_path = os.tempnam()
+    avlib.convert(raw_path, processed_path, PROCESSED_MEDIA_AVCONV_SETTINGS)
+
+    # Find length of raw media.
+    raw_transcript_media.create_file()
+    raw_length = avlib.media_length(raw_path)
+    raw_transcript_media.start = 0.00
+    raw_transcript_media.end = raw_length
+    raw_transcript_media.finish()
+
+    # Find length of processed media, and store contents and length.
+    processed_media.end = avlib.media_length(processed_path)
+    with open(processed_path, 'rb') as f:
+        processed_filename = '{}/processed.mp3'.format(transcript.id)
+        processed_media.file.save(processed_filename, File(f))
+    processed_media.finish()
+
+    # Set transcript's length based on processed media.
+    transcript.set_length(processed_media.end)
+
+
+@shared_task
+def create_transcript_media_file(transcript_media_pk):
+
+    from .models import TranscriptMedia
+
+    tm = TranscriptMedia.objects.get(pk=transcript_media_pk)
+    assert tm.is_full_length == False, 'Not intended for use on full length media.'
+    assert tm.is_processed == True, 'Not intended for use on raw media.'
+    assert tm.start is not None and tm.end is not None, 'Start and end must be given'
+
+    transcript = tm.transcript
+
+    full_tm = TranscriptMedia.objects.get(
+        transcript=transcript,
+        is_processed=True,
+        is_full_length=True,
+    )
+    assert full_tm.state == 'ready', 'Full-length media must be ready to create partial media.'
+
+    # Extract and save to field.
+    tm.create_file()
+
+    full_path = _local_cache_path(full_tm.file)
+    slice_path = os.tempnam()
+    mp3splt.extract_segment(full_path, slice_path, tm.start, tm.end)
+    with open(slice_path, 'rb') as f:
+        slice_filename = '{}/{}_{}_slice.mp3'.format(transcript.id, tm.start, tm.end)
+        tm.file.save(slice_filename, File(f))
+
+    tm.finish()

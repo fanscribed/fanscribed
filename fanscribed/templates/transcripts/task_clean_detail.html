@@ -1,6 +1,13 @@
 {% extends "transcripts/task_base.html" %}
 {% load bootstrap3 %}
 
+{% block extra_js %}
+  {{ block.super }}
+  <script type="text/javascript">
+    jQuery('#id_text').focus();
+  </script>
+{% endblock %}
+
 {% block content %}
 
   {{ block.super }}
@@ -12,6 +19,8 @@
     {% include "transcripts/_task_detail_common.html" %}
 
   </dl>
+
+  {% include "transcripts/_task_detail_audio.html" %}
 
   {% if task.state == 'presented' %}
 

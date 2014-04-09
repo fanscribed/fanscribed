@@ -26,7 +26,7 @@ class StitchTaskForm(DefaultTaskForm):
 
     class Meta:
         model = m.StitchTask
-        exclude = ('transcript', 'is_review', 'state', 'assignee', 'stitch')
+        exclude = ('transcript', 'is_review', 'media', 'state', 'assignee', 'stitch')
 
     def __init__(self, *args, **kwargs):
         super(StitchTaskForm, self).__init__(*args, **kwargs)

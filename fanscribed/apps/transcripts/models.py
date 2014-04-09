@@ -618,6 +618,70 @@ class TranscriptFragmentRevision(TimeStampedModel):
 
 
 # ================================================================
+#                            MEDIA
+# ================================================================
+
+
+class TranscriptMedia(TimeStampedModel):
+    """
+    @startuml
+    [*] --> empty
+    empty --> creating
+    creating --> ready
+    ready --> [*]
+    @enduml
+    """
+
+    transcript = models.ForeignKey('transcripts.Transcript', related_name='media')
+    file = models.FileField(upload_to='transcripts', max_length=1024)
+    state = FSMField(default='empty', protected=True)
+    is_processed = models.BooleanField(help_text='Is it processed media?')
+    is_full_length = models.BooleanField(
+        help_text='Is it the full length of media to be transcribed?')
+    start = models.DecimalField(max_digits=8, decimal_places=2, null=True)
+    end = models.DecimalField(max_digits=8, decimal_places=2, null=True)
+
+    class Meta:
+        unique_together = (
+            'transcript',
+            'is_processed',
+            'is_full_length',
+            'start',
+            'end',
+        )
+
+    def __unicode__(self):
+        if self.is_processed:
+            return u'Processed media for {self.transcript}'.format(**locals())
+        else:
+            return u'Raw media for {self.transcript}'.format(**locals())
+
+    def create_processed_task(self):
+        """Create a processed TranscriptMedia based on this one.
+
+        Assumes that this one is raw and full-length.
+        """
+        from .tasks import create_processed_transcript_media
+        return create_processed_transcript_media.delay(self.pk)
+
+    def create_file_task(self):
+        """Create a file for this TranscriptMedia."""
+        from .tasks import create_transcript_media_file
+        return create_transcript_media_file.delay(self.pk)
+
+    @transition(state, 'empty', 'creating', save=True)
+    def create_file(self):
+        pass
+
+    def has_file(self):
+        return bool(self.file)
+
+    @transition(state, 'creating', 'ready', save=True, conditions=[has_file])
+    def finish(self):
+        pass
+
+
+# ================================================================
 #                            TASKS
 # ================================================================
 
@@ -682,6 +746,7 @@ class Task(TimeStampedModel):
     is_review = models.BooleanField()
     state = FSMField(default='unassigned', protected=True)
     assignee = models.ForeignKey('auth.User', blank=True, null=True)
+    media = models.ForeignKey('TranscriptMedia', blank=True, null=True)
 
     class Meta:
         abstract = True
@@ -760,8 +825,24 @@ class TranscribeTaskManager(TaskManager):
             text = latest.text
             next = fragment.revisions.create(sequence=latest.sequence + 1,
                                              editor=user)
+
+        # Apply overlap.
+        start = fragment.start - settings.TRANSCRIPT_FRAGMENT_OVERLAP
+        end = fragment.end + settings.TRANSCRIPT_FRAGMENT_OVERLAP
+
+        # Correct for out of bounds.
+        start = max(Decimal('0.00'), start)
+        end = min(transcript.length, end)
+
+        media, created = transcript.media.get_or_create(
+            is_processed=True,
+            is_full_length=False,
+            start=start,
+            end=end,
+        )
         task = transcript.transcribetask_set.create(
             is_review=is_review,
+            media=media,
             revision=next,
             start=fragment.start,
             end=fragment.end,
@@ -823,8 +904,24 @@ class StitchTaskManager(TaskManager):
 
     def create_next(self, user, transcript, is_review):
         stitch = self._available_stitches(transcript, is_review).first()
+
+        # Apply overlap.
+        start = stitch.left.start - settings.TRANSCRIPT_FRAGMENT_OVERLAP
+        end = stitch.right.end + settings.TRANSCRIPT_FRAGMENT_OVERLAP
+
+        # Correct for out of bounds.
+        start = max(Decimal('0.00'), start)
+        end = min(transcript.length, end)
+
+        media, created = transcript.media.get_or_create(
+            is_processed=True,
+            is_full_length=False,
+            start=start,
+            end=end,
+        )
         task = transcript.stitchtask_set.create(
             is_review=is_review,
+            media=media,
             stitch=stitch,
         )
         if is_review:
@@ -911,8 +1008,17 @@ class CleanTaskManager(TaskManager):
 
     def create_next(self, user, transcript, is_review):
         sentence = self._available_sentences(transcript, is_review).first()
+
+        media, created = transcript.media.get_or_create(
+            is_processed=True,
+            is_full_length=False,
+            start=sentence.latest_start,
+            end=sentence.latest_end,
+        )
+
         task = transcript.cleantask_set.create(
             is_review=is_review,
+            media=media,
             sentence=sentence,
             text=sentence.latest_text,
         )
@@ -981,8 +1087,29 @@ class BoundaryTaskManager(TaskManager):
 
     def create_next(self, user, transcript, is_review):
         sentence = self._available_sentences(transcript, is_review).first()
+
+        if not is_review:
+            # Apply overlap.
+            start = sentence.latest_start - settings.TRANSCRIPT_FRAGMENT_OVERLAP
+            end = sentence.latest_end + settings.TRANSCRIPT_FRAGMENT_OVERLAP
+
+            # Correct for out of bounds.
+            start = max(Decimal('0.00'), start)
+            end = min(transcript.length, end)
+        else:
+            # TODO: Instead of bounding it here, give the overlapped version to the UI, but make it stop playing.
+            start = sentence.latest_start
+            end = sentence.latest_end
+
+        media, created = transcript.media.get_or_create(
+            is_processed=True,
+            is_full_length=False,
+            start=start,
+            end=end,
+        )
         task = transcript.boundarytask_set.create(
             is_review=is_review,
+            media=media,
             sentence=sentence,
             start=sentence.latest_start,
             end=sentence.latest_end,
@@ -1053,8 +1180,18 @@ class SpeakerTaskManager(TaskManager):
 
     def create_next(self, user, transcript, is_review):
         sentence = self._available_sentences(transcript, is_review).first()
+
+        start = sentence.latest_start
+        media, created = transcript.media.get_or_create(
+            is_processed=True,
+            is_full_length=False,
+            start=sentence.latest_start,
+            end=sentence.latest_end,
+        )
+
         task = transcript.speakertask_set.create(
             is_review=is_review,
+            media=media,
             sentence=sentence,
             speaker=sentence.latest_speaker,
         )

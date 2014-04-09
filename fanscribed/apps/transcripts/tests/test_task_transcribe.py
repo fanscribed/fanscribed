@@ -29,6 +29,17 @@ class TranscribeTaskTestCase(TestCase):
         task = refresh(task)
         return task
 
+    def test_media(self):
+        task = self._submitted_task(
+            fragment=0,
+            text='first\nsecond\n',
+            sequence=1,
+            is_review=False,
+        )
+
+        self.assertEqual(task.media.start, Decimal('0.00'))
+        self.assertEqual(task.media.end, Decimal('6.50'))
+
     def test_valid_task(self):
         task = self._submitted_task(
             fragment=0,

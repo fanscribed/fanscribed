@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.conf.urls import patterns, include, url
+from django.conf.urls.static import static
 from django.views.generic import TemplateView
 
 
@@ -36,3 +38,7 @@ urlpatterns = patterns(
         name='home',
         view=TemplateView.as_view(template_name='home.html')),
 )
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -14,5 +14,6 @@ BROKER_BACKEND = 'memory'
 CELERY_ALWAYS_EAGER = True
 CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
-# Set specifically to 5.00 for tests.
+# Set specifically to 5.00 and 1.50 for tests.
 TRANSCRIPT_FRAGMENT_LENGTH = Decimal('5.00')
+TRANSCRIPT_FRAGMENT_OVERLAP = Decimal('1.50')

@@ -14,6 +14,10 @@ DEBUG = True
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#template-debug
 TEMPLATE_DEBUG = DEBUG
 
+TEMPLATE_CONTEXT_PROCESSORS += (
+    'fanscribed.context_processors.debug',
+)
+
 
 # EMAIL
 # -----
