@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User, Group
+from django.core.files import File
 from django.core.management import call_command
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.db import connection
 
 from allauth.account.models import EmailAddress, EmailConfirmation
@@ -11,10 +12,10 @@ import fanscribed.apps.media.models
 import fanscribed.apps.podcasts.models
 import fanscribed.apps.transcripts.models
 
-from ...apps.media.models import MediaFile
+from ...apps.media.models import TranscriptMedia
 from ...apps.media.tests.base import RAW_NOAGENDA_MEDIA_PATH
 from ...apps.podcasts.models import Podcast
-from ...apps.transcripts.models import Transcript, TranscriptMedia
+from ...apps.transcripts.models import Transcript
 
 
 class Command(BaseCommand):
@@ -68,15 +69,16 @@ class Command(BaseCommand):
         self.verbose_write('Creating sample transcript with media.')
         transcript = Transcript.objects.create(
             name='Sample No Agenda Transcript')
-        data_url = 'file://{}'.format(RAW_NOAGENDA_MEDIA_PATH)
-        media_file = MediaFile.objects.create(data_url=data_url)
-        transcript_media = TranscriptMedia.objects.create(
+
+        raw_media = TranscriptMedia(
             transcript=transcript,
-            media_file=media_file,
             is_processed=False,
             is_full_length=True,
         )
-        transcript_media.create_processed()
+        with open(RAW_NOAGENDA_MEDIA_PATH, 'rb') as f:
+            raw_media.file.save('{}/raw.mp3'.format(transcript.id), File(f))
+        raw_media.save()
+        raw_media.create_processed()
 
     def fix_su(self):
         """Create superuser account (creds are su:su)"""
@@ -119,7 +121,7 @@ class Command(BaseCommand):
             'waffle_flag_users',
 
             # media,
-            media.models.MediaFile,
+            media.models.TranscriptMedia,
 
             # podcasts,
             podcasts.models.Podcast,
@@ -128,7 +130,6 @@ class Command(BaseCommand):
 
             # transcripts,
             transcripts.models.Transcript,
-            transcripts.models.TranscriptMedia,
             transcripts.models.TranscriptFragment,
         ])
         call_command('load_initial_data', verbosity=self.verbosity,
