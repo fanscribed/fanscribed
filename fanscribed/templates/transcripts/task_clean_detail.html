@@ -24,7 +24,10 @@
 
   {% if task.state == 'presented' %}
 
-    <p>Clean the sentence to remove duplicate words.</p>
+    <ul>
+      <li>Clean the sentence to remove duplicate words.</li>
+      <li>Ensure proper capitalization and punctuation.</li>
+    </ul>
 
     <form action="" method="post" class="form">
       {% csrf_token %}
