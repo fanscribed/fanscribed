@@ -9,7 +9,9 @@ from django_fsm.db.fields import FSMField, transition
 from model_utils.models import TimeStampedModel
 
 
-# ---------------------
+# ================================================================
+#                           TRANSCRIPTS
+# ================================================================
 
 
 class SentenceManager(models.Manager):
@@ -243,6 +245,381 @@ class Speaker(models.Model):
 
 
 # ---------------------
+
+
+class Transcript(TimeStampedModel):
+    """A transcript of audio or video to text.
+
+    length_state
+    ------------
+
+    @startuml
+    [*] --> unset
+    unset --> set
+    set --> [*]
+    @enduml
+    """
+
+    name = models.CharField(max_length=512)  # TODO: change to `title`
+    length = models.DecimalField(max_digits=8, decimal_places=2, null=True)
+    length_state = FSMField(default='unset', protected=True)
+
+    def __unicode__(self):
+        return self.name
+
+    @transition(length_state, 'unset', 'set', save=True)
+    def set_length(self, length):
+        self.length = Decimal(length)
+        self._create_fragments()
+
+    def _create_fragments(self):  # TODO: unit test
+        start = Decimal('0')
+        previous = None
+        while start < self.length:
+
+            # Find the end of the current fragment.
+            # If remaining time is less than fragment length, stretch to end.
+            end = start + settings.TRANSCRIPT_FRAGMENT_LENGTH
+            remaining = self.length - end
+            if remaining < settings.TRANSCRIPT_FRAGMENT_LENGTH:
+                end = self.length
+
+            current = self.fragments.create(
+                start=start,
+                end=end,
+                # # First and last fragments are 'stitched' to each end. :)
+                # stitched_left=True if start == Decimal('0') else False,
+                # stitched_right=True if end == self.length else False,
+            )
+
+            if previous is not None:
+                self.stitches.create(
+                    left=previous,
+                    right=current,
+                )
+
+            start = end
+            previous = current
+
+
+# ---------------------
+
+
+class TranscriptFragmentManager(models.Manager):
+
+    use_for_related_fields = True
+
+    def empty(self):
+        return self.filter(state='empty')
+
+    def transcribed(self):
+        return self.filter(state='transcribed')
+
+    def reviewed(self):
+        return self.filter(state='transcript_reviewed')
+
+    def locked(self):
+        return self.filter(lock_state='locked')
+
+    def unlocked(self):
+        return self.filter(lock_state='unlocked')
+
+
+class TranscriptFragment(models.Model):
+    """A fragment of a transcript defined by its time span.
+
+    state
+    -----
+
+    @startuml
+    [*] --> empty
+    empty --> transcribed
+    transcribed --> reviewed
+    reviewed --> [*]
+    @enduml
+
+    lock_state
+    ------------
+
+    @startuml
+    [*] --> unlocked
+    unlocked --> locked
+    locked --> unlocked
+    @enduml
+    """
+
+    transcript = models.ForeignKey('Transcript', related_name='fragments')
+    start = models.DecimalField(max_digits=8, decimal_places=2)
+    end = models.DecimalField(max_digits=8, decimal_places=2)
+    state = FSMField(default='empty', protected=True)
+    lock_state = FSMField(default='unlocked', protected=True)
+
+    objects = TranscriptFragmentManager()
+
+    class Meta:
+        ordering = ('start',)
+        unique_together = [
+            ('transcript', 'start', 'end'),
+        ]
+
+    def stitched_both_sides(self):
+        return self.stitched_left and self.stitched_right
+
+    @transition(lock_state, 'unlocked', 'locked', save=True)
+    def lock(self):
+        pass
+
+    @transition(lock_state, 'locked', 'unlocked', save=True)
+    def unlock(self):
+        pass
+
+    @transition(state, 'empty', 'transcribed', save=True)
+    def transcribe(self):
+        pass
+
+    @transition(state, 'transcribed', 'reviewed', save=True)
+    def review(self):
+        # Ready related stitches if other fragments are transcribed.
+        if self.start != Decimal(0):
+            L = self.stitch_at_left
+            if L.left.state == 'reviewed':
+                L.ready()
+        if self.end != self.transcript.length:
+            R = self.stitch_at_right
+            if R.right.state == 'reviewed':
+                R.ready()
+
+
+# ---------------------
+
+
+class TranscriptStitchManager(models.Manager):
+
+    def notready(self):
+        return self.filter(state='notready')
+
+    def unstitched(self):
+        return self.filter(state='unstitched')
+
+    def stitched(self):
+        return self.filter(state='stitched')
+
+    def reviewed(self):
+        return self.filter(state='reviewed')
+
+    def locked(self):
+        return self.filter(lock_state='locked')
+
+    def unlocked(self):
+        return self.filter(lock_state='unlocked')
+
+
+class TranscriptStitch(models.Model):
+    """A stitch between two fragments of a transcript.
+
+    state
+    -----
+
+    @startuml
+    [*] --> notready
+    notready --> unstitched
+    unstitched --> stitched
+    stitched --> reviewed
+    reviewed --> [*]
+    @enduml
+
+    lock_state
+    ------------
+
+    @startuml
+    [*] --> unlocked
+    unlocked --> locked
+    locked --> unlocked
+    @enduml
+    """
+
+    transcript = models.ForeignKey('Transcript', related_name='stitches')
+    left = models.OneToOneField('TranscriptFragment', related_name='stitch_at_right')
+    right = models.OneToOneField('TranscriptFragment', related_name='stitch_at_left')
+    state = FSMField(default='notready', protected=True)
+    lock_state = FSMField(default='unlocked', protected=True)
+
+    objects = TranscriptStitchManager()
+
+    class Meta:
+        ordering = ('left__start',)
+        unique_together = [
+            ('transcript', 'left'),
+        ]
+
+    @transition(lock_state, 'unlocked', 'locked', save=True)
+    def lock(self):
+        pass
+
+    @transition(lock_state, 'locked', 'unlocked', save=True)
+    def unlock(self):
+        pass
+
+    @transition(state, 'notready', 'unstitched', save=True)
+    def ready(self):
+        pass
+
+    @transition(state, 'unstitched', 'stitched', save=True)
+    def stitch(self):
+        self._merge_sentences()
+
+    @transition(state, 'stitched', 'reviewed', save=True)
+    def review(self):
+        self._merge_sentences()
+        self._complete_sentences()
+
+    def _merge_sentences(self):
+        """Merge overlapping Sentence instances."""
+        left_fragment_revision = self.left.revisions.latest()
+        right_fragment_revision = self.right.revisions.latest()
+
+        for revision in [left_fragment_revision, right_fragment_revision]:
+            deletion_candidates = []
+            for sf in revision.sentence_fragments.all():
+                sentences = sf.sentences
+                candidate_sentences = sf.candidate_sentences
+
+                # If fragment is in more than one sentence,
+                # pick the first sentence as the survivor.
+                if sentences.count() > 1:
+                    survivor = sentences.first()
+                elif candidate_sentences.count() > 1:
+                    survivor = candidate_sentences.first()
+                else:
+                    survivor = None
+
+                if survivor is not None:
+                    # Merge remaining sentences with survivor.
+                    def merge(s, o):
+                        s.fragments.add(*o.fragments.all())
+                        s.fragment_candidates.add(
+                            *o.fragment_candidates.all())
+                        o.delete()
+                    for other in sentences.all():
+                        if other != survivor:
+                            merge(survivor, other)
+                    for other in candidate_sentences.all():
+                        if other != survivor:
+                            merge(survivor, other)
+                else:
+                    # No survivor means there was only one sentence involved.
+                    pass
+
+    def _complete_sentences(self):
+        """Complete sentences in this stitch (when they are ready)."""
+
+        left_fragment_revision = self.left.revisions.latest()
+        right_fragment_revision = self.right.revisions.latest()
+
+        # Look for partial sentences in these revisions and complete them.
+        revisions_to_complete = [
+            left_fragment_revision,
+            right_fragment_revision,
+        ]
+
+        # Also look for partial sentences in adjacent reviewed stitches.
+        if self.left.start != Decimal(0):
+            stitch_at_left = TranscriptStitch.objects.get(right=self.left)
+            if stitch_at_left.state == 'reviewed':
+                revisions_to_complete.append(stitch_at_left.left.revisions.latest())
+
+        if self.right.end != self.transcript.length:
+            stitch_at_right = TranscriptStitch.objects.get(left=self.right)
+            if stitch_at_right.state == 'reviewed':
+                revisions_to_complete.append(stitch_at_right.right.revisions.latest())
+
+        print 'Completing sentences.'
+        sentences_checked = set()
+        for revision in revisions_to_complete:
+            for candidate_sf in revision.sentence_fragments.all():
+                for sentence in candidate_sf.sentences.filter(state='partial'):
+
+                    if sentence.id in sentences_checked:
+                        print 'Already checked sentence id', sentence.id
+                        continue
+
+                    sentences_checked.add(sentence.id)
+                    print 'Checking partial sentence, candidates={!r}, text={!r}'.format(sentence.candidate_text, sentence.text)
+
+                    if sentence.fragment_candidates.count() > 0:
+                        # The sentence is still being worked on.
+                        continue
+                    else:
+                        # Complete the sentence if all related stitches
+                        # are reviewed, AND adjacent stitches are reviewed.
+                        for other_sf in sentence.fragments.all():
+                            if True or other_sf != candidate_sf:
+                                other_tf = other_sf.revision.fragment
+                                must_be_reviewed = set()
+
+                                # Find each stitch related to the sentence
+                                # fragment, and its neighbor.
+                                try:
+                                    stitch_at_left = other_tf.stitch_at_left
+                                    must_be_reviewed.add(stitch_at_left)
+                                    left_of_left = TranscriptStitch.objects.get(
+                                        right=stitch_at_left.left)
+                                    must_be_reviewed.add(left_of_left)
+                                except TranscriptStitch.DoesNotExist:
+                                    pass
+
+                                try:
+                                    stitch_at_right = other_tf.stitch_at_right
+                                    must_be_reviewed.add(stitch_at_right)
+                                    right_of_right = TranscriptStitch.objects.get(
+                                        left=stitch_at_right.right)
+                                    must_be_reviewed.add(right_of_right)
+                                except TranscriptStitch.DoesNotExist:
+                                    pass
+
+                                # Ignore the stitch currently being reviewed.
+                                if self in must_be_reviewed:
+                                    must_be_reviewed.remove(self)
+
+                                states = [s.state for s in must_be_reviewed]
+                                if any(state != 'reviewed' for state in states):
+                                    print 'not completing:', states
+                                    break
+                                else:
+                                    print 'may complete:', states
+                        else:
+                            # All stitches involved in the sentence
+                            # are reviewed.
+                            print 'completing'
+                            sentence.complete()
+
+
+# ---------------------
+
+
+class TranscriptFragmentRevision(TimeStampedModel):
+    """A revision of a TranscriptFragment."""
+
+    fragment = models.ForeignKey('TranscriptFragment', related_name='revisions')
+    sequence = models.PositiveIntegerField()
+    editor = models.ForeignKey('auth.User')
+
+    class Meta:
+        get_latest_by = 'sequence'
+        ordering = ('sequence',)
+        unique_together = [
+            ('fragment', 'sequence'),
+        ]
+
+    @property
+    def text(self):
+        return '\n\n'.join(
+            sf.text for sf in self.sentence_fragments.all())
+
+
+# ================================================================
+#                            TASKS
+# ================================================================
 
 
 class TaskManager(models.Manager):
@@ -737,383 +1114,3 @@ TASK_MODEL = {
     'boundary': BoundaryTask,
     'speaker': SpeakerTask,
 }
-
-
-# ---------------------
-
-
-class Transcript(TimeStampedModel):
-    """A transcript of audio or video to text.
-
-    length_state
-    ------------
-
-    @startuml
-    [*] --> unset
-    unset --> set
-    set --> [*]
-    @enduml
-    """
-
-    name = models.CharField(max_length=512)  # TODO: change to `title`
-    length = models.DecimalField(max_digits=8, decimal_places=2, null=True)
-    length_state = FSMField(default='unset', protected=True)
-
-    def __unicode__(self):
-        return self.name
-
-    def has_full_length_processed_media(self):
-        return TranscriptMedia.objects.filter(
-            transcript=self,
-            is_processed=True,
-            is_full_length=True,
-        ).exists()
-
-    @transition(length_state, 'unset', 'set', save=True)
-    def set_length(self, length):
-        self.length = Decimal(length)
-        self._create_fragments()
-
-    def _create_fragments(self):  # TODO: unit test
-        start = Decimal('0')
-        previous = None
-        while start < self.length:
-
-            # Find the end of the current fragment.
-            # If remaining time is less than fragment length, stretch to end.
-            end = start + settings.TRANSCRIPT_FRAGMENT_LENGTH
-            remaining = self.length - end
-            if remaining < settings.TRANSCRIPT_FRAGMENT_LENGTH:
-                end = self.length
-
-            current = self.fragments.create(
-                start=start,
-                end=end,
-                # # First and last fragments are 'stitched' to each end. :)
-                # stitched_left=True if start == Decimal('0') else False,
-                # stitched_right=True if end == self.length else False,
-            )
-
-            if previous is not None:
-                self.stitches.create(
-                    left=previous,
-                    right=current,
-                )
-
-            start = end
-            previous = current
-
-
-# ---------------------
-
-
-class TranscriptFragmentManager(models.Manager):
-
-    use_for_related_fields = True
-
-    def empty(self):
-        return self.filter(state='empty')
-
-    def transcribed(self):
-        return self.filter(state='transcribed')
-
-    def reviewed(self):
-        return self.filter(state='transcript_reviewed')
-
-    def locked(self):
-        return self.filter(lock_state='locked')
-
-    def unlocked(self):
-        return self.filter(lock_state='unlocked')
-
-
-class TranscriptFragment(models.Model):
-    """A fragment of a transcript defined by its time span.
-
-    state
-    -----
-
-    @startuml
-    [*] --> empty
-    empty --> transcribed
-    transcribed --> reviewed
-    reviewed --> [*]
-    @enduml
-
-    lock_state
-    ------------
-
-    @startuml
-    [*] --> unlocked
-    unlocked --> locked
-    locked --> unlocked
-    @enduml
-    """
-
-    transcript = models.ForeignKey('Transcript', related_name='fragments')
-    start = models.DecimalField(max_digits=8, decimal_places=2)
-    end = models.DecimalField(max_digits=8, decimal_places=2)
-    state = FSMField(default='empty', protected=True)
-    lock_state = FSMField(default='unlocked', protected=True)
-
-    objects = TranscriptFragmentManager()
-
-    class Meta:
-        ordering = ('start',)
-        unique_together = [
-            ('transcript', 'start', 'end'),
-        ]
-
-    def stitched_both_sides(self):
-        return self.stitched_left and self.stitched_right
-
-    @transition(lock_state, 'unlocked', 'locked', save=True)
-    def lock(self):
-        pass
-
-    @transition(lock_state, 'locked', 'unlocked', save=True)
-    def unlock(self):
-        pass
-
-    @transition(state, 'empty', 'transcribed', save=True)
-    def transcribe(self):
-        pass
-
-    @transition(state, 'transcribed', 'reviewed', save=True)
-    def review(self):
-        # Ready related stitches if other fragments are transcribed.
-        if self.start != Decimal(0):
-            L = self.stitch_at_left
-            if L.left.state == 'reviewed':
-                L.ready()
-        if self.end != self.transcript.length:
-            R = self.stitch_at_right
-            if R.right.state == 'reviewed':
-                R.ready()
-
-
-# ---------------------
-
-
-class TranscriptStitchManager(models.Manager):
-
-    def notready(self):
-        return self.filter(state='notready')
-
-    def unstitched(self):
-        return self.filter(state='unstitched')
-
-    def stitched(self):
-        return self.filter(state='stitched')
-
-    def reviewed(self):
-        return self.filter(state='reviewed')
-
-    def locked(self):
-        return self.filter(lock_state='locked')
-
-    def unlocked(self):
-        return self.filter(lock_state='unlocked')
-
-
-class TranscriptStitch(models.Model):
-    """A stitch between two fragments of a transcript.
-
-    state
-    -----
-
-    @startuml
-    [*] --> notready
-    notready --> unstitched
-    unstitched --> stitched
-    stitched --> reviewed
-    reviewed --> [*]
-    @enduml
-
-    lock_state
-    ------------
-
-    @startuml
-    [*] --> unlocked
-    unlocked --> locked
-    locked --> unlocked
-    @enduml
-    """
-
-    transcript = models.ForeignKey('Transcript', related_name='stitches')
-    left = models.OneToOneField('TranscriptFragment', related_name='stitch_at_right')
-    right = models.OneToOneField('TranscriptFragment', related_name='stitch_at_left')
-    state = FSMField(default='notready', protected=True)
-    lock_state = FSMField(default='unlocked', protected=True)
-
-    objects = TranscriptStitchManager()
-
-    class Meta:
-        ordering = ('left__start',)
-        unique_together = [
-            ('transcript', 'left'),
-        ]
-
-    @transition(lock_state, 'unlocked', 'locked', save=True)
-    def lock(self):
-        pass
-
-    @transition(lock_state, 'locked', 'unlocked', save=True)
-    def unlock(self):
-        pass
-
-    @transition(state, 'notready', 'unstitched', save=True)
-    def ready(self):
-        pass
-
-    @transition(state, 'unstitched', 'stitched', save=True)
-    def stitch(self):
-        self._merge_sentences()
-
-    @transition(state, 'stitched', 'reviewed', save=True)
-    def review(self):
-        self._merge_sentences()
-        self._complete_sentences()
-
-    def _merge_sentences(self):
-        """Merge overlapping Sentence instances."""
-        left_fragment_revision = self.left.revisions.latest()
-        right_fragment_revision = self.right.revisions.latest()
-
-        for revision in [left_fragment_revision, right_fragment_revision]:
-            deletion_candidates = []
-            for sf in revision.sentence_fragments.all():
-                sentences = sf.sentences
-                candidate_sentences = sf.candidate_sentences
-
-                # If fragment is in more than one sentence,
-                # pick the first sentence as the survivor.
-                if sentences.count() > 1:
-                    survivor = sentences.first()
-                elif candidate_sentences.count() > 1:
-                    survivor = candidate_sentences.first()
-                else:
-                    survivor = None
-
-                if survivor is not None:
-                    # Merge remaining sentences with survivor.
-                    def merge(s, o):
-                        s.fragments.add(*o.fragments.all())
-                        s.fragment_candidates.add(
-                            *o.fragment_candidates.all())
-                        o.delete()
-                    for other in sentences.all():
-                        if other != survivor:
-                            merge(survivor, other)
-                    for other in candidate_sentences.all():
-                        if other != survivor:
-                            merge(survivor, other)
-                else:
-                    # No survivor means there was only one sentence involved.
-                    pass
-
-    def _complete_sentences(self):
-        """Complete sentences in this stitch (when they are ready)."""
-
-        left_fragment_revision = self.left.revisions.latest()
-        right_fragment_revision = self.right.revisions.latest()
-
-        # Look for partial sentences in these revisions and complete them.
-        revisions_to_complete = [
-            left_fragment_revision,
-            right_fragment_revision,
-        ]
-
-        # Also look for partial sentences in adjacent reviewed stitches.
-        if self.left.start != Decimal(0):
-            stitch_at_left = TranscriptStitch.objects.get(right=self.left)
-            if stitch_at_left.state == 'reviewed':
-                revisions_to_complete.append(stitch_at_left.left.revisions.latest())
-
-        if self.right.end != self.transcript.length:
-            stitch_at_right = TranscriptStitch.objects.get(left=self.right)
-            if stitch_at_right.state == 'reviewed':
-                revisions_to_complete.append(stitch_at_right.right.revisions.latest())
-
-        print 'Completing sentences.'
-        sentences_checked = set()
-        for revision in revisions_to_complete:
-            for candidate_sf in revision.sentence_fragments.all():
-                for sentence in candidate_sf.sentences.filter(state='partial'):
-
-                    if sentence.id in sentences_checked:
-                        print 'Already checked sentence id', sentence.id
-                        continue
-
-                    sentences_checked.add(sentence.id)
-                    print 'Checking partial sentence, candidates={!r}, text={!r}'.format(sentence.candidate_text, sentence.text)
-
-                    if sentence.fragment_candidates.count() > 0:
-                        # The sentence is still being worked on.
-                        continue
-                    else:
-                        # Complete the sentence if all related stitches
-                        # are reviewed, AND adjacent stitches are reviewed.
-                        for other_sf in sentence.fragments.all():
-                            if True or other_sf != candidate_sf:
-                                other_tf = other_sf.revision.fragment
-                                must_be_reviewed = set()
-
-                                # Find each stitch related to the sentence
-                                # fragment, and its neighbor.
-                                try:
-                                    stitch_at_left = other_tf.stitch_at_left
-                                    must_be_reviewed.add(stitch_at_left)
-                                    left_of_left = TranscriptStitch.objects.get(
-                                        right=stitch_at_left.left)
-                                    must_be_reviewed.add(left_of_left)
-                                except TranscriptStitch.DoesNotExist:
-                                    pass
-
-                                try:
-                                    stitch_at_right = other_tf.stitch_at_right
-                                    must_be_reviewed.add(stitch_at_right)
-                                    right_of_right = TranscriptStitch.objects.get(
-                                        left=stitch_at_right.right)
-                                    must_be_reviewed.add(right_of_right)
-                                except TranscriptStitch.DoesNotExist:
-                                    pass
-
-                                # Ignore the stitch currently being reviewed.
-                                if self in must_be_reviewed:
-                                    must_be_reviewed.remove(self)
-
-                                states = [s.state for s in must_be_reviewed]
-                                if any(state != 'reviewed' for state in states):
-                                    print 'not completing:', states
-                                    break
-                                else:
-                                    print 'may complete:', states
-                        else:
-                            # All stitches involved in the sentence
-                            # are reviewed.
-                            print 'completing'
-                            sentence.complete()
-
-
-# ---------------------
-
-
-class TranscriptFragmentRevision(TimeStampedModel):
-    """A revision of a TranscriptFragment."""
-
-    fragment = models.ForeignKey('TranscriptFragment', related_name='revisions')
-    sequence = models.PositiveIntegerField()
-    editor = models.ForeignKey('auth.User')
-
-    class Meta:
-        get_latest_by = 'sequence'
-        ordering = ('sequence',)
-        unique_together = [
-            ('fragment', 'sequence'),
-        ]
-
-    @property
-    def text(self):
-        return '\n\n'.join(
-            sf.text for sf in self.sentence_fragments.all())
