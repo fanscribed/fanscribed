@@ -30,7 +30,7 @@
 
   {% if task.state == 'presented' %}
 
-    {% include 'transcripts/_guidelines_list.html' %}
+    {% include 'transcripts/_guidelines_transcribe.html' %}
 
     <form action="" method="post" class="form">
       {% csrf_token %}

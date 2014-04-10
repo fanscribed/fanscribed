@@ -99,7 +99,7 @@ class TaskAssignView(vanilla.RedirectView):
             task.present()
             return task.get_absolute_url()
         else:
-            return HttpResponse('no tasks available')
+            return None
 
 
 class TaskPerformView(vanilla.UpdateView):

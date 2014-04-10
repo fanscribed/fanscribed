@@ -260,19 +260,19 @@ class Transcript(TimeStampedModel):
     @enduml
     """
 
-    name = models.CharField(max_length=512)  # TODO: change to `title`
+    title = models.CharField(max_length=512)
     length = models.DecimalField(max_digits=8, decimal_places=2, null=True)
     length_state = FSMField(default='unset', protected=True)
 
     def __unicode__(self):
-        return self.name
+        return self.title
 
     @transition(length_state, 'unset', 'set', save=True)
     def set_length(self, length):
         self.length = Decimal(length)
         self._create_fragments()
 
-    def _create_fragments(self):  # TODO: unit test
+    def _create_fragments(self):
         start = Decimal('0')
         previous = None
         while start < self.length:

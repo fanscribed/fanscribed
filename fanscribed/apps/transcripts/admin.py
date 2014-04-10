@@ -5,7 +5,7 @@ from . import models as m
 
 class TranscriptAdmin(admin.ModelAdmin):
 
-    list_display = ('name', 'length', 'created',)
+    list_display = ('title', 'length', 'created',)
 
 
 class TranscriptMediaAdmin(admin.ModelAdmin):

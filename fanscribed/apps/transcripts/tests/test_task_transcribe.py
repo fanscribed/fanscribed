@@ -11,7 +11,7 @@ class TranscribeTaskTestCase(TestCase):
 
     def setUp(self):
         self.user = User.objects.create_user('user', 'user@user.user', 'user')
-        t = self.transcript = m.Transcript.objects.create(name='test transcript')
+        t = self.transcript = m.Transcript.objects.create(title='test transcript')
         t.set_length(Decimal('20.00'))
         self.tfragments = t.fragments.all()
 

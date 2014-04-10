@@ -2,7 +2,7 @@ from django.conf.urls import patterns, url
 
 from vanilla import TemplateView
 
-from .views import EpisodeDetail, PodcastDetail, PodcastList
+from . import views as v
 
 
 urlpatterns = patterns(
@@ -12,7 +12,7 @@ urlpatterns = patterns(
 
     url(r'^$',
         name='index',
-        view=PodcastList.as_view()),
+        view=v.PodcastList.as_view()),
 
     url(r'^register/$',
         name='register',
@@ -21,12 +21,16 @@ urlpatterns = patterns(
 
     url(r'^(?P<pk>\d+)/$',
         name='detail',
-        view=PodcastDetail.as_view()),
+        view=v.PodcastDetail.as_view()),
 
     # -- episodes --------------------------------------
 
     url(r'^(?P<podcast_pk>\d+)/episodes/(?P<pk>\d+)/$',
         name='episode_detail',
-        view=EpisodeDetail.as_view()),
+        view=v.EpisodeDetail.as_view()),
+
+    url(r'^(?P<podcast_pk>\d+)/episodes/(?P<pk>\d+)/create_transcript/$',
+        name='episode_create_transcript',
+        view=v.EpisodeCreateTranscript.as_view()),
 
 )

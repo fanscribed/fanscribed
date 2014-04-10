@@ -11,7 +11,7 @@
   {% url 'transcripts:task_assign' pk=transcript.pk as task_assign_url %}
   {% url 'transcripts:detail' pk=transcript.pk as detail_url %}
 
-  <h1><a href="{% url 'transcripts:detail' pk=transcript.pk %}">{{ transcript.name }}</a></h1>
+  <h1><a href="{% url 'transcripts:detail' pk=transcript.pk %}">{{ transcript.title }}</a></h1>
 
   <h2>Tasks</h2>
 

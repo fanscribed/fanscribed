@@ -22,7 +22,7 @@
     <tbody>
       {% for transcript in object_list %}
         <tr>
-          <td><a href="{% url 'transcripts:detail' pk=transcript.pk %}">{{ transcript.name }}</a></td>
+          <td><a href="{% url 'transcripts:detail' pk=transcript.pk %}">{{ transcript.title }}</a></td>
           <td>{{ transcript.created }}</td>
         </tr>
       {% endfor %}

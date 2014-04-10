@@ -4,6 +4,7 @@ from shutil import move
 import os
 import random
 import time
+from uuid import uuid4
 
 from celery.app import shared_task
 from celery.exceptions import Reject
@@ -407,7 +408,8 @@ def create_processed_transcript_media(transcript_media_pk):
     # Find length of processed media, and store contents and length.
     processed_media.end = avlib.media_length(processed_path)
     with open(processed_path, 'rb') as f:
-        processed_filename = '{}/processed.mp3'.format(transcript.id)
+        uuid = uuid4().hex
+        processed_filename = '{transcript.id}_processed_{uuid}.mp3'.format(**locals())
         processed_media.file.save(processed_filename, File(f))
     processed_media.finish()
 
@@ -441,7 +443,8 @@ def create_transcript_media_file(transcript_media_pk):
     slice_path = os.tempnam()
     mp3splt.extract_segment(full_path, slice_path, tm.start, tm.end)
     with open(slice_path, 'rb') as f:
-        slice_filename = '{}/{}_{}_slice.mp3'.format(transcript.id, tm.start, tm.end)
+        uuid = uuid4().hex
+        slice_filename = '{transcript.id}_{tm.start}_{tm.end}_slice_{uuid}.mp3'.format(**locals())
         tm.file.save(slice_filename, File(f))
 
     tm.finish()

@@ -18,25 +18,25 @@ RAW_MEDIA_PATH = MEDIA_TESTDATA_PATH.child('raw').child(
 class TranscriptsTestCase(TestCase):
 
     def test_transcript_starts_out_with_unknown_length(self):
-        transcript = Transcript.objects.create(name='test')
+        transcript = Transcript.objects.create(title='test')
         self.assertEqual(transcript.length, None)
 
     def test_setting_transcript_length_creates_fragments_and_stitches(self):
-        t = Transcript.objects.create(name='test')
+        t = Transcript.objects.create(title='test')
         t.set_length('3.33')
         f0, = t.fragments.all()
         self.assertEqual(f0.start, Decimal('0.00'))
         self.assertEqual(f0.end, Decimal('3.33'))
         self.assertEqual(t.stitches.count(), 0)
 
-        t = Transcript.objects.create(name='test')
+        t = Transcript.objects.create(title='test')
         t.set_length('7.77')
         f0, = t.fragments.all()
         self.assertEqual(f0.start, Decimal('0.00'))
         self.assertEqual(f0.end, Decimal('7.77'))
         self.assertEqual(t.stitches.count(), 0)
 
-        t = Transcript.objects.create(name='test')
+        t = Transcript.objects.create(title='test')
         t.set_length('17.77')
         f0, f1, f2 = t.fragments.all()
         self.assertEqual(f0.start, Decimal('0.00'))
@@ -72,7 +72,7 @@ if os.environ.get('FAST_TEST') != '1':
                 is_full_length=True,
             )
             with open(RAW_MEDIA_PATH, 'rb') as f:
-                raw_media.file.save('{}/raw.mp3'.format(transcript.id), File(f))
+                raw_media.file.save('{transcript.id}_raw.mp3'.format(**locals()), File(f))
             raw_media.save()
 
             # Process raw media.

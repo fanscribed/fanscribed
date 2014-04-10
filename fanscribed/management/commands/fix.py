@@ -1,11 +1,12 @@
+from uuid import uuid4
+
+from allauth.account.models import EmailAddress, EmailConfirmation
+from allauth.socialaccount.models import SocialAccount, SocialToken
 from django.contrib.auth.models import User, Group
 from django.core.files import File
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connection
-
-from allauth.account.models import EmailAddress, EmailConfirmation
-from allauth.socialaccount.models import SocialAccount, SocialToken
 
 from fanscribed.apps import podcasts, transcripts
 import fanscribed.apps.podcasts.models
@@ -68,7 +69,7 @@ class Command(BaseCommand):
     def fix_sampletranscript(self):
         self.verbose_write('Creating sample transcript with media.')
         transcript = Transcript.objects.create(
-            name='Sample No Agenda Transcript')
+            title='Sample No Agenda Transcript')
 
         raw_media = transcripts.models.TranscriptMedia(
             transcript=transcript,
@@ -76,7 +77,8 @@ class Command(BaseCommand):
             is_full_length=True,
         )
         with open(RAW_NOAGENDA_MEDIA_PATH, 'rb') as f:
-            raw_media.file.save('{}/raw.mp3'.format(transcript.id), File(f))
+            uuid = uuid4().hex
+            raw_media.file.save('{transcript.id}_raw_{uuid}.mp3'.format(**locals()), File(f))
         raw_media.save()
         raw_media.create_processed_task()
 

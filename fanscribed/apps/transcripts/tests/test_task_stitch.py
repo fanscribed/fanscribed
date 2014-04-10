@@ -13,7 +13,7 @@ class StitchTaskTestCase(TransactionTestCase):
         self.user = User.objects.create_user('user', 'user@user.user', 'user')
 
     def setup_transcript(self, length=Decimal('15.00'), fragments=3):
-        t = self.transcript = m.Transcript.objects.create(name='test transcript')
+        t = self.transcript = m.Transcript.objects.create(title='test transcript')
         t.set_length(length)
         self.tfragments = t.fragments.all()
         self.tstitches = t.stitches.all()

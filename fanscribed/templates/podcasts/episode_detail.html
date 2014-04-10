@@ -13,6 +13,19 @@
 
   <h2><a href="{% url 'podcasts:episode_detail' podcast_pk=episode.podcast.id pk=episode.pk %}">{{ episode.title }}</a></h2>
 
+  {% if episode.transcript %}
+    <a class="btn btn-primary" href="{% url 'transcripts:detail' pk=episode.transcript.id %}">Help Transcribe</a>
+    <a class="btn btn-default" href="{% url 'transcripts:text' pk=episode.transcript.id %}">Read Transcript</a>
+  {% else %}
+    {% url 'podcasts:episode_create_transcript' podcast_pk=episode.podcast.id pk=episode.pk as create_transcript_url %}
+    <form action="{{ create_transcript_url }}" method="post">
+      {% csrf_token %}
+      <button class="btn btn-primary" type="submit" name="type" value="any_sequential">
+        Create Transcript
+      </button>
+    </form>
+  {% endif %}
+  
   <h3>Description</h3>
 
   <div class="description">

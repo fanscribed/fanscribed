@@ -17,6 +17,7 @@ class Migration(SchemaMigration):
             ('published', self.gf('django.db.models.fields.DateTimeField')()),
             ('media_url', self.gf('django.db.models.fields.URLField')(max_length=200)),
             ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('transcript', self.gf('django.db.models.fields.related.OneToOneField')(blank=True, related_name='episodes', unique=True, null=True, to=orm['transcripts.Transcript'])),
         ))
         db.send_create_signal(u'podcasts', ['Episode'])
 
@@ -109,14 +110,15 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
         u'podcasts.episode': {
-            'Meta': {'unique_together': "[('podcast', 'guid')]", 'object_name': 'Episode'},
+            'Meta': {'ordering': "('-published',)", 'unique_together': "[('podcast', 'guid')]", 'object_name': 'Episode'},
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'guid': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'media_url': ('django.db.models.fields.URLField', [], {'max_length': '200'}),
             'podcast': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'episodes'", 'to': u"orm['podcasts.Podcast']"}),
             'published': ('django.db.models.fields.DateTimeField', [], {}),
-            'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'transcript': ('django.db.models.fields.related.OneToOneField', [], {'blank': 'True', 'related_name': "'episodes'", 'unique': 'True', 'null': 'True', 'to': u"orm['transcripts.Transcript']"})
         },
         u'podcasts.podcast': {
             'Meta': {'object_name': 'Podcast'},
@@ -141,6 +143,15 @@ class Migration(SchemaMigration):
             'notes': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'podcast': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['podcasts.Podcast']"}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
+        },
+        u'transcripts.transcript': {
+            'Meta': {'object_name': 'Transcript'},
+            'created': ('model_utils.fields.AutoCreatedField', [], {'default': 'datetime.datetime.now'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'length': ('django.db.models.fields.DecimalField', [], {'null': 'True', 'max_digits': '8', 'decimal_places': '2'}),
+            'length_state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unset'", 'max_length': '50'}),
+            'modified': ('model_utils.fields.AutoLastModifiedField', [], {'default': 'datetime.datetime.now'}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '512'})
         }
     }
 

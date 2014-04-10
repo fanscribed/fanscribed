@@ -48,9 +48,17 @@ CACHES = {
 
 
 # DEBUGGER RUNSERVER
+# ------------------
+
 INSTALLED_APPS += (
     'werkzeug_debugger_runserver',
 )
+
+
+# STORAGE
+# -------
+
+DEFAULT_FILE_STORAGE = 'storages.backends.overwrite.OverwriteStorage'
 
 
 # TODO: reinstall the toolbar after figuring out how to avoid conflict with waffle

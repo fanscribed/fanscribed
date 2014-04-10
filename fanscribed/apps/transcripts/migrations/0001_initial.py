@@ -111,7 +111,7 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created', self.gf('model_utils.fields.AutoCreatedField')(default=datetime.datetime.now)),
             ('modified', self.gf('model_utils.fields.AutoLastModifiedField')(default=datetime.datetime.now)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=512)),
+            ('title', self.gf('django.db.models.fields.CharField')(max_length=512)),
             ('length', self.gf('django.db.models.fields.DecimalField')(null=True, max_digits=8, decimal_places=2)),
             ('length_state', self.gf('django_fsm.db.fields.fsmfield.FSMField')(default='unset', max_length=50)),
         ))
@@ -531,7 +531,7 @@ class Migration(SchemaMigration):
             'length': ('django.db.models.fields.DecimalField', [], {'null': 'True', 'max_digits': '8', 'decimal_places': '2'}),
             'length_state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'unset'", 'max_length': '50'}),
             'modified': ('model_utils.fields.AutoLastModifiedField', [], {'default': 'datetime.datetime.now'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '512'})
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '512'})
         },
         u'transcripts.transcriptfragment': {
             'Meta': {'ordering': "('start',)", 'unique_together': "[('transcript', 'start', 'end')]", 'object_name': 'TranscriptFragment'},
