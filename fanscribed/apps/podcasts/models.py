@@ -29,7 +29,7 @@ class Episode(models.Model):
     description = models.TextField(blank=True, null=True)
 
     class Meta:
-        index_together = []
+        ordering = ('-published',)
         unique_together = [
             ('podcast', 'guid'),
         ]

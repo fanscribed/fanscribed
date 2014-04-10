@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load podcast_tags %}
 
 
 {% block nav_class_read %}
@@ -11,5 +12,11 @@
   <h1><a href="{% url 'podcasts:detail' pk=episode.podcast.id %}">{{ episode.podcast.title }}</a></h1>
 
   <h2><a href="{% url 'podcasts:episode_detail' podcast_pk=episode.podcast.id pk=episode.pk %}">{{ episode.title }}</a></h2>
+
+  <h3>Description</h3>
+
+  <div class="description">
+    {{ episode.description|safe|bleached_description }}
+  </div>
 
 {% endblock %}
