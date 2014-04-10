@@ -122,14 +122,11 @@ def process_stitch_task(pk):
         _make_sentence(sf)
     right_is_at_end = (task.stitch.right.end == task.transcript.length)
     if right_is_at_end:
-        print '** RIGHT IS AT END'
         # Special case when the right side is the last TranscriptFragment.
         for sf in right_fragment_revision.sentence_fragments.all():
-            print 'sf', sf.text
             _make_sentence(sf)
 
     for pairing in task.pairings.all():
-        print 'adding new_pairing', (pairing.left.text, pairing.right.text)
         new_pairings.add((pairing.left.id, pairing.right.id))
 
     # Add new pairings.
@@ -177,7 +174,6 @@ def process_stitch_task(pk):
         task.stitch.stitch()
 
     elif task.is_review and old_pairings == new_pairings:
-        if right_is_at_end: print '-- review'
         # No changes; commit sentence candidates.
         # TODO: review if-statement conditions
         if True or fragment_left.stitched_left:
@@ -189,16 +185,12 @@ def process_stitch_task(pk):
             for sf in right_fragment_revision.sentence_fragments.all():
                 if sf.revision.fragment == fragment_right:
                     for sentence in sf.candidate_sentences.all():
-                        if right_is_at_end: print '-- commit', sf.id, 'to', sentence.id
                         sentence.commit_candidates(sf)
 
         task.stitch.review()
 
     else:
         # Changes detected; review one more time.
-        print '-- review, changes detected:'
-        print 'old_pairings', old_pairings
-        print 'new_pairings', new_pairings
         pass
 
     task.validate()
