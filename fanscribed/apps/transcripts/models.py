@@ -640,6 +640,7 @@ class TranscriptMedia(TimeStampedModel):
         help_text='Is it the full length of media to be transcribed?')
     start = models.DecimalField(max_digits=8, decimal_places=2, null=True)
     end = models.DecimalField(max_digits=8, decimal_places=2, null=True)
+    download_count = models.PositiveIntegerField(default=0)
 
     class Meta:
         unique_together = (
@@ -668,6 +669,10 @@ class TranscriptMedia(TimeStampedModel):
         """Create a file for this TranscriptMedia."""
         from .tasks import create_transcript_media_file
         return create_transcript_media_file.delay(self.pk)
+
+    def record_download(self):
+        self.download_count += 1
+        self.save()
 
     @transition(state, 'empty', 'creating', save=True)
     def create_file(self):

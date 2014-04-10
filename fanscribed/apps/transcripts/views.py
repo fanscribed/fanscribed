@@ -146,4 +146,5 @@ class TaskAudioView(vanilla.DetailView):
             # Wait for it before continuing.
             result.get()
             media = refresh(media)
+        media.record_download()
         return HttpResponseRedirect(media.file.url)
