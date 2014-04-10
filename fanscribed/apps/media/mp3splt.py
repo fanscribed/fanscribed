@@ -3,12 +3,13 @@
 import os
 from subprocess import check_output, STDOUT
 
+from django.conf import settings
 from unipath import Path
 
 from .timecode import decimal_to_timecode
 
 
-MP3SPLT_PATH = '/usr/bin/mp3splt'
+MP3SPLT_PATH = getattr(settings, 'MP3SPLT_PATH', '/usr/bin/mp3splt')
 _mp3splt_alternatives = [
     '/usr/local/bin/mp3splt',
 ]
