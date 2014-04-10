@@ -1,3 +1,6 @@
+# Collected static files:
+assets/
+
 # Python bytecode:
 *.py[co]
 
