@@ -8,8 +8,8 @@
 
 {% block content %}
 
-  <h1>{{ episode.podcast.title }}</h1>
+  <h1><a href="{% url 'podcasts:detail' pk=episode.podcast.id %}">{{ episode.podcast.title }}</a></h1>
 
-  <h2>{{ episode.title }}</h2>
+  <h2><a href="{% url 'podcasts:episode_detail' podcast_pk=episode.podcast.id pk=episode.pk %}">{{ episode.title }}</a></h2>
 
 {% endblock %}
