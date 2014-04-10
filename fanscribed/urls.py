@@ -26,13 +26,15 @@ urlpatterns = patterns(
         include(admin.site.urls)),
 
     url(r'^podcasts/',
-        include('fanscribed.apps.podcasts.urls', 'podcasts')),
+        include('fanscribed.apps.podcasts.urls', 'podcasts'),
+        kwargs=LOGGED_IN_USER),
 
     url(r'^profiles/',
         include('fanscribed.apps.profiles.urls', 'profiles')),
 
     url(r'^transcripts/',
-        include('fanscribed.apps.transcripts.urls', 'transcripts')),
+        include('fanscribed.apps.transcripts.urls', 'transcripts'),
+        kwargs=LOGGED_IN_USER),
 
     url(r'^$',
         name='home',
