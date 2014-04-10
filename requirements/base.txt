@@ -3,6 +3,7 @@ anyjson == 0.3.3
 argh == 0.24.1
 billiard == 3.3.0.16
 bleach == 1.4
+boto == 2.27.0
 celery == 3.1.9
 dj-database-url == 0.3.0
 Django == 1.6.2

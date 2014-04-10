@@ -90,27 +90,39 @@ USE_TZ = True
 ########## END GENERAL CONFIGURATION
 
 
+# AWS
+# ---
+
+AWS_ACCESS_KEY_ID = getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = getenv('AWS_STORAGE_BUCKET_NAME')
+
+
 # MEDIA
 # -----
 
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#media-root
-MEDIA_ROOT = normpath(join(PACKAGE_ROOT, '..', 'media'))
-
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#media-url
-MEDIA_URL = '/media/'
-
-# Used for local caching of media files for faster processing.
-MEDIA_CACHE_PATH = join(PACKAGE_ROOT, '..', '.mediafile-cache')
-
+if AWS_ACCESS_KEY_ID:
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+    # noinspection PyUnresolvedReferences
+    MEDIA_ROOT = '/media/'
+    MEDIA_URL = '//fanscribed.s3.amazonaws.com/media/'
+else:
+    MEDIA_ROOT = normpath(join(PACKAGE_ROOT, '..', 'media'))
+    MEDIA_URL = '/media/'
 
 # STATIC
 # ------
 
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#static-root
-STATIC_ROOT = normpath(join(PACKAGE_ROOT, 'assets'))
+if AWS_ACCESS_KEY_ID:
+    # noinspection PyUnresolvedReferences
+    STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+    STATIC_ROOT = '/static/'
+    STATIC_URL = '//fanscribed.s3.amazonaws.com/static/'
+else:
+    STATIC_ROOT = normpath(join(PACKAGE_ROOT, 'assets'))
+    STATIC_URL = '/static/'
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
-STATIC_URL = '/static/'
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 STATICFILES_DIRS = (
@@ -276,6 +288,9 @@ BROKER_URL = getenv('BROKER_URL', 'redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+
+# Used for local caching of media files for faster processing.
+MEDIA_CACHE_PATH = join(PACKAGE_ROOT, '..', '.mediafile-cache')
 
 
 # WAFFLE
