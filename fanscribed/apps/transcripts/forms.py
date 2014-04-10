@@ -62,6 +62,7 @@ class StitchTaskForm(DefaultTaskForm):
                 right_id = int(value)
                 right = task.stitch.right.revisions.latest().sentence_fragments.get(id=right_id)
                 task.pairings.filter(left=left).delete()
+                print 'creating left={left.id} right={right.id}'.format(**locals())
                 task.pairings.create(left=left, right=right)
             else:
                 # (none) was selected

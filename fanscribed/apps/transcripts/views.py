@@ -130,21 +130,16 @@ class TaskPerformView(vanilla.UpdateView):
 class TaskAudioView(vanilla.DetailView):
 
     def get_queryset(self):
-        print 'get queryset'
         task_type = self.kwargs['type']
         model = m.TASK_MODEL[task_type]
-        print 'model', model
         return model
 
     def get_object(self):
-        print 'get object'
         task = super(TaskAudioView, self).get_object()
         media = task.media
-        print 'media', media
         return media
 
     def render_to_response(self, context):
-        print 'render'
         media = context['object']
         if not media.file:
             result = media.create_file_task()
