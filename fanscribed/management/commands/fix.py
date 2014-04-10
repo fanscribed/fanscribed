@@ -50,8 +50,8 @@ class Command(BaseCommand):
         self.fix_zero()
         self.fix_su()
         self.fix_u()
-        self.fix_samplepodcasts()
         self.fix_sampletranscript()
+        self.fix_samplepodcasts()
 
     def fix_samplepodcasts(self):
         self.verbose_write('Creating sample podcasts.')
