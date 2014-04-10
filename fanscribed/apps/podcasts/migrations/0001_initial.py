@@ -11,7 +11,7 @@ class Migration(SchemaMigration):
         # Adding model 'Episode'
         db.create_table(u'podcasts_episode', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('podcast', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['podcasts.Podcast'])),
+            ('podcast', self.gf('django.db.models.fields.related.ForeignKey')(related_name='episodes', to=orm['podcasts.Podcast'])),
             ('guid', self.gf('django.db.models.fields.CharField')(max_length=200)),
             ('title', self.gf('django.db.models.fields.CharField')(max_length=200)),
             ('published', self.gf('django.db.models.fields.DateTimeField')()),
@@ -35,7 +35,7 @@ class Migration(SchemaMigration):
         # Adding model 'RssFetch'
         db.create_table(u'podcasts_rssfetch', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('podcast', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['podcasts.Podcast'])),
+            ('podcast', self.gf('django.db.models.fields.related.ForeignKey')(related_name='fetches', to=orm['podcasts.Podcast'])),
             ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
             ('fetched', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
             ('body', self.gf('django.db.models.fields.BinaryField')(null=True, blank=True)),
@@ -114,7 +114,7 @@ class Migration(SchemaMigration):
             'guid': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'media_url': ('django.db.models.fields.URLField', [], {'max_length': '200'}),
-            'podcast': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['podcasts.Podcast']"}),
+            'podcast': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'episodes'", 'to': u"orm['podcasts.Podcast']"}),
             'published': ('django.db.models.fields.DateTimeField', [], {}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
         },
@@ -131,7 +131,7 @@ class Migration(SchemaMigration):
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
             'fetched': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'podcast': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['podcasts.Podcast']"}),
+            'podcast': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'fetches'", 'to': u"orm['podcasts.Podcast']"}),
             'state': ('django_fsm.db.fields.fsmfield.FSMField', [], {'default': "'not_fetched'", 'max_length': '50'})
         },
         u'podcasts.transcriptionapproval': {

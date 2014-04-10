@@ -122,7 +122,7 @@ class RssFetch(models.Model):
     @enduml
     """
 
-    podcast = models.ForeignKey(Podcast)
+    podcast = models.ForeignKey(Podcast, related_name='fetches')
     created = CreationDateTimeField()
     fetched = models.DateTimeField(blank=True, null=True)
     body = models.BinaryField(blank=True, null=True)

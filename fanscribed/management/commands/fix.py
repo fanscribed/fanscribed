@@ -61,7 +61,9 @@ class Command(BaseCommand):
             'http://feeds.feedburner.com/matrixmasters/iGAG',
             'http://feeds.twit.tv/twiet.xml',
         ]:
-            Podcast.objects.create(rss_url=rss_url)
+            podcast = Podcast.objects.create(rss_url=rss_url)
+            fetch = podcast.fetches.create()
+            fetch.start()
 
     def fix_sampletranscript(self):
         self.verbose_write('Creating sample transcript with media.')
