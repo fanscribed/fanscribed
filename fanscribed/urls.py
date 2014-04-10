@@ -19,6 +19,9 @@ LOGGED_IN_USER = {
 urlpatterns = patterns(
     '',
 
+    url(r"^accounts/signup/$",
+        view=TemplateView.as_view(template_name='signup_closed.html')),
+
     url(r'^accounts/',
         include('allauth.urls')),
 
