@@ -6,3 +6,13 @@ def debug(request):
         'DEBUG': settings.DEBUG,
         'TEMPLATE_DEBUG': settings.TEMPLATE_DEBUG,
     }
+
+
+def piwik(request):
+    if not request.user.is_superuser:
+        return {
+            'PIWIK_HOST': settings.PIWIK_HOST,
+            'PIWIK_SITE_ID': settings.PIWIK_SITE_ID,
+        }
+    else:
+        return {}

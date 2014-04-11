@@ -382,3 +382,13 @@ TESTING = False
 MP3SPLT_PATH = getenv('MP3SPLT_PATH', '/usr/bin/mp3splt')
 AVPROBE_PATH = getenv('AVPROBE_PATH', '/usr/bin/avprobe')
 AVCONV_PATH = getenv('AVCONV_PATH', '/usr/bin/avconv')
+
+
+# PIWIK
+# -----
+
+PIWIK_HOST = getenv('PIWIK_HOST')
+PIWIK_SITE_ID = getenv('PIWIK_SITE_ID')
+TEMPLATE_CONTEXT_PROCESSORS += (
+    'fanscribed.context_processors.piwik',
+)
