@@ -64,7 +64,7 @@ if os.environ.get('FAST_TEST') != '1':
         def test_transcript_with_processed_media_has_length(self):
 
             transcript = Transcript.objects.create(
-                name='test transcript',
+                title='test transcript',
             )
             raw_media = TranscriptMedia(
                 transcript=transcript,
