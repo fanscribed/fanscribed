@@ -533,18 +533,19 @@ class TranscriptStitch(models.Model):
             if stitch_at_right.state == 'reviewed':
                 revisions_to_complete.append(stitch_at_right.right.revisions.latest())
 
-        print 'Completing sentences.'
+        # Complete sentences.
         sentences_checked = set()
         for revision in revisions_to_complete:
             for candidate_sf in revision.sentence_fragments.all():
                 for sentence in candidate_sf.sentences.filter(state='partial'):
 
                     if sentence.id in sentences_checked:
-                        print 'Already checked sentence id', sentence.id
+                        # Already checked this sentence ID.
                         continue
 
                     sentences_checked.add(sentence.id)
-                    print 'Checking partial sentence, candidates={!r}, text={!r}'.format(sentence.candidate_text, sentence.text)
+
+                    # Check partial sentence.
 
                     if sentence.fragment_candidates.count() > 0:
                         # The sentence is still being worked on.
@@ -583,14 +584,14 @@ class TranscriptStitch(models.Model):
 
                                 states = [s.state for s in must_be_reviewed]
                                 if any(state != 'reviewed' for state in states):
-                                    print 'not completing:', states
+                                    # Not completing.
                                     break
                                 else:
-                                    print 'may complete:', states
+                                    # May complete.
+                                    pass
                         else:
                             # All stitches involved in the sentence
                             # are reviewed.
-                            print 'completing'
                             sentence.complete()
 
 
