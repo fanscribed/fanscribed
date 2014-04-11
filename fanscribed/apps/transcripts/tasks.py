@@ -320,7 +320,7 @@ def process_speaker_task(pk):
 PROCESSED_MEDIA_AVCONV_SETTINGS = [
     '-ac', '1',
     '-ar', '44100',
-    '-b', '64k',
+    '-b:a', '64k',
     '-c:a', 'libmp3lame',
     '-f', 'mp2',
 ]
