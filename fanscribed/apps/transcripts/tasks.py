@@ -1,3 +1,6 @@
+import logging
+log = logging.getLogger(__name__)
+
 from decimal import Decimal
 from hashlib import sha1
 from shutil import move
@@ -332,16 +335,21 @@ CHUNK_SIZE = 262144
 def _local_cache_path(fieldfile):
     """Return local cache path for this media file, fetching as needed."""
 
-    url_hash = sha1(fieldfile.url).hexdigest()
+    name_hash = sha1(fieldfile.name).hexdigest()
     if not os.path.exists(CACHE_PATH):
         os.makedirs(CACHE_PATH)
-    path = CACHE_PATH.child(url_hash)
+    path = CACHE_PATH.child(name_hash)
 
-    # If it's already cached, use it.
+    # If it's already cached, touch it and use it.
     if path.exists():
+        log.info('_local_cache_path HIT')
+        with open(path, 'a'):
+            os.utime(path, None)
         return path
 
     # Not cached; retrieve and store it.
+    log.info('_local_cache_path MISS')
+
     # Start out with a temp file, to avoid one process clobbering another.
     temp_path = '{}_{}'.format(path, random.randint(10000, 99999))
 
@@ -353,6 +361,7 @@ def _local_cache_path(fieldfile):
             chunk = in_file.read(CHUNK_SIZE)
 
     move(temp_path, path)
+    log.info('_local_cache_path STORED')
     return path
 
 
@@ -441,10 +450,13 @@ def create_transcript_media_file(transcript_media_pk):
 
     full_path = _local_cache_path(full_tm.file)
     slice_path = os.tempnam()
+    log.info('create_transcript_media_file EXTRACTING')
     mp3splt.extract_segment(full_path, slice_path, tm.start, tm.end)
     with open(slice_path, 'rb') as f:
         uuid = uuid4().hex
         slice_filename = '{transcript.id}_{tm.start}_{tm.end}_slice_{uuid}.mp3'.format(**locals())
+        log.info('create_transcript_media_file SAVING')
         tm.file.save(slice_filename, File(f))
 
+    log.info('create_transcript_media_file FINISHED')
     tm.finish()
