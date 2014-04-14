@@ -20,13 +20,14 @@
 
     soundManager.setup({
       {% if DEBUG %}debugMode: true,{% endif %}
-      preferFlash: false
-      // flashVersion: 9,
-      // preferFlash: true, // for visualization effects
-      // useHighPerformance: true, // keep flash on screen, boost performance
-      // wmode: 'transparent', // transparent SWF, if possible
-      {# TODO: figure out how to get swf working with S3 #}
-      // url: '{% static 'vendor/soundmanagerv297a-20131201/swf/' %}'
+      // preferFlash: false
+      flashVersion: 9,
+      preferFlash: true, // for visualization effects
+      useHighPerformance: true, // keep flash on screen, boost performance
+      wmode: 'transparent', // transparent SWF, if possible
+
+      {# Don't use static tag; we do NOT want to load this from S3, otherwise request signing gets in the way #}
+      url: '/static/vendor/soundmanagerv297a-20131201/swf/'
     });
 
     // custom page player configuration
