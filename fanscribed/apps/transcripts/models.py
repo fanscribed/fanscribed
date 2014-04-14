@@ -629,7 +629,8 @@ class TranscriptMedia(TimeStampedModel):
     [*] --> empty
     empty --> creating
     creating --> ready
-    ready --> [*]
+    ready --> deleted
+    deleted --> creating
     @enduml
     """
 
@@ -675,7 +676,7 @@ class TranscriptMedia(TimeStampedModel):
         self.download_count += 1
         self.save()
 
-    @transition(state, 'empty', 'creating', save=True)
+    @transition(state, ['empty', 'deleted'], 'creating', save=True)
     def create_file(self):
         pass
 
@@ -685,6 +686,10 @@ class TranscriptMedia(TimeStampedModel):
     @transition(state, 'creating', 'ready', save=True, conditions=[has_file])
     def finish(self):
         pass
+
+    @transition(state, 'ready', 'deleted', save=True)
+    def delete_file(self):
+        self.file.delete()
 
 
 # ================================================================
