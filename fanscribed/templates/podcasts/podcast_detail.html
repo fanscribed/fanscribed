@@ -18,6 +18,7 @@
 
     <thead>
       <tr>
+        <th style="width:1px">&nbsp;</th>    {# Keep the width as narrow as possible for this column #}
         <th>Title</th>
         <th>Published</th>
       </tr>
@@ -26,7 +27,15 @@
     <tbody>
       {% for episode in podcast.episodes.all %}
         <tr>
-          <td><a href="{% url 'podcasts:episode_detail' podcast_pk=podcast.pk pk=episode.pk %}">{{ episode.title }}</a></td>
+          {% url 'podcasts:episode_detail' podcast_pk=podcast.pk pk=episode.pk as episode_url %}
+          <td>
+            {% if episode.transcript %}
+              <a class="btn btn-xs btn-primary" href="{% url 'transcripts:detail' pk=episode.transcript.id %}">Help Transcribe</a>
+            {% else %}
+              <a class="btn btn-xs btn-default" href="{{ episode_url }}">Episode Details</a>
+            {% endif %}
+          </td>
+          <td><a href="{{ episode_url }}">{{ episode.title }}</a></td>
           <td>{{ episode.published }}</td>
         </tr>
       {% endfor %}
