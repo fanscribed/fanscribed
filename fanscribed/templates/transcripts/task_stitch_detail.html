@@ -1,9 +1,8 @@
 {% extends "transcripts/task_base.html" %}
 {% load bootstrap3 %}
 
-{% block content %}
 
-  {{ block.super }}
+{% block task_info %}
 
   <h2>{% if not task.is_review %}Stitch{% else %}Review Stitch{% endif %}</h2>
 
@@ -13,15 +12,14 @@
 
   </dl>
 
-  {% include "transcripts/_task_detail_audio.html" %}
+  {% include "transcripts/_guidelines_stitch.html" %}
+
+{% endblock %}
+
+
+{% block task_workarea %}
 
   {% if task.state == 'presented' %}
-
-    <p>
-      For each sentence fragment,
-      select the next sentence fragment it should be paired with,
-      or <em>none</em> if it's the end of a sentence.
-    </p>
 
     <div class="row">
       <div class="col-xs-12">

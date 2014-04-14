@@ -1,9 +1,8 @@
 {% extends "transcripts/task_base.html" %}
 {% load bootstrap3 %}
 
-{% block content %}
 
-  {{ block.super }}
+{% block task_info %}
 
   <h2>{% if not task.is_review %}Speaker{% else %}Review Speaker{% endif %}</h2>
 
@@ -13,7 +12,10 @@
 
   </dl>
 
-  {% include "transcripts/_task_detail_audio.html" %}
+{% endblock %}
+
+
+{% block task_workarea %}
 
   {% if task.state == 'presented' %}
 

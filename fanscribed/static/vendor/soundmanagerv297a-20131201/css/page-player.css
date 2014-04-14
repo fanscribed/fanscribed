@@ -110,10 +110,6 @@ ul.playlist li.sm2_paused a {
  color:#fff;
 }
 
-ul.playlist li .controls {
- display:none;
-}
-
 ul.playlist li .peak,
 ul.playlist.use-peak li .peak {
  display:none;

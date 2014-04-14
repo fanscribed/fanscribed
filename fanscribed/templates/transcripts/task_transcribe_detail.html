@@ -1,6 +1,7 @@
 {% extends "transcripts/task_base.html" %}
 {% load bootstrap3 %}
 
+
 {% block extra_js %}
   {{ block.super }}
   <script type="text/javascript">
@@ -8,9 +9,8 @@
   </script>
 {% endblock %}
 
-{% block content %}
 
-  {{ block.super }}
+{% block task_info %}
 
   <h2>{% if not task.is_review %}Transcribe{% else %}Review Transcription{% endif %}</h2>
 
@@ -26,11 +26,14 @@
 
   </dl>
 
-  {% include "transcripts/_task_detail_audio.html" %}
+  {% include 'transcripts/_guidelines_transcribe.html' %}
+
+{% endblock %}
+
+
+{% block task_workarea %}
 
   {% if task.state == 'presented' %}
-
-    {% include 'transcripts/_guidelines_transcribe.html' %}
 
     <form action="" method="post" class="form">
       {% csrf_token %}
@@ -43,7 +46,6 @@
   {% elif task.state == 'valid' %}
 
     <h3>Sentence Fragments</h3>
-
     <ul>
       {% for sentence_fragment in task.revision.sentence_fragments.all %}
         <li>{{ sentence_fragment.text }}</li>
@@ -53,7 +55,6 @@
   {% else %}
 
     <h3>Text</h3>
-
     <pre>{{ task.text }}</pre>
 
   {% endif %}
