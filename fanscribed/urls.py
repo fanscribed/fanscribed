@@ -19,7 +19,10 @@ LOGGED_IN_USER = {
 urlpatterns = patterns(
     '',
 
-    url(r"^accounts/signup/$",
+    url(r'^robots\.txt$',
+        include('fanscribed.apps.robots.urls')),
+
+    url(r'^accounts/signup/$',
         view=TemplateView.as_view(template_name='signup_closed.html')),
 
     url(r'^accounts/',

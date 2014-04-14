@@ -341,6 +341,7 @@ LOCAL_APPS += (
     'fanscribed.apps.media',        # Media file handling.
     'fanscribed.apps.podcasts',     # Podcasts and episodes.
     'fanscribed.apps.profiles',     # Accounts and profiles.
+    'fanscribed.apps.robots',       # robots.txt management.
     'fanscribed.apps.transcripts',  # The transcription engine.
 )
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
