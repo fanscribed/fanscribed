@@ -1,6 +1,11 @@
+import logging
+log = logging.getLogger(__name__)
+
 from decimal import Decimal
 
+from allauth.account.signals import user_signed_up
 from django.conf import settings
+from django.contrib.auth.models import Group
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.signals import post_save
@@ -876,6 +881,11 @@ class TranscribeTask(Task):
 
     objects = TranscribeTaskManager()
 
+    class Meta:
+        permissions = (
+            ('add_transcribetask_review', 'Can add review transcribe task'),
+        )
+
     def _assign_to(self):
         self.revision.fragment.lock()
 
@@ -948,6 +958,12 @@ class StitchTask(Task):
     stitch = models.ForeignKey('TranscriptStitch', related_name='+')
 
     objects = StitchTaskManager()
+
+
+    class Meta:
+        permissions = (
+            ('add_stitchtask_review', 'Can add review stitch task'),
+        )
 
     def _assign_to(self):
         self.stitch.lock()
@@ -1046,6 +1062,11 @@ class CleanTask(Task):
 
     objects = CleanTaskManager()
 
+    class Meta:
+        permissions = (
+            ('add_cleantask_review', 'Can add review clean task'),
+        )
+
     def _assign_to(self):
         if not self.is_review:
             self.sentence.clean_state = 'editing'
@@ -1139,6 +1160,11 @@ class BoundaryTask(Task):
 
     objects = BoundaryTaskManager()
 
+    class Meta:
+        permissions = (
+            ('add_boundarytask_review', 'Can add review boundary task'),
+        )
+
     def _assign_to(self):
         if not self.is_review:
             self.sentence.boundary_state = 'editing'
@@ -1220,6 +1246,11 @@ class SpeakerTask(Task):
 
     objects = SpeakerTaskManager()
 
+    class Meta:
+        permissions = (
+            ('add_speakertask_review', 'Can add review speaker task'),
+        )
+
     def _assign_to(self):
         if not self.is_review:
             self.sentence.speaker_state = 'editing'
@@ -1262,3 +1293,20 @@ TASK_MODEL = {
     'boundary': BoundaryTask,
     'speaker': SpeakerTask,
 }
+
+
+# ---------------------
+
+
+@receiver(user_signed_up)
+def add_to_workers_group(sender, request, user, **kwargs):
+    """The `workers` group has permissions to perform many non-review tasks.
+
+    :ptype user: django.contrib.auth.models.User
+    """
+    try:
+        group = Group.objects.get(name='workers')
+    except Group.DoesNotExist:
+        log.warning('"workers" group does not exist')
+    else:
+        user.groups.add(group)
