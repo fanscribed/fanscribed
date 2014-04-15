@@ -9,7 +9,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.core.urlresolvers import reverse
 import requests
 
-from ...apps.transcripts.models import TASK_MODEL
+from ...apps.transcripts.models import TASK_MODEL, Transcript
 
 
 with open('/usr/share/dict/words', 'rb') as f:
@@ -27,6 +27,8 @@ class Command(BaseCommand):
         except ValueError:
             raise CommandError(
                 'Provide base URL, transcript ID, email, password, and revise ratio.')
+        if self.transcript_id == 'latest':
+            self.transcript_id = Transcript.objects.latest().id
         self.revise_ratio = float(self.revise_ratio)
         detail_path = reverse('transcripts:detail',
                               kwargs=dict(pk=self.transcript_id))
