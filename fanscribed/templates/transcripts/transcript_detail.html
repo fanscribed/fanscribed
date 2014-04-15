@@ -18,12 +18,14 @@
   {% if user.is_authenticated %}
     <form action="{{ task_assign_url }}" method="post">
       {% csrf_token %}
-      <button class="btn btn-primary" type="submit" name="type" value="any_sequential">
-        Assign Any (Sequential)
-      </button>
-      <button class="btn btn-primary" type="submit" name="type" value="any_eager">
-        Assign Any (Eager)
-      </button>
+      {% if perms.transcripts.add_transcribetask %}
+        <button class="btn btn-primary" type="submit" name="type" value="any_sequential">
+          Assign Any (Sequential)
+        </button>
+        <button class="btn btn-primary" type="submit" name="type" value="any_eager">
+          Assign Any (Eager)
+        </button>
+      {% endif %}
       <a class="btn btn-default" href="{% url 'transcripts:text' pk=transcript.pk %}">Read Text</a>
     </form>
   {% else %}
@@ -39,27 +41,27 @@
     {% with stats_template='transcripts/_transcript_detail_task_stats.html' %}
       <div class="col-md-2">
         <h3>Transcribe</h3>
-        {% include stats_template with tasks=transcript.transcribetask_set task_name='transcribe' %}
+        {% include stats_template with tasks=transcript.transcribetask_set task_name='transcribe' perm=perms.transcripts.add_transcribetask reviewperm=perms.transcripts.add_transcribetask_review %}
       </div>
   
       <div class="col-md-2">
         <h3>Stitch</h3>
-        {% include stats_template with tasks=transcript.stitchtask_set task_name='stitch' %}
+        {% include stats_template with tasks=transcript.stitchtask_set task_name='stitch' perm=perms.transcripts.add_stitchtask reviewperm=perms.transcripts.add_stitchtask_review %}
       </div>
   
       <div class="col-md-2">
         <h3>Clean</h3>
-        {% include stats_template with tasks=transcript.cleantask_set task_name='clean' %}
+        {% include stats_template with tasks=transcript.cleantask_set task_name='clean' perm=perms.transcripts.add_cleantask reviewperm=perms.transcripts.add_cleantask_review %}
       </div>
   
       <div class="col-md-2">
         <h3>Boundary</h3>
-        {% include stats_template with tasks=transcript.boundarytask_set task_name='boundary' %}
+        {% include stats_template with tasks=transcript.boundarytask_set task_name='boundary' perm=perms.transcripts.add_boundarytask reviewperm=perms.transcripts.add_boundarytask_review %}
       </div>
   
       <div class="col-md-2">
         <h3>Speaker</h3>
-        {% include stats_template with tasks=transcript.speakertask_set task_name='speaker' %}
+        {% include stats_template with tasks=transcript.speakertask_set task_name='speaker' perm=perms.transcripts.add_speakertask reviewperm=perms.transcripts.add_speakertask_review %}
       </div>
     {% endwith %}
 

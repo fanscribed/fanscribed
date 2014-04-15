@@ -1,4 +1,4 @@
-{# params: tasks, task_name #}
+{# params: tasks, task_name, perm, reviewperm #}
 
 {% url 'transcripts:task_assign' pk=transcript.pk as task_assign_url %}
 
@@ -7,10 +7,10 @@
   <form action="{{ task_assign_url }}" method="post">
     {% csrf_token %}
     <div class="btn-group">
-      <button class="btn btn-default btn-sm" type="submit" name="type" value="{{ task_name }}">
+      <button class="btn btn-default btn-sm {% if not perm %}btn-disabled{% endif %}" {% if not perm %}disabled="disabled"{% endif %} type="submit" name="type" value="{{ task_name }}">
         {{ task_name.title }}
       </button>
-      <button class="btn btn-default btn-sm" type="submit" name="type" value="{{ task_name}}_review">
+      <button class="btn btn-default btn-sm {% if not reviewperm %}btn-disabled{% endif %}" {% if not reviewperm %}disabled="disabled"{% endif %} type="submit" name="type" value="{{ task_name}}_review">
         Review
       </button>
     </div>
