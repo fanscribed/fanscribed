@@ -42,9 +42,16 @@ DATABASES = {
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#caches
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-    }
+        'BACKEND': 'redis_cache.cache.RedisCache',
+        'LOCATION': getenv('REDIS_CACHE_LOCATION', 'localhost:6379:1'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
+            'PASSWORD': getenv('REDIS_CACHE_PASSWORD', None),
+        },
+    },
 }
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
 
 
 # DEBUGGER RUNSERVER

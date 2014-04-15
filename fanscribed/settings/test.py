@@ -17,3 +17,14 @@ CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 # Set specifically to 5.00 and 1.50 for tests.
 TRANSCRIPT_FRAGMENT_LENGTH = Decimal('5.00')
 TRANSCRIPT_FRAGMENT_OVERLAP = Decimal('1.50')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'redis_cache.cache.RedisCache',
+        'LOCATION': getenv('TEST_REDIS_CACHE_LOCATION', 'localhost:6379:2'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
+            'PASSWORD': getenv('TEST_REDIS_CACHE_PASSWORD', None),
+        },
+    },
+}
