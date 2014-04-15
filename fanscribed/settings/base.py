@@ -260,6 +260,7 @@ MIDDLEWARE_CLASSES += (
 TEMPLATE_CONTEXT_PROCESSORS += (
     'allauth.account.context_processors.account',
     'allauth.socialaccount.context_processors.socialaccount',
+    'fanscribed.context_processors.allow_signups',
 )
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -277,6 +278,7 @@ ACCOUNT_EMAIL_SUBJECT_PREFIX = '[Fanscribed] '
 ACCOUNT_USERNAME_REQUIRED = False
 AUTH_PROFILE_MODEL = 'profiles.Profile'
 LOGIN_REDIRECT_URL = 'home'
+ACCOUNT_ALLOW_SIGNUPS = False
 
 
 # CELERY

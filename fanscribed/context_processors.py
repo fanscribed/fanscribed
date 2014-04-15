@@ -16,3 +16,9 @@ def piwik(request):
         }
     else:
         return {}
+
+
+def allow_signups(request):
+    return {
+        'ACCOUNT_ALLOW_SIGNUPS': settings.ACCOUNT_ALLOW_SIGNUPS,
+    }

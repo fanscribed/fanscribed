@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>{% block title %}{% endblock title %}{% block head_title %}{% endblock %} | Fanscribed</title>
+    <title>{% block title %}{% endblock %}{% block head_title %}{% endblock %} | Fanscribed</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
@@ -61,6 +61,11 @@
               </li>
 
             {% else %}
+              {% if ACCOUNT_ALLOW_SIGNUPS %}
+                <li class="{% block nav_class_sign_up %}{% endblock %}">
+                  <a href="{% url 'account_signup' %}">Sign Up</a>
+                </li>
+              {% endif %}
               <li class="{% block nav_class_sign_in %}{% endblock %}">
                 <a href="{% url 'account_login' %}">Sign In</a>
               </li>

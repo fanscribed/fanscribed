@@ -61,6 +61,12 @@ INSTALLED_APPS += (
 DEFAULT_FILE_STORAGE = 'storages.backends.overwrite.OverwriteStorage'
 
 
+# AUTH
+# ----
+
+ACCOUNT_ALLOW_SIGNUPS = True
+
+
 # TODO: reinstall the toolbar after figuring out how to avoid conflict with waffle
 
 # # TOOLBAR

@@ -22,8 +22,9 @@ urlpatterns = patterns(
     url(r'^robots\.txt$',
         include('fanscribed.apps.robots.urls')),
 
-    url(r'^accounts/signup/$',
-        view=TemplateView.as_view(template_name='signup_closed.html')),
+    # TODO: use allauth's own signup-disabling techniques
+    url(r'^accounts/signup/$' if not settings.ACCOUNT_ALLOW_SIGNUPS else r'^ $',
+        view=TemplateView.as_view(template_name='account/signup_closed.html')),
 
     url(r'^accounts/',
         include('allauth.urls')),
