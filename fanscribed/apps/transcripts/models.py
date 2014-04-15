@@ -12,6 +12,9 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django_fsm.db.fields import FSMField, transition
 from model_utils.models import TimeStampedModel
+from redis_cache import get_redis_connection
+
+from ... import locks
 
 
 # ================================================================
@@ -65,9 +68,16 @@ class Sentence(models.Model):
 
     transcript = models.ForeignKey('Transcript', related_name='sentences')
     state = FSMField(default='empty', protected=True)
+
     clean_state = FSMField(default='untouched')     # Not protected.
+    clean_lock_id = models.CharField(max_length=32, blank=True, null=True)
+
     boundary_state = FSMField(default='untouched')  # Not protected.
+    boundary_lock_id = models.CharField(max_length=32, blank=True, null=True)
+
     speaker_state = FSMField(default='untouched')   # Not protected.
+    speaker_lock_id = models.CharField(max_length=32, blank=True, null=True)
+
     fragments = models.ManyToManyField(
         'SentenceFragment', related_name='sentences')
     fragment_candidates = models.ManyToManyField(
@@ -128,6 +138,68 @@ class Sentence(models.Model):
             ends.add(transcript_fragment.end)
         self.latest_start = min(starts)
         self.latest_end = max(ends)
+
+    # --
+
+    @property
+    def _clean_lockname(self):
+        return 'lock:sc:{self.id}'.format(**locals())
+
+    @property
+    def _boundary_lockname(self):
+        return 'lock:sb:{self.id}'.format(**locals())
+
+    @property
+    def _speaker_lockname(self):
+        return 'lock:ss:{self.id}'.format(**locals())
+
+    def lock_clean(self):
+        locks.acquire_model_lock(
+            conn=get_redis_connection('default'),
+            instance=self,
+            lockname=self._clean_lockname,
+            lockid_field='clean_lock_id',
+        )
+
+    def unlock_clean(self):
+        locks.release_model_lock(
+            conn=get_redis_connection('default'),
+            instance=self,
+            lockname=self._clean_lockname,
+            lockid_field='clean_lock_id',
+        )
+
+    def lock_boundary(self):
+        locks.acquire_model_lock(
+            conn=get_redis_connection('default'),
+            instance=self,
+            lockname=self._boundary_lockname,
+            lockid_field='boundary_lock_id',
+        )
+
+    def unlock_boundary(self):
+        locks.release_model_lock(
+            conn=get_redis_connection('default'),
+            instance=self,
+            lockname=self._boundary_lockname,
+            lockid_field='boundary_lock_id',
+        )
+
+    def lock_speaker(self):
+        locks.acquire_model_lock(
+            conn=get_redis_connection('default'),
+            instance=self,
+            lockname=self._speaker_lockname,
+            lockid_field='speaker_lock_id',
+        )
+
+    def unlock_speaker(self):
+        locks.release_model_lock(
+            conn=get_redis_connection('default'),
+            instance=self,
+            lockname=self._speaker_lockname,
+            lockid_field='speaker_lock_id',
+        )
 
 
 # ---------------------
@@ -269,6 +341,9 @@ class Transcript(TimeStampedModel):
     length = models.DecimalField(max_digits=8, decimal_places=2, null=True)
     length_state = FSMField(default='unset', protected=True)
 
+    class Meta:
+        get_latest_by = 'created'
+
     def __unicode__(self):
         return self.title
 
@@ -358,6 +433,7 @@ class TranscriptFragment(models.Model):
     end = models.DecimalField(max_digits=8, decimal_places=2)
     state = FSMField(default='empty', protected=True)
     lock_state = FSMField(default='unlocked', protected=True)
+    lock_id = models.CharField(max_length=32, blank=True, null=True)
 
     objects = TranscriptFragmentManager()
 
@@ -370,13 +446,27 @@ class TranscriptFragment(models.Model):
     def stitched_both_sides(self):
         return self.stitched_left and self.stitched_right
 
+    @property
+    def _lockname(self):
+        return 'lock:tf:{self.id}'.format(**locals())
+
     @transition(lock_state, 'unlocked', 'locked', save=True)
     def lock(self):
-        pass
+        locks.acquire_model_lock(
+            conn=get_redis_connection('default'),
+            instance=self,
+            lockname=self._lockname,
+            lockid_field='lock_id',
+        )
 
     @transition(lock_state, 'locked', 'unlocked', save=True)
     def unlock(self):
-        pass
+        locks.release_model_lock(
+            conn=get_redis_connection('default'),
+            instance=self,
+            lockname=self._lockname,
+            lockid_field='lock_id',
+        )
 
     @transition(state, 'empty', 'transcribed', save=True)
     def transcribe(self):
@@ -448,6 +538,7 @@ class TranscriptStitch(models.Model):
     right = models.OneToOneField('TranscriptFragment', related_name='stitch_at_left')
     state = FSMField(default='notready', protected=True)
     lock_state = FSMField(default='unlocked', protected=True)
+    lock_id = models.CharField(max_length=32, blank=True, null=True)
 
     objects = TranscriptStitchManager()
 
@@ -457,13 +548,27 @@ class TranscriptStitch(models.Model):
             ('transcript', 'left'),
         ]
 
+    @property
+    def _lockname(self):
+        return 'lock:ts:{self.id}'.format(**locals())
+
     @transition(lock_state, 'unlocked', 'locked', save=True)
     def lock(self):
-        pass
+        locks.acquire_model_lock(
+            conn=get_redis_connection('default'),
+            instance=self,
+            lockname=self._lockname,
+            lockid_field='lock_id',
+        )
 
     @transition(lock_state, 'locked', 'unlocked', save=True)
     def unlock(self):
-        pass
+        locks.release_model_lock(
+            conn=get_redis_connection('default'),
+            instance=self,
+            lockname=self._lockname,
+            lockid_field='lock_id',
+        )
 
     @transition(state, 'notready', 'unstitched', save=True)
     def ready(self):
@@ -740,8 +845,10 @@ class Task(TimeStampedModel):
 
     @startuml
 
-    [*] --> unassigned
-    unassigned --> assigned
+    [*] --> preparing
+    preparing --> preparing
+    preparing --> ready
+    ready --> assigned
     assigned --> presented
     presented --> submitted
     submitted --> valid
@@ -760,7 +867,7 @@ class Task(TimeStampedModel):
 
     transcript = models.ForeignKey('Transcript')
     is_review = models.BooleanField()
-    state = FSMField(default='unassigned', protected=True)
+    state = FSMField(default='preparing', protected=True)
     assignee = models.ForeignKey('auth.User', blank=True, null=True)
     media = models.ForeignKey('TranscriptMedia', blank=True, null=True)
 
@@ -776,7 +883,14 @@ class Task(TimeStampedModel):
             pk=self.pk,
         ))
 
-    @transition(state, 'unassigned', 'assigned', save=True)
+    def lock(self):
+        raise NotImplementedError()
+
+    @transition(state, 'preparing', 'ready', save=True)
+    def prepare(self):
+        pass
+
+    @transition(state, 'ready', 'assigned', save=True)
     def assign_to(self, user):
         self.assignee = user
         self._assign_to()
@@ -833,14 +947,8 @@ class TranscribeTaskManager(TaskManager):
 
     def create_next(self, user, transcript, is_review):
         fragment = self._available_fragments(transcript, is_review).first()
-        if not is_review:
-            next = fragment.revisions.create(sequence=1, editor=user)
-            text = ''
-        else:
-            latest = fragment.revisions.latest()
-            text = latest.text
-            next = fragment.revisions.create(sequence=latest.sequence + 1,
-                                             editor=user)
+        if fragment is None:
+            return None
 
         # Apply overlap.
         start = fragment.start - settings.TRANSCRIPT_FRAGMENT_OVERLAP
@@ -850,20 +958,41 @@ class TranscribeTaskManager(TaskManager):
         start = max(Decimal('0.00'), start)
         end = min(transcript.length, end)
 
+        task = transcript.transcribetask_set.create(
+            is_review=is_review,
+            media=None,
+            fragment=fragment,
+            start=fragment.start,
+            end=fragment.end,
+        )
+
+        try:
+            task.lock()
+        except locks.LockException:
+            task.delete()
+            raise
+
+        if not is_review:
+            next = fragment.revisions.create(sequence=1, editor=user)
+            text = ''
+        else:
+            latest = fragment.revisions.latest()
+            text = latest.text
+            next = fragment.revisions.create(sequence=latest.sequence + 1,
+                                             editor=user)
+
         media, created = transcript.media.get_or_create(
             is_processed=True,
             is_full_length=False,
             start=start,
             end=end,
         )
-        task = transcript.transcribetask_set.create(
-            is_review=is_review,
-            media=media,
-            revision=next,
-            start=fragment.start,
-            end=fragment.end,
-            text=text,
-        )
+
+        task.media = media
+        task.revision = next
+        task.text = text
+
+        task.prepare()
         task.assign_to(user)
         return task
 
@@ -872,6 +1001,7 @@ class TranscribeTask(Task):
 
     TASK_TYPE = 'transcribe'
 
+    fragment = models.ForeignKey('TranscriptFragment', blank=True, null=True)
     revision = models.ForeignKey('TranscriptFragmentRevision',
                                  blank=True, null=True)
     text = models.TextField(blank=True, null=True)
@@ -886,21 +1016,23 @@ class TranscribeTask(Task):
             ('add_transcribetask_review', 'Can add review transcribe task'),
         )
 
+    def lock(self):
+        self.fragment.lock()
+
     def _assign_to(self):
-        self.revision.fragment.lock()
+        pass
 
     def _finish_submit(self):
         from .tasks import process_transcribe_task
         result = process_transcribe_task.delay(self.pk)
 
     def _validate(self):
-        self.revision.fragment.unlock()
+        self.fragment.unlock()
 
     def _invalidate(self):
-        fragment = self.revision.fragment
         self.revision.delete()
         self.revision = None
-        fragment.unlock()
+        self.fragment.unlock()
 
 
 # ---------------------
@@ -925,6 +1057,8 @@ class StitchTaskManager(TaskManager):
 
     def create_next(self, user, transcript, is_review):
         stitch = self._available_stitches(transcript, is_review).first()
+        if not stitch:
+            return None
 
         # Apply overlap.
         start = stitch.left.start - settings.TRANSCRIPT_FRAGMENT_OVERLAP
@@ -945,8 +1079,17 @@ class StitchTaskManager(TaskManager):
             media=media,
             stitch=stitch,
         )
+
+        try:
+            task.lock()
+        except locks.LockException:
+            task.delete()
+            raise
+
         if is_review:
             task.create_pairings_from_existing_candidates()
+
+        task.prepare()
         task.assign_to(user)
         return task
 
@@ -959,14 +1102,16 @@ class StitchTask(Task):
 
     objects = StitchTaskManager()
 
-
     class Meta:
         permissions = (
             ('add_stitchtask_review', 'Can add review stitch task'),
         )
 
-    def _assign_to(self):
+    def lock(self):
         self.stitch.lock()
+
+    def _assign_to(self):
+        pass
 
     def _finish_submit(self):
         from .tasks import process_stitch_task
@@ -1035,6 +1180,8 @@ class CleanTaskManager(TaskManager):
 
     def create_next(self, user, transcript, is_review):
         sentence = self._available_sentences(transcript, is_review).first()
+        if sentence is None:
+            return None
 
         media, created = transcript.media.get_or_create(
             is_processed=True,
@@ -1049,6 +1196,14 @@ class CleanTaskManager(TaskManager):
             sentence=sentence,
             text=sentence.latest_text,
         )
+
+        try:
+            task.lock()
+        except locks.LockException:
+            task.delete()
+            raise
+
+        task.prepare()
         task.assign_to(user)
         return task
 
@@ -1066,6 +1221,9 @@ class CleanTask(Task):
         permissions = (
             ('add_cleantask_review', 'Can add review clean task'),
         )
+
+    def lock(self):
+        self.sentence.lock_clean()
 
     def _assign_to(self):
         if not self.is_review:
@@ -1087,6 +1245,7 @@ class CleanTask(Task):
                 self.sentence.clean_state = 'reviewed'
             else:
                 self.sentence.clean_state = 'edited'
+        self.sentence.unlock_clean()
         self.sentence.save()
 
     def _invalidate(self):
@@ -1094,6 +1253,7 @@ class CleanTask(Task):
             self.sentence.clean_state = 'untouched'
         else:
             self.sentence.clean_state = 'edited'
+        self.sentence.unlock_clean()
         self.sentence.save()
 
 
@@ -1119,6 +1279,8 @@ class BoundaryTaskManager(TaskManager):
 
     def create_next(self, user, transcript, is_review):
         sentence = self._available_sentences(transcript, is_review).first()
+        if sentence is None:
+            return None
 
         if not is_review:
             # Apply overlap.
@@ -1146,6 +1308,14 @@ class BoundaryTaskManager(TaskManager):
             start=sentence.latest_start,
             end=sentence.latest_end,
         )
+
+        try:
+            task.lock()
+        except locks.LockException:
+            task.delete()
+            raise
+
+        task.prepare()
         task.assign_to(user)
         return task
 
@@ -1164,6 +1334,9 @@ class BoundaryTask(Task):
         permissions = (
             ('add_boundarytask_review', 'Can add review boundary task'),
         )
+
+    def lock(self):
+        self.sentence.lock_boundary()
 
     def _assign_to(self):
         if not self.is_review:
@@ -1185,6 +1358,7 @@ class BoundaryTask(Task):
                 self.sentence.boundary_state = 'reviewed'
             else:
                 self.sentence.boundary_state = 'edited'
+        self.sentence.unlock_boundary()
         self.sentence.save()
 
     def _invalidate(self):
@@ -1192,6 +1366,7 @@ class BoundaryTask(Task):
             self.sentence.boundary_state = 'untouched'
         else:
             self.sentence.boundary_state = 'edited'
+        self.sentence.unlock_boundary()
         self.sentence.save()
 
 
@@ -1217,6 +1392,8 @@ class SpeakerTaskManager(TaskManager):
 
     def create_next(self, user, transcript, is_review):
         sentence = self._available_sentences(transcript, is_review).first()
+        if sentence is None:
+            return None
 
         start = sentence.latest_start
         media, created = transcript.media.get_or_create(
@@ -1232,6 +1409,14 @@ class SpeakerTaskManager(TaskManager):
             sentence=sentence,
             speaker=sentence.latest_speaker,
         )
+
+        try:
+            task.lock()
+        except locks.LockException:
+            task.delete()
+            raise
+
+        task.prepare()
         task.assign_to(user)
         return task
 
@@ -1250,6 +1435,9 @@ class SpeakerTask(Task):
         permissions = (
             ('add_speakertask_review', 'Can add review speaker task'),
         )
+
+    def lock(self):
+        self.sentence.lock_speaker()
 
     def _assign_to(self):
         if not self.is_review:
@@ -1271,6 +1459,7 @@ class SpeakerTask(Task):
                 self.sentence.speaker_state = 'reviewed'
             else:
                 self.sentence.speaker_state = 'edited'
+        self.sentence.unlock_speaker()
         self.sentence.save()
 
     def _invalidate(self):
@@ -1278,6 +1467,7 @@ class SpeakerTask(Task):
             self.sentence.speaker_state = 'untouched'
         else:
             self.sentence.speaker_state = 'edited'
+        self.sentence.unlock_speaker()
         self.sentence.save()
 
 

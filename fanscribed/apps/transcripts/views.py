@@ -3,6 +3,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 
 import vanilla
+from fanscribed.locks import LockException
 
 from ...utils import refresh
 from . import forms as f
@@ -85,6 +86,7 @@ class TaskAssignView(vanilla.RedirectView):
             L = [(task_type, is_review)]
 
         # Try to create the next available type of task.
+        task = None
         for task_type, is_review in L:
             # Does the user have permission?
             perm_name = 'transcripts.add_{}task{}'.format(
@@ -96,12 +98,19 @@ class TaskAssignView(vanilla.RedirectView):
             # User has permission, so try to create this type of task.
             tasks = m.TASK_MODEL[task_type].objects
             if tasks.can_create(transcript, is_review):
-                task = tasks.create_next(
-                    self.request.user, transcript, is_review)
-                break
-        else:
-            # No tasks found that user has permission for.
-            task = None
+                # Try to get this kind of task,
+                # ignoring lock failures up to 5 times.
+                for x in xrange(5):
+                    try:
+                        task = tasks.create_next(
+                            self.request.user, transcript, is_review)
+                    except LockException:
+                        # Try again.
+                        continue
+                    else:
+                        break
+                if task:
+                    break
 
         if task:
             task.present()

@@ -34,10 +34,13 @@ class StitchTaskTestCase(TransactionTestCase):
         )
         task = self.transcript.transcribetask_set.create(
             is_review=is_review,
+            fragment=tf,
             revision=r,
             start=tf.start,
             end=tf.end,
         )
+        task.lock()
+        task.prepare()
         task.assign_to(self.user)
         task.present()
         task.text = text
@@ -72,6 +75,8 @@ class StitchTaskTestCase(TransactionTestCase):
             is_review=False,
             stitch=stitch,
         )
+        task.lock()
+        task.prepare()
         task.assign_to(self.user)
         task.present()
 
@@ -94,7 +99,9 @@ class StitchTaskTestCase(TransactionTestCase):
             is_review=True,
             stitch=stitch,
         )
+        task.lock()
         task.create_pairings_from_existing_candidates()
+        task.prepare()
 
         sf_left = tf_left.revisions.latest().sentence_fragments.all()
         sf_right = tf_right.revisions.latest().sentence_fragments.all()
