@@ -130,3 +130,9 @@ MAILCHIMP_LIST_ID = get_env_setting('MAILCHIMP_LIST_ID')
 # ------
 
 BROKER_URL = get_env_setting('BROKER_URL')
+
+
+# TRANSCRIPTION
+# -------------
+
+TRANSCRIPT_FRAGMENT_LENGTH = Decimal(get_env_setting('TRANSCRIPT_FRAGMENT_LENGTH'))
