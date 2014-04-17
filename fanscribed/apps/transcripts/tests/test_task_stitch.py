@@ -21,7 +21,7 @@ class StitchTaskTestCase(TransactionTestCase):
 
     def submit(self, task):
         task.submit()
-        task._finish_submit()
+        task._submit()
         task = refresh(task)
         self.assertState(task, 'valid')
         return task

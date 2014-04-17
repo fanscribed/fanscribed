@@ -846,7 +846,6 @@ class Task(TimeStampedModel):
     @startuml
 
     [*] --> preparing
-    preparing --> preparing
     preparing --> ready
     ready --> assigned
     assigned --> presented
@@ -855,12 +854,14 @@ class Task(TimeStampedModel):
     valid --> [*]
 
     submitted --> invalid
-    invalid --> presented
+    invalid --> [*]
 
+    presented --> expired
     assigned --> expired
-    expired --> aborted
-    presented --> aborted
-    aborted --> [*]
+    expired --> [*]
+
+    presented --> canceled
+    canceled --> [*]
 
     @enduml
     """
@@ -905,9 +906,9 @@ class Task(TimeStampedModel):
     @transition(state, 'presented', 'submitted', save=True)
     def submit(self):
         if not settings.TESTING:
-            self._finish_submit()
+            self._submit()
 
-    def _finish_submit(self):
+    def _submit(self):
         raise NotImplementedError()
 
     @transition(state, 'submitted', 'valid', save=True)
@@ -919,6 +920,14 @@ class Task(TimeStampedModel):
 
     @transition(state, 'submitted', 'invalid', save=True)
     def invalidate(self):
+        self._invalidate()
+
+    @transition(state, ['assigned', 'presented'], 'expired', save=True)
+    def expire(self):
+        self._invalidate()
+
+    @transition(state, 'presented', 'canceled', save=True)
+    def cancel(self):
         self._invalidate()
 
     def _invalidate(self):
@@ -1022,7 +1031,7 @@ class TranscribeTask(Task):
     def _assign_to(self):
         pass
 
-    def _finish_submit(self):
+    def _submit(self):
         from .tasks import process_transcribe_task
         result = process_transcribe_task.delay(self.pk)
 
@@ -1113,7 +1122,7 @@ class StitchTask(Task):
     def _assign_to(self):
         pass
 
-    def _finish_submit(self):
+    def _submit(self):
         from .tasks import process_stitch_task
         process_stitch_task.delay(self.pk)
 
@@ -1232,7 +1241,7 @@ class CleanTask(Task):
             self.sentence.clean_state = 'reviewing'
         self.sentence.save()
 
-    def _finish_submit(self):
+    def _submit(self):
         from .tasks import process_clean_task
         process_clean_task.delay(self.pk)
 
@@ -1345,7 +1354,7 @@ class BoundaryTask(Task):
             self.sentence.boundary_state = 'reviewing'
         self.sentence.save()
 
-    def _finish_submit(self):
+    def _submit(self):
         from .tasks import process_boundary_task
         process_boundary_task.delay(self.pk)
 
@@ -1446,7 +1455,7 @@ class SpeakerTask(Task):
             self.sentence.speaker_state = 'reviewing'
         self.sentence.save()
 
-    def _finish_submit(self):
+    def _submit(self):
         from .tasks import process_speaker_task
         process_speaker_task.delay(self.pk)
 

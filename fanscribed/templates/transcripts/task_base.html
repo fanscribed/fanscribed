@@ -52,72 +52,86 @@
 
     {# TODO: clean this up #}
 
-    var isPlaying = function (sound) {
-      return (sound.playState == 1 && !sound.paused);
-    };
-
-    var playOrPauseAudio = function () {
-      var sound = pagePlayer.sounds[0];
-
-      if (!isPlaying(sound)) {
-
-        console.log('currently stopped or paused; now playing');
-        // rewind by .75 seconds
-        var newPosition = Math.max(0, sound.position - 750);
-        sound.setPosition(newPosition);
-        sound.play();
-
-      } else {
-
-        console.log('currently playing; now pausing');
-        sound.pause();
-
-      }
-
-      return false;
-    };
-
-    var rewindAudio = function () {
-      var sound = pagePlayer.sounds[0];
-
-      // rewind by 2 seconds
-      var newPosition = Math.max(0, sound.position - 2000);
-      sound.setPosition(newPosition);
-
-      // play if not already playing
-      if (!isPlaying(sound)) {
-        sound.play();
-      }
-
-      return false;
-    };
-
-    var restartAudio = function () {
-      var sound = pagePlayer.sounds[0];
-
-      sound.setPosition(0);
-
-      if (!isPlaying(sound)) {
-        sound.play();
-      }
-
-      return false;
-    };
-
-    {# TODO: support other keyboard layouts #}
-
-    var bindPlaybackHotkeys = function (e) {
-      var $e = $(e);
-      $e.bind('keydown', '\\', playOrPauseAudio);
-      $e.bind('keydown', '`', rewindAudio);
-      $e.bind('keydown', 'shift+`', restartAudio);
-    };
-
     $(function () {
-      console.log('binding to everything');
-      bindPlaybackHotkeys($('body'));
-      bindPlaybackHotkeys($('input'));
-      bindPlaybackHotkeys($('textarea'));
+      var isPlaying = function (sound) {
+        return (sound.playState == 1 && !sound.paused);
+      };
+
+      var playOrPauseAudio = function () {
+        var sound = pagePlayer.sounds[0];
+
+        if (!isPlaying(sound)) {
+
+          console.log('currently stopped or paused; now playing');
+          // rewind by .75 seconds
+          var newPosition = Math.max(0, sound.position - 750);
+          sound.setPosition(newPosition);
+          sound.play();
+
+        } else {
+
+          console.log('currently playing; now pausing');
+          sound.pause();
+
+        }
+
+        return false;
+      };
+
+      var rewindAudio = function () {
+        var sound = pagePlayer.sounds[0];
+
+        // rewind by 2 seconds
+        var newPosition = Math.max(0, sound.position - 2000);
+        sound.setPosition(newPosition);
+
+        // play if not already playing
+        if (!isPlaying(sound)) {
+          sound.play();
+        }
+
+        return false;
+      };
+
+      var restartAudio = function () {
+        var sound = pagePlayer.sounds[0];
+
+        sound.setPosition(0);
+
+        if (!isPlaying(sound)) {
+          sound.play();
+        }
+
+        return false;
+      };
+
+      var saveAndContinue = function () {
+        $('button[name="continue"]').click();
+      };
+
+      var saveAndExit = function () {
+        $('button[name="exit"]').click();
+      };
+
+      var cancelAndExit = function () {
+        $('button[name="cancel"]').click();
+      };
+
+      {# TODO: support other keyboard layouts #}
+
+      var bindTaskHotkeys = function (e) {
+        var $e = $(e);
+        $e.bind('keydown', '\\', playOrPauseAudio);
+        $e.bind('keydown', '`', rewindAudio);
+        $e.bind('keydown', 'shift+`', restartAudio);
+        $e.bind('keydown', 'ctrl+s', saveAndContinue);
+        $e.bind('keydown', 'ctrl+shift+s', saveAndExit);
+        $e.bind('keydown', 'ctrl+esc', cancelAndExit);
+      };
+
+      bindTaskHotkeys($('body'));
+      bindTaskHotkeys($('input'));
+      bindTaskHotkeys($('textarea'));
     });
 
   </script>

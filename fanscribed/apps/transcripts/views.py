@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -36,17 +37,13 @@ class TranscriptTextView(vanilla.DetailView):
 # -----------------------------
 
 
-class TaskAssignView(vanilla.RedirectView):
+class AssignsTasks(object):
 
-    http_method_names = ['post']
-
-    def get_redirect_url(self, pk):
-        transcript = get_object_or_404(m.Transcript, pk=pk)
-
-        task_type = self.request.POST['type']
+    # noinspection PyUnresolvedReferences
+    def assigned_task_url(self, transcript, requested_task_type):
 
         # Determine which order to search for available tasks.
-        if task_type == 'any_sequential':
+        if requested_task_type == 'any_sequential':
             # Sequential moves through the pipeline in one stage at a time.
             L = [
                 # (task_type, is_review),
@@ -61,7 +58,7 @@ class TaskAssignView(vanilla.RedirectView):
                 ('speaker', False),
                 ('speaker', True),
             ]
-        elif task_type == 'any_eager':
+        elif requested_task_type == 'any_eager':
             # Eager switches you to a new task type as soon as one is available.
             L = [
                 # (task_type, is_review),
@@ -78,12 +75,13 @@ class TaskAssignView(vanilla.RedirectView):
             ]
         else:
             # An individual task type was selected.
-            if task_type.endswith('_review'):
-                task_type = task_type.split('_review')[0]  # Remove '_review'.
+            if requested_task_type.endswith('_review'):
+                task_type = requested_task_type.split('_review')[
+                    0]  # Remove '_review'.
                 is_review = True
             else:
                 is_review = False
-            L = [(task_type, is_review)]
+            L = [(requested_task_type, is_review)]
 
         # Try to create the next available type of task.
         task = None
@@ -114,15 +112,40 @@ class TaskAssignView(vanilla.RedirectView):
 
         if task:
             task.present()
-            return task.get_absolute_url()
+            return task.get_absolute_url() + '?t=' + requested_task_type
         else:
-            # TODO: redirect to a page that says there are no more tasks.
-            return None
+            messages.info(self.request,
+                          'There are no tasks for you on this transcript at this time.')
+            return reverse('transcript:detail', kwargs=dict(pk=transcript.pk))
 
 
-class TaskPerformView(vanilla.UpdateView):
+class TaskAssignView(vanilla.RedirectView, AssignsTasks):
+
+    http_method_names = ['post']
+
+    def get_redirect_url(self, pk, *args, **kwargs):
+        transcript = get_object_or_404(m.Transcript, pk=pk)
+        requested_task_type = self.request.POST['type']
+        return self.assigned_task_url(transcript, requested_task_type)
+
+
+class TaskPerformView(vanilla.UpdateView, AssignsTasks):
 
     context_object_name = 'task'
+
+    def post(self, request, *args, **kwargs):
+        canceling = (request.POST.get('cancel') == '1')
+        if canceling:
+            # Cancel the task.
+            task = self.get_object()
+            task.cancel()
+            # Redirect to transcript detail.
+            transcript_detail_url = reverse(
+                'transcripts:detail', kwargs=dict(pk=task.transcript.id))
+            return HttpResponseRedirect(transcript_detail_url)
+        else:
+            # Normal form processing.
+            return super(TaskPerformView, self).post(request, *args, **kwargs)
 
     def get_form_class(self):
         task_type = self.kwargs['type']
@@ -141,8 +164,17 @@ class TaskPerformView(vanilla.UpdateView):
         ]
 
     def get_success_url(self):
-        return reverse('transcripts:detail',
-                       kwargs=dict(pk=self.object.transcript.id))
+        exiting = (self.request.POST.get('exit') == '1')
+        if exiting:
+            # Go back to the transcript detail page.
+            return reverse('transcripts:detail',
+                           kwargs=dict(pk=self.object.transcript.id))
+        else:
+            # Give them the next task for the given task type.
+            default_task_type = 'any_sequential'
+            requested_task_type = self.request.GET.get('t', default_task_type)
+            return self.assigned_task_url(
+                self.object.transcript, requested_task_type)
 
 
 class TaskAudioView(vanilla.DetailView):
