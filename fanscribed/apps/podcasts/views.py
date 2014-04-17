@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 import vanilla
@@ -40,6 +41,9 @@ class EpisodeCreateTranscript(vanilla.RedirectView):
             # Create a transcript for this episode.
             episode.transcript = Transcript.objects.create(title=episode.title)
             episode.save()
+            messages.success(self.request,
+                             "Thanks! We're now getting this episode ready to transcribe.")
+
         else:
             # Episode already has transcript.
             pass
