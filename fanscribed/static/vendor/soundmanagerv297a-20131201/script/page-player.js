@@ -330,6 +330,7 @@ function PagePlayer() {
     // handlers for sound events as they're started/stopped/played
 
     play: function() {
+      if (this.onplay_shim) { this.onplay_shim() }
       pl.removeClass(this._data.oLI,this._data.className);
       this._data.className = pl.css.sPlaying;
       pl.addClass(this._data.oLI,this._data.className);
@@ -337,6 +338,7 @@ function PagePlayer() {
     },
 
     stop: function() {
+      if (this.onstop_shim) { this.onstop_shim() }
       pl.removeClass(this._data.oLI,this._data.className);
       this._data.className = '';
       this._data.oPosition.style.width = '0px';
@@ -345,6 +347,7 @@ function PagePlayer() {
     },
 
     pause: function() {
+      if (this.onpause_shim) { this.onpause_shim() }
       if (pl.dragActive) {
         return false;
       }
@@ -356,6 +359,7 @@ function PagePlayer() {
     },
 
     resume: function() {
+      if (this.onresume_shim) { this.onresume_shim() }
       if (pl.dragActive) {
         return false;
       }
@@ -365,6 +369,7 @@ function PagePlayer() {
     },
 
     finish: function() {
+      if (this.onfinish_shim) { this.onfinish_shim() }
       pl.removeClass(this._data.oLI,this._data.className);
       this._data.className = '';
       this._data.oPosition.style.width = '0px';

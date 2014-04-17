@@ -8,6 +8,18 @@
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'vendor/soundmanagerv297a-20131201/css/page-player.css' %}"/>
   <link rel="stylesheet" href="{% static 'vendor/soundmanagerv297a-20131201/css/flashblock.css' %}"/>
+  <style type="text/css">
+    #audio-controls {
+      margin-top: 1em;
+      margin-bottom: 1em;
+    }
+    #audio-controls button {
+      min-width: 7em;
+    }
+    .paused {
+      display: none;
+    }
+  </style>
 {% endblock %}
 
 {% block extra_js %}
@@ -57,21 +69,44 @@
         return (sound.playState == 1 && !sound.paused);
       };
 
-      var playOrPauseAudio = function () {
-        var sound = pagePlayer.sounds[0];
+      var showPlaying = function () {
+        $('.playing').show();
+        $('.paused').hide();
+      };
 
-        if (!isPlaying(sound)) {
+      var showPaused = function () {
+        $('.paused').show();
+        $('.playing').hide();
+      };
+
+      var taskSound;
+
+      soundManager.onready(function () {
+        taskSound = pagePlayer.sounds[0];
+        // Shim the callbacks onto the sound, so page-player calls them
+        // along with normal behavior.
+        {# TODO: clean this up #}
+        taskSound.onplay_shim = showPlaying;
+        taskSound.onresume_shim = showPlaying;
+        taskSound.onstop_shim = showPaused;
+        taskSound.onpause_shim = showPaused;
+        taskSound.onfinish_shim = showPaused;
+      });
+
+      var playOrPauseAudio = function () {
+
+        if (!isPlaying(taskSound)) {
 
           console.log('currently stopped or paused; now playing');
           // rewind by .75 seconds
-          var newPosition = Math.max(0, sound.position - 750);
-          sound.setPosition(newPosition);
-          sound.play();
+          var newPosition = Math.max(0, taskSound.position - 750);
+          taskSound.setPosition(newPosition);
+          taskSound.play();
 
         } else {
 
           console.log('currently playing; now pausing');
-          sound.pause();
+          taskSound.pause();
 
         }
 
@@ -79,27 +114,23 @@
       };
 
       var rewindAudio = function () {
-        var sound = pagePlayer.sounds[0];
-
         // rewind by 2 seconds
-        var newPosition = Math.max(0, sound.position - 2000);
-        sound.setPosition(newPosition);
+        var newPosition = Math.max(0, taskSound.position - 2000);
+        taskSound.setPosition(newPosition);
 
         // play if not already playing
-        if (!isPlaying(sound)) {
-          sound.play();
+        if (!isPlaying(taskSound)) {
+          taskSound.play();
         }
 
         return false;
       };
 
       var restartAudio = function () {
-        var sound = pagePlayer.sounds[0];
+        taskSound.setPosition(0);
 
-        sound.setPosition(0);
-
-        if (!isPlaying(sound)) {
-          sound.play();
+        if (!isPlaying(taskSound)) {
+          taskSound.play();
         }
 
         return false;
@@ -117,6 +148,8 @@
         $('button[name="cancel"]').click();
       };
 
+      // Bind keys.
+
       {# TODO: support other keyboard layouts #}
 
       var bindTaskHotkeys = function (e) {
@@ -132,6 +165,13 @@
       bindTaskHotkeys($('body'));
       bindTaskHotkeys($('input'));
       bindTaskHotkeys($('textarea'));
+
+      // Bind audio control buttons.
+
+      $('#audio-back').click(rewindAudio);
+      $('#audio-restart').click(restartAudio);
+      $('#audio-playpause').click(playOrPauseAudio);
+
     });
 
   </script>

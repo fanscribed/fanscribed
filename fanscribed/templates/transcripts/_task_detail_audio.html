@@ -1,3 +1,15 @@
 <ul class="playlist">
   <li><a class="playable" href="{% url 'transcripts:task_audio' transcript_pk=task.transcript.id type=task.TASK_TYPE pk=task.id %}">Task Audio</a></li>
 </ul>
+<div id="audio-controls">
+  <div class="btn-group">
+    <button class="btn btn-default" id="audio-back"><span class="glyphicon glyphicon-step-backward"></span> Back<br><kbd>`</kbd></button>
+    <button class="btn btn-default" id="audio-restart"><span class="glyphicon glyphicon-fast-backward"></span> Restart<br><kbd>~</kbd></button>
+    <button class="btn btn-default" id="audio-playpause">
+      <span class="paused"><span class="glyphicon glyphicon-play"></span> Play</span>
+      <span class="playing"><span class="glyphicon glyphicon-pause"></span> Pause</span>
+      <br>
+      <kbd>\</kbd>
+    </button>
+  </div>
+</div>
