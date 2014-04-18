@@ -5,8 +5,10 @@ from . import models as m
 
 class EpisodeAdmin(admin.ModelAdmin):
 
-    list_display = ('podcast', 'title', 'published')
+    list_display = ('podcast', 'title', 'published',
+                    'transcript', 'external_transcript')
     ordering = ('podcast', '-published')
+    readonly_fields = ('podcast', 'guid', 'published')
 
 
 # ---
