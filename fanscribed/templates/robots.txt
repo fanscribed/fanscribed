@@ -8,6 +8,7 @@ Allow: /podcasts/*/episodes/*/
 Allow: /transcripts/*/
 Disallow: /accounts/
 Disallow: /admin/
+Disallow: /podcasts/*/episodes/*/create_transcript/
 Disallow: /profiles/
 Disallow: /transcripts/
 {% endif %}
