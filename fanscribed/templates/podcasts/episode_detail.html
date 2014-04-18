@@ -87,8 +87,8 @@
     {% if user.is_staff %}
       <span class="pull-right"><a class="btn btn-default" href="{% url 'admin:podcasts_episode_change' episode.pk %}">Admin: Episode</a></span>
     {% endif %}
-    <a href="{% url 'podcasts:detail' pk=episode.podcast.id %}">{{ episode.podcast.title }}</a>
-    <br><small>{{ episode.title }}</small>
+    {{ episode.title }}
+    <br><small><a href="{% url 'podcasts:detail' pk=episode.podcast.id %}">{{ episode.podcast.title }}</a></small>
   </h1>
 
   <div class="row">
