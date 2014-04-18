@@ -4,12 +4,9 @@ import time
 from django.db import models
 from django.dispatch import receiver
 from django.utils.timezone import utc
-
 from django_extensions.db.models import CreationDateTimeField
-
 from django_fsm.signals import post_transition
 from django_fsm.db.fields import FSMField, transition
-
 import feedparser
 
 from . import tasks
@@ -209,10 +206,11 @@ class TranscriptionApproval(models.Model):
     APPROVAL_TYPE_CHOICES = [
         ('user', 'User'),
         ('staff', 'Staff'),
-        ('owner', 'Onwer'),
+        ('owner', 'Owner'),
     ]
 
     podcast = models.ForeignKey('Podcast')
-    user = models.ForeignKey('auth.User')
+    created = CreationDateTimeField()
+    user = models.ForeignKey('auth.User', blank=True, null=True)
     approval_type = models.CharField(max_length=5, choices=APPROVAL_TYPE_CHOICES)
     notes = models.TextField(blank=True, null=True)
