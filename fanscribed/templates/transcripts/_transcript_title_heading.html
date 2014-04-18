@@ -5,6 +5,7 @@
       {% if user.is_staff %}
         <span class="pull-right">
           <a class="btn btn-default" href="{% url 'admin:podcasts_episode_change' episode.pk %}">Admin: Episode</a>
+          <a class="btn btn-default" href="{% url 'admin:transcripts_transcript_change' transcript.pk %}">Admin: Transcript</a>
         </span>
       {% endif %}
       {{ episode.title }}
@@ -12,6 +13,11 @@
     </h1>
   {% else %}
     <h1>
+      {% if user.is_staff %}
+        <span class="pull-right">
+          <a class="btn btn-default" href="{% url 'admin:transcripts_transcript_change' transcript.pk %}">Admin: Transcript</a>
+        </span>
+      {% endif %}
       {{ transcript.title }}
     </h1>
   {% endif %}
