@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load staticfiles %}
+{% load utility_tags %}
 
 
 {% block title %}
@@ -8,18 +9,7 @@
 {% endblock %}
 
 
-{% block meta_description %}
-  {% if episode.external_transcript %}
-    How to obtain
-  {% else %}
-    How to help create
-  {% endif %}
-  a complete transcript of the
-  "{{ episode.title }}"
-  episode from the
-  "{{ episode.podcast.title }}"
-  podcast.
-{% endblock %}
+{% block meta_description %}{% if episode.external_transcript %}How to obtain{% else %}How to help create{% endif %} a complete transcript of the &ldquo;{{ episode.title|html_escape }}&rdquo; episode from the &ldquo;{{ episode.podcast.title|html_escape }}&rdquo; podcast.{% endblock %}
 
 
 {% block nav_class_read %}

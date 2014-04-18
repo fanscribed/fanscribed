@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load staticfiles %}
+{% load utility_tags %}
 
 
 {% block title %}
@@ -15,21 +16,7 @@
 {% endblock %}
 
 
-{% block meta_description %}
-  {% with episode=transcript.episode %}
-    {% if episode %}
-      {% if transcript.state == 'finished' %}Complete{% else %}Work-in-progress{% endif %}
-      transcript of the
-      "{{ episode.title }}"
-      episode of the
-      "{{ episode.podcast.title }}"
-      podcast.
-    {% else %}
-      {% if transcript.state == 'finished' %}Complete{% else %}Work-in-progress{% endif %}
-      transcript entitled "{{ transcript.title }}".
-    {% endif %}
-  {% endwith %}
-{% endblock %}
+{% block meta_description %}{% with episode=transcript.episode %}{% if episode %}{% if transcript.state == 'finished' %}Complete{% else %}Work-in-progress{% endif %} transcript of the &ldquo;{{ episode.title|html_escape }}&rdquo; episode of the &ldquo;{{ episode.podcast.title|html_escape }}&rdquo; podcast.{% else %}{% if transcript.state == 'finished' %}Complete{% else %}Work-in-progress{% endif %} transcript entitled &ldquo;{{ transcript.title|html_escape }}&rdquo;.{% endif %}{% endwith %}{% endblock %}
 
 
 {% block nav_class_transcribe %}

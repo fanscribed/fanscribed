@@ -6,8 +6,8 @@
     <meta charset="utf-8">
     <title>{% spaceless %}{% block title %}{% endblock %}{% block head_title %}{% endblock %} | Fanscribed{% endspaceless %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{% spaceless %}{% block meta_description %}{% endblock %}{% endspaceless %}">
-    <meta name="author" content="{% spaceless %}{% block meta_author %}{% endblock %}{% endspaceless %}">
+    <meta name="description" content="{% block meta_description %}{% endblock %}">
+    <meta name="author" content="{% block meta_author %}{% endblock %}">
 
     <!-- Le styles -->
     <link href="{% static 'vendor/bootstrap-3.1.1/css/bootstrap.min.css' %}" rel="stylesheet">

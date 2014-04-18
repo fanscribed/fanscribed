@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load utility_tags %}
 
 
 {% block title %}
@@ -6,11 +7,7 @@
 {% endblock %}
 
 
-{% block meta_description %}
-  Full-text transcripts for the
-  "{{ podcast.title }}"
-  podcast.
-{% endblock %}
+{% block meta_description %}Full-text transcripts for the &ldquo;{{ podcast.title|html_escape }}&rdquo; podcast.{% endblock %}
 
 
 {% block nav_class_read %}
