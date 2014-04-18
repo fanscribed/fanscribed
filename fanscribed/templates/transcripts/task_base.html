@@ -6,6 +6,7 @@
 {% endblock %}
 
 {% block extra_css %}
+  {# TODO: extract this common audio-playing stuff #}
   <link rel="stylesheet" href="{% static 'vendor/soundmanagerv297a-20131201/css/page-player.css' %}"/>
   <link rel="stylesheet" href="{% static 'vendor/soundmanagerv297a-20131201/css/flashblock.css' %}"/>
   <style type="text/css">
@@ -23,6 +24,7 @@
 {% endblock %}
 
 {% block extra_js %}
+  {# TODO: extract this common audio-playing stuff #}
   {% if DEBUG %}
     <script type="text/javascript" src="{% static 'vendor/soundmanagerv297a-20131201/script/soundmanager2.js' %}"></script>
     <script type="text/javascript" src="{% static 'vendor/jquery.hotkeys/jquery.hotkeys.js' %}"></script>
