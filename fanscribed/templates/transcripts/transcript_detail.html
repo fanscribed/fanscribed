@@ -48,6 +48,21 @@
         <p class="text-muted">
           Text will appear here when the transcript is finished.
         </p>
+        <form action="{{ task_assign_url }}" method="post">
+          {% csrf_token %}
+          <p>
+            <a class="btn btn-primary btn-sm"
+               href="{% url 'account_login' %}?next={{ detail_url }}">
+              Sign In
+            </a>
+            or
+            <a class="btn btn-default btn-sm"
+               href="{% url 'account_signup' %}?next={{ detail_url }}">
+              Sign Up
+            </a>
+            to help transcribe this episode!
+          </p>
+        </form>
       {% endif %}
 
     </div>
@@ -69,14 +84,25 @@
           and you can stop at any time.</p>
 
           {% if user.is_authenticated %}
-            <form action="{{ task_assign_url }}" method="post">
-              {% csrf_token %}
-              {% if perms.transcripts.add_transcribetask %}
-                <button class="btn btn-primary" type="submit" name="type" value="any_sequential">
-                  Help Transcribe
+            {% if transcript.length_state == 'unset' %}
+              <p>
+                <button class="btn btn-disabled" disabled="disabled">
+                  Please Wait...
                 </button>
-              {% endif %}
-            </form>
+                <p class="text-muted">
+                  <small>(We are still processing the audio for this transcript. Please reload the page periodically to update this status.)</small>
+                </p>
+              </p>
+            {% else %}
+              <form action="{{ task_assign_url }}" method="post">
+                {% csrf_token %}
+                {% if perms.transcripts.add_transcribetask %}
+                  <button class="btn btn-primary" type="submit" name="type" value="any_sequential">
+                    Help Transcribe
+                  </button>
+                {% endif %}
+              </form>
+            {% endif %}
           {% else %}
             <p>
               <a class="btn btn-primary"
