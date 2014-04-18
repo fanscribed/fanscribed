@@ -51,16 +51,23 @@
         <form action="{{ task_assign_url }}" method="post">
           {% csrf_token %}
           <p>
-            <a class="btn btn-primary btn-sm"
-               href="{% url 'account_login' %}?next={{ detail_url }}">
-              Sign In
-            </a>
-            or
-            <a class="btn btn-default btn-sm"
-               href="{% url 'account_signup' %}?next={{ detail_url }}">
-              Sign Up
-            </a>
-            to help transcribe this episode!
+            {% if user.is_authenticated %}
+              <button class="btn btn-default btn-sm" type="submit">
+                Help Transcribe
+              </button>
+              this episode to get it done faster!
+            {% else %}
+              <a class="btn btn-primary btn-sm"
+                 href="{% url 'account_login' %}?next={{ detail_url }}">
+                Sign In
+              </a>
+              or
+              <a class="btn btn-default btn-sm"
+                 href="{% url 'account_signup' %}?next={{ detail_url }}">
+                Sign Up
+              </a>
+              to help transcribe this episode!
+            {% endif %}
           </p>
         </form>
       {% endif %}
