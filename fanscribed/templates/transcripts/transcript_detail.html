@@ -43,7 +43,7 @@
       <h2>Transcript</h2>
 
       {% if transcript.state == 'finished' %}
-        {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.sentences %}
+        {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.completed_sentences %}
       {% else %}
         <p class="text-muted">
           Text will appear here when the transcript is finished.

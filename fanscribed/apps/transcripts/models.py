@@ -414,6 +414,10 @@ class Transcript(TimeStampedModel):
             start = end
             previous = current
 
+    @property
+    def completed_sentences(self):
+        return self.sentences.filter(state='completed').order_by('latest_start')
+
 
 # ---------------------
 
