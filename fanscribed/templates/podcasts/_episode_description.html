@@ -1,0 +1,11 @@
+{# params: episode #}
+
+{% load podcast_tags %}
+
+<div class="description">
+  {% if episode.description %}
+    {{ episode.description|safe|bleached_description }}
+  {% else %}
+    <p class="text-muted">No description provided for this episode.</p>
+  {% endif %}
+</div>

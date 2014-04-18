@@ -327,6 +327,15 @@ class Speaker(models.Model):
 class Transcript(TimeStampedModel):
     """A transcript of audio or video to text.
 
+    state
+    -----
+
+    @startuml
+    [*] --> unfinished
+    unfinished --> finished
+    finished --> [*]
+    @enduml
+
     length_state
     ------------
 
@@ -338,6 +347,7 @@ class Transcript(TimeStampedModel):
     """
 
     title = models.CharField(max_length=512)
+    state = FSMField(default='unfinished', protected=True)
     length = models.DecimalField(max_digits=8, decimal_places=2, null=True)
     length_state = FSMField(default='unset', protected=True)
 
@@ -346,6 +356,10 @@ class Transcript(TimeStampedModel):
 
     def __unicode__(self):
         return self.title
+
+    @transition(state, 'unfinished', 'finished', save=True)
+    def finish(self):
+        pass
 
     @transition(length_state, 'unset', 'set', save=True)
     def set_length(self, length):

@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load podcast_tags %}
 
 
 {% block nav_class_read %}
@@ -9,9 +8,8 @@
 
 {% block content %}
 
-  <h1><a href="{% url 'podcasts:detail' pk=episode.podcast.id %}">{{ episode.podcast.title }}</a></h1>
-
-  <h2><a href="{% url 'podcasts:episode_detail' podcast_pk=episode.podcast.id pk=episode.pk %}">{{ episode.title }}</a></h2>
+  <h1><a href="{% url 'podcasts:detail' pk=episode.podcast.id %}">{{ episode.podcast.title }}</a>
+    <br><small>{{ episode.title }}</small></h1>
 
   {% if episode.transcript %}
     <a class="btn btn-primary" href="{% url 'transcripts:detail' pk=episode.transcript.id %}">Help Transcribe</a>
@@ -25,11 +23,9 @@
       </button>
     </form>
   {% endif %}
-  
-  <h3>Description</h3>
 
-  <div class="description">
-    {{ episode.description|safe|bleached_description }}
-  </div>
+  <h3>About This Episode</h3>
+
+  {% include "podcasts/_episode_description.html" %}
 
 {% endblock %}

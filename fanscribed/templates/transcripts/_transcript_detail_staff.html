@@ -1,0 +1,146 @@
+<h2>Tasks</h2>
+
+{% if user.is_authenticated %}
+  <form action="{{ task_assign_url }}" method="post">
+    {% csrf_token %}
+    {% if perms.transcripts.add_transcribetask %}
+      <button class="btn btn-primary" type="submit" name="type" value="any_sequential">
+        Assign Any (Sequential)
+      </button>
+      <button class="btn btn-primary" type="submit" name="type" value="any_eager">
+        Assign Any (Eager)
+      </button>
+    {% endif %}
+    <a class="btn btn-link" href="{% url 'transcripts:text' pk=transcript.pk %}">Read Text</a>
+  </form>
+{% else %}
+  <a class="btn btn-primary"
+     href="{% url 'account_login' %}?next={{ detail_url }}">
+    Sign In
+  </a>
+{% endif %}
+
+
+<div class="row">
+
+  {% with stats_template='transcripts/_transcript_detail_task_stats.html' %}
+    <div class="col-md-2">
+      <h3>Transcribe</h3>
+      {% include stats_template with tasks=transcript.transcribetask_set task_name='transcribe' perm=perms.transcripts.add_transcribetask reviewperm=perms.transcripts.add_transcribetask_review %}
+    </div>
+
+    <div class="col-md-2">
+      <h3>Stitch</h3>
+      {% include stats_template with tasks=transcript.stitchtask_set task_name='stitch' perm=perms.transcripts.add_stitchtask reviewperm=perms.transcripts.add_stitchtask_review %}
+    </div>
+
+    <div class="col-md-2">
+      <h3>Clean</h3>
+      {% include stats_template with tasks=transcript.cleantask_set task_name='clean' perm=perms.transcripts.add_cleantask reviewperm=perms.transcripts.add_cleantask_review %}
+    </div>
+
+    <div class="col-md-2">
+      <h3>Boundary</h3>
+      {% include stats_template with tasks=transcript.boundarytask_set task_name='boundary' perm=perms.transcripts.add_boundarytask reviewperm=perms.transcripts.add_boundarytask_review %}
+    </div>
+
+    <div class="col-md-2">
+      <h3>Speaker</h3>
+      {% include stats_template with tasks=transcript.speakertask_set task_name='speaker' perm=perms.transcripts.add_speakertask reviewperm=perms.transcripts.add_speakertask_review %}
+    </div>
+  {% endwith %}
+
+</div>
+
+<div class="row">
+
+  <div class="col-md-4">
+    <h3>Fragments</h3>
+
+    <table class="table table-condensed table-bordered">
+      <tr>
+        <th>Total</th>
+        <td>{{ transcript.fragments.count }}</td>
+      </tr>
+      <tr>
+        <th>Empty</th>
+        <td>{{ transcript.fragments.empty.count }}</td>
+      </tr>
+      <tr>
+        <th>Transcribed</th>
+        <td>{{ transcript.fragments.transcribed.count }}</td>
+      </tr>
+      <tr>
+        <th>Reviewed</th>
+        <td>{{ transcript.fragments.reviewed.count }}</td>
+      </tr>
+      <tr>
+        <th>Locked</th>
+        <td>{{ transcript.fragments.locked.count }}</td>
+      </tr>
+      <tr>
+        <th>Unlocked</th>
+        <td>{{ transcript.fragments.unlocked.count }}</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="col-md-4">
+    <h3>Stitches</h3>
+
+    <table class="table table-condensed table-bordered">
+      <tr>
+        <th>Total</th>
+        <td>{{ transcript.stitches.count }}</td>
+      </tr>
+      <tr>
+        <th>Not Ready</th>
+        <td>{{ transcript.stitches.notready.count }}</td>
+      </tr>
+      <tr>
+        <th>Unstitched</th>
+        <td>{{ transcript.stitches.unstitched.count }}</td>
+      </tr>
+      <tr>
+        <th>Stitched</th>
+        <td>{{ transcript.stitches.stitched.count }}</td>
+      </tr>
+      <tr>
+        <th>Reviewed</th>
+        <td>{{ transcript.stitches.reviewed.count }}</td>
+      </tr>
+      <tr>
+        <th>Locked</th>
+        <td>{{ transcript.stitches.locked.count }}</td>
+      </tr>
+      <tr>
+        <th>Unlocked</th>
+        <td>{{ transcript.stitches.unlocked.count }}</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="col-md-4">
+    <h3>Sentences</h3>
+
+    <table class="table table-condensed table-bordered">
+      <tr>
+        <th>Total</th>
+        <td>{{ transcript.sentences.count }}</td>
+      </tr>
+      <tr>
+        <th>Empty</th>
+        <td>{{ transcript.sentences.empty.count }}</td>
+      </tr>
+      <tr>
+        <th>Partial</th>
+        <td>{{ transcript.sentences.partial.count }}</td>
+      </tr>
+      <tr>
+        <th>Completed</th>
+        <td>{{ transcript.sentences.completed.count }}</td>
+      </tr>
+    </table>
+  </div>
+
+</div>

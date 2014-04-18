@@ -28,7 +28,7 @@ class Episode(models.Model):
     media_url = models.URLField()
     description = models.TextField(blank=True, null=True)
     transcript = models.OneToOneField('transcripts.Transcript', blank=True, null=True,
-                                      related_name='episodes')
+                                      related_name='episode')
 
     class Meta:
         ordering = ('-published',)

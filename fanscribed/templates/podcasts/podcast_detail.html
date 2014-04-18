@@ -8,9 +8,7 @@
 
 {% block content %}
 
-  <h1><a href="{% url 'podcasts:detail' pk=podcast.id %}">{{ podcast.title }}</a></h1>
-
-  <h2>Episodes</h2>
+  <h1>{{ podcast.title }}</h1>
 
   <p>{{ podcast.description }}</p>
 
