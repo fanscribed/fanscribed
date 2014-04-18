@@ -1,10 +1,19 @@
 {% with episode=transcript.episode %}
 
   {% if episode %}
-    <h1>{{ episode.title }}
-      <br><small><a href="{% url 'podcasts:detail' pk=episode.podcast.pk %}">{{ episode.podcast.title }}</a></small></h1>
+    <h1>
+      {% if user.is_staff %}
+        <span class="pull-right">
+          <a class="btn btn-default" href="{% url 'admin:podcasts_episode_change' episode.pk %}">Admin: Episode</a>
+        </span>
+      {% endif %}
+      {{ episode.title }}
+      <br><small><a href="{% url 'podcasts:detail' pk=episode.podcast.pk %}">{{ episode.podcast.title }}</a></small>
+    </h1>
   {% else %}
-    <h1>{{ transcript.title }}</h1>
+    <h1>
+      {{ transcript.title }}
+    </h1>
   {% endif %}
 
 {% endwith %}

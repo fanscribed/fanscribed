@@ -1,6 +1,7 @@
 import datetime
 import time
 
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.dispatch import receiver
 from django.utils.timezone import utc
@@ -35,7 +36,11 @@ class Episode(models.Model):
         ]
 
     def __unicode__(self):
-        return u'self.title ({self.podcast})'.format(**locals())
+        return u'{self.title} ({self.podcast})'.format(**locals())
+
+    def get_absolute_url(self):
+        return reverse('podcasts:episode_detail',
+                       kwargs=dict(podcast_pk=self.podcast.pk, pk=self.pk))
 
 
 # ------------------------------------------------------------------------------
