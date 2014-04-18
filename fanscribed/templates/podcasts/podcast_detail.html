@@ -15,35 +15,58 @@
 
   <h1>{{ podcast.title }}</h1>
 
-  <p>{{ podcast.description }}</p>
+  <div class="row">
+    <div class="col-md-8">
 
-  <table class="table">
+      {# -- content -- #}
 
-    <thead>
-      <tr>
-        <th style="width:1px">&nbsp;</th>    {# Keep the width as narrow as possible for this column #}
-        <th>Title</th>
-        <th>Published</th>
-      </tr>
-    </thead>
+      {% if podcast.description %}
+        <h2>About This Podcast</h2>
+        <p>{{ podcast.description }}</p>
+      {% endif %}
 
-    <tbody>
-      {% for episode in podcast.episodes.all %}
-        <tr>
-          {% url 'podcasts:episode_detail' podcast_pk=podcast.pk pk=episode.pk as episode_url %}
-          <td>
-            {% if episode.transcript %}
-              <a class="btn btn-xs btn-primary" href="{% url 'transcripts:detail' pk=episode.transcript.id %}">Help Transcribe</a>
-            {% else %}
-              <a class="btn btn-xs btn-default" href="{{ episode_url }}">Episode Details</a>
-            {% endif %}
-          </td>
-          <td><a href="{{ episode_url }}">{{ episode.title }}</a></td>
-          <td>{{ episode.published }}</td>
-        </tr>
-      {% endfor %}
-    </tbody>
+      <h2>Episodes</h2>
 
-  </table>
+      <table class="table">
+
+        <thead>
+          <tr>
+            <th style="width:1px">&nbsp;</th>    {# Keep the width as narrow as possible for this column #}
+            <th>Title</th>
+            <th style="min-width:10em">Published</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for episode in podcast.episodes.all %}
+            <tr>
+              {% url 'podcasts:episode_detail' podcast_pk=podcast.pk pk=episode.pk as episode_url %}
+              <td>
+                {% if episode.transcript %}
+                  <a class="btn btn-xs btn-primary" href="{% url 'transcripts:detail' pk=episode.transcript.id %}">Help Transcribe</a>
+                {% else %}
+                  <a class="btn btn-xs btn-default" href="{{ episode_url }}">Episode Details</a>
+                {% endif %}
+              </td>
+              <td><a href="{{ episode_url }}">{{ episode.title }}</a></td>
+              <td>{{ episode.published|date }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+
+    </div>
+
+    <div class="col-md-4">
+
+      {# -- sidebar -- #}
+
+      <h3>Licensing</h3>
+      {% include "podcasts/_podcast_license_approvals.html" %}
+
+    </div>
+
+  </div>
 
 {% endblock %}

@@ -209,8 +209,8 @@ class TranscriptionApproval(models.Model):
         ('owner', 'Owner'),
     ]
 
-    podcast = models.ForeignKey('Podcast')
+    podcast = models.ForeignKey('Podcast', related_name='approvals')
     created = CreationDateTimeField()
     user = models.ForeignKey('auth.User', blank=True, null=True)
-    approval_type = models.CharField(max_length=5, choices=APPROVAL_TYPE_CHOICES)
+    approval_type = models.CharField(max_length=5, choices=APPROVAL_TYPE_CHOICES)  # TODO: rename to 'type'
     notes = models.TextField(blank=True, null=True)

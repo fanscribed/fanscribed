@@ -1,0 +1,24 @@
+{# params: podcast #}
+
+{% with approvals=podcast.approvals %}
+  {% if approvals.count %}
+    <ul>
+      {% for approval in approvals.all %}
+        <li>
+          Approved by {{ approval.approval_type }}
+          on {{ approval.created|date }}{% if approval.notes %}:
+            &ldquo;{{ approval.notes }}&rdquo;
+          {% else %}.{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">We have not yet determined the licensing of this content.</p>
+    <p>
+      If you are the owner of this podcast,
+      or have licensing information about this podcast, please
+      <a class="btn btn-default btn-xs"
+         href="mailto:admin@fanscribed.com">email us</a>.
+    </p>
+  {% endif %}
+{% endwith %}
