@@ -324,6 +324,23 @@ class Speaker(models.Model):
 # ---------------------
 
 
+class TranscriptManager(models.Manager):
+
+    use_for_related_fields = True
+
+    def unfinished(self):
+        return self.filter(state='unfinished')
+
+    def finished(self):
+        return self.filter(state='finished')
+
+    def without_known_length(self):
+        return self.filter(length_state='unset')
+
+    def with_known_length(self):
+        return self.filter(length_state='set')
+
+
 class Transcript(TimeStampedModel):
     """A transcript of audio or video to text.
 
@@ -350,6 +367,8 @@ class Transcript(TimeStampedModel):
     state = FSMField(default='unfinished', protected=True)
     length = models.DecimalField(max_digits=8, decimal_places=2, null=True)
     length_state = FSMField(default='unset', protected=True)
+
+    objects = TranscriptManager()
 
     class Meta:
         get_latest_by = 'created'

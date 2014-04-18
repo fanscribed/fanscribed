@@ -17,6 +17,9 @@ class TranscriptListView(vanilla.ListView):
 
     model = m.Transcript
 
+    def get_queryset(self):
+        return self.model.objects.unfinished()
+
 
 class TranscriptDetailView(vanilla.DetailView):
 
