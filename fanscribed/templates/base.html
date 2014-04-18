@@ -42,9 +42,12 @@
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
             <li class="{% block nav_class_read %}{% endblock %}"><a href="{% url 'podcasts:index' %}">Read Podcasts</a></li>
-            <li class="{% block nav_class_transcribe %}{% endblock %}"><a href="{% url 'transcripts:index' %}">Help Transcribe</a></li>
+            <li class="{% block nav_class_transcribe %}{% endblock %}"><a href="{% url 'transcripts:index' %}">Transcribe</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
+            <li class="{% block nav_class_help %}{% endblock %}">
+              <a href="{% url 'help' %}">Get Help</a>
+            </li>
             {% if user.is_authenticated %}
 
               {# This must be in base.html due to containing a block. #}

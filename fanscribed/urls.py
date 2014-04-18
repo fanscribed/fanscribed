@@ -32,6 +32,10 @@ urlpatterns = patterns(
     url(r'^admin/',
         include(admin.site.urls)),
 
+    url(r'^help/',
+        name='help',
+        view=TemplateView.as_view(template_name='help.html')),
+
     url(r'^podcasts/',
         include('fanscribed.apps.podcasts.urls', 'podcasts'),
         kwargs=LOGGED_IN_USER),
