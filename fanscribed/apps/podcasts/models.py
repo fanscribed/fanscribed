@@ -76,6 +76,10 @@ class Podcast(models.Model):
     def __unicode__(self):
         return self.title or self.rss_url
 
+    def get_absolute_url(self):
+        return reverse('podcasts:detail_slug',
+                       kwargs=dict(pk=self.pk, slug=slugify(self.title)))
+
     # approval_state
     # --------------
 
