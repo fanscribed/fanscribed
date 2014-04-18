@@ -14,19 +14,76 @@
 
 {% block content %}
 
+  {% url 'podcasts:episode_create_transcript' podcast_pk=episode.podcast.id pk=episode.pk as create_transcript_url %}
+
   <h1><a href="{% url 'podcasts:detail' pk=episode.podcast.id %}">{{ episode.podcast.title }}</a>
     <br><small>{{ episode.title }}</small></h1>
 
-  {% url 'podcasts:episode_create_transcript' podcast_pk=episode.podcast.id pk=episode.pk as create_transcript_url %}
-  <form action="{{ create_transcript_url }}" method="post">
-    {% csrf_token %}
-    <button class="btn btn-primary" type="submit" name="type" value="any_sequential">
-      Create Transcript
-    </button>
-  </form>
+  <div class="row">
+    <div class="col-md-8">
 
-  <h3>About This Episode</h3>
+      {# -- body -- #}
 
-  {% include "podcasts/_episode_description.html" %}
+      <h2>About This Episode</h2>
+
+      {% include "podcasts/_episode_description.html" %}
+
+      <h2>Transcript</h2>
+
+      <p class="text-muted">
+        No transcript has been started for this episode.
+      </p>
+
+      <form action="{{ create_transcript_url }}" method="post">
+        {% csrf_token %}
+        <p>
+          <button class="btn btn-default btn-sm" type="submit" name="type" value="any_sequential">
+            Start a transcript
+          </button>
+          of this episode if you think there should be one!
+        </p>
+      </form>
+
+    </div>
+    <div class="col-md-4">
+
+      {# -- sidebar -- #}
+
+      <div class="well">
+
+        <h3 style="margin-top:0">Help Transcript This Episode</h3>
+
+        <p>Do you want a transcript of this episode?
+        You can help make one!</p>
+
+        <p>The process is simple,
+        there's no obligation,
+        and you can stop at any time.</p>
+
+        {% if user.is_authenticated %}
+          <form action="{{ create_transcript_url }}" method="post">
+            {% csrf_token %}
+            <button class="btn btn-primary" type="submit" name="type" value="any_sequential">
+              Start a transcript
+            </button>
+          </form>
+        {% else %}
+          <p>
+            <a class="btn btn-primary"
+               href="{% url 'account_login' %}?next={{ detail_url }}">
+              Sign In
+            </a>
+            or
+            <a class="btn btn-default"
+               href="{% url 'account_signup' %}?next={{ detail_url }}">
+              Sign Up
+            </a>
+          </p>
+        {% endif %}
+
+      </div>
+
+    </div>
+  </div>
 
 {% endblock %}
