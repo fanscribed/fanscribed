@@ -1,4 +1,7 @@
 import logging
+from django.utils.text import slugify
+
+
 log = logging.getLogger(__name__)
 
 from decimal import Decimal
@@ -375,6 +378,11 @@ class Transcript(TimeStampedModel):
 
     def __unicode__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse(
+            'transcripts:detail_slug',
+            kwargs=dict(pk=self.pk, slug=slugify(self.title)))
 
     @transition(state, 'unfinished', 'finished', save=True)
     def finish(self):
