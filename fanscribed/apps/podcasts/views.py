@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 import vanilla
 
@@ -27,6 +28,17 @@ class PodcastDetail(vanilla.DetailView):
 class EpisodeDetail(vanilla.DetailView):
 
     model = Episode
+
+    def render_to_response(self, context):
+        transcript = self.object.transcript
+        if transcript:
+            # Episode already has transcript; jump to the transcript page.
+            transcript_url = reverse('transcript_detail',
+                                     kwargs=dict(pk=transcript.pk))
+            return HttpResponseRedirect(transcript_url)
+        else:
+            # Show a skeletal view of the episode, w/o transcript.
+            return super(EpisodeDetail, self).render_to_response(context)
 
 
 class EpisodeCreateTranscript(vanilla.RedirectView):
