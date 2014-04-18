@@ -19,6 +19,10 @@ urlpatterns = patterns(
         name='detail',
         view=TranscriptDetailView.as_view()),
 
+    url(r'^(?P<pk>\d+)-(?P<slug>[\w-]+)/$',
+        name='detail_slug',
+        view=TranscriptDetailView.as_view()),
+
     url(r'^(?P<transcript_pk>\d+)/tasks/(?P<type>\w+)/(?P<pk>\d+)/$',
         name='task_perform',
         view=TaskPerformView.as_view(),

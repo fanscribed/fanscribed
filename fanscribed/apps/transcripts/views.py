@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.utils.text import slugify
 
 import vanilla
 from fanscribed.locks import LockException
@@ -123,7 +124,9 @@ class AssignsTasks(object):
         else:
             messages.info(self.request,
                           'For this transcript, there are no tasks for you at this time.')
-            return reverse('transcripts:detail', kwargs=dict(pk=transcript.pk))
+            return reverse(
+                'transcripts:detail_slug',
+                kwargs=dict(pk=transcript.pk), slug=slugify(transcript.title))
 
 
 class TaskAssignView(vanilla.RedirectView, AssignsTasks):
@@ -148,7 +151,9 @@ class TaskPerformView(vanilla.UpdateView, AssignsTasks):
             task.cancel()
             # Redirect to transcript detail.
             transcript_detail_url = reverse(
-                'transcripts:detail', kwargs=dict(pk=task.transcript.id))
+                'transcripts:detail_slug',
+                kwargs=dict(pk=task.transcript.id,
+                            slug=slugify(task.transcript.title)))
             messages.info(self.request, "Exited the task without saving.")
             return HttpResponseRedirect(transcript_detail_url)
         else:
@@ -181,8 +186,10 @@ class TaskPerformView(vanilla.UpdateView, AssignsTasks):
             # Go back to the transcript detail page.
             messages.success(self.request,
                              "Thank you for your work!")
-            return reverse('transcripts:detail',
-                           kwargs=dict(pk=self.object.transcript.id))
+            return reverse(
+                'transcripts:detail_slugify',
+                kwargs=dict(pk=self.object.transcript.id,
+                            slug=slugify(self.object.transcript.title)))
         else:
             # Give them the next task for the given task type.
             messages.success(self.request,

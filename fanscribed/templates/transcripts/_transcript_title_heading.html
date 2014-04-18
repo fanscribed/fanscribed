@@ -9,7 +9,7 @@
         </span>
       {% endif %}
       {{ episode.title }}
-      <br><small><a href="{% url 'podcasts:detail' pk=episode.podcast.pk %}">{{ episode.podcast.title }}</a></small>
+      <br><small><a href="{% url 'podcasts:detail_slug' pk=episode.podcast.pk slug=episode.podcast.title|slugify %}">{{ episode.podcast.title }}</a></small>
     </h1>
   {% else %}
     <h1>

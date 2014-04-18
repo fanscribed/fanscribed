@@ -89,7 +89,7 @@
   </div>
 
   {% url 'transcripts:task_assign' pk=transcript.pk as task_assign_url %}
-  {% url 'transcripts:detail' pk=transcript.pk as detail_url %}
+  {% url 'transcripts:detail_slug' pk=transcript.pk slug=transcript.title|slugify as detail_url %}
 
   {% include "transcripts/_transcript_title_heading.html" %}
 

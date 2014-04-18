@@ -26,7 +26,7 @@
     <tbody>
       {% for podcast in object_list %}
         <tr>
-          <td><a href="{% url 'podcasts:detail' pk=podcast.pk %}">{{ podcast.title }}</a></td>
+          <td><a href="{% url 'podcasts:detail_slug' pk=podcast.pk slug=podcast.title|slugify %}">{{ podcast.title }}</a></td>
         </tr>
       {% endfor %}
     </tbody>

@@ -4,6 +4,7 @@ import time
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.dispatch import receiver
+from django.utils.text import slugify
 from django.utils.timezone import utc
 from django_extensions.db.models import CreationDateTimeField
 from django_fsm.signals import post_transition
@@ -39,8 +40,10 @@ class Episode(models.Model):
         return u'{self.title} ({self.podcast})'.format(**locals())
 
     def get_absolute_url(self):
-        return reverse('podcasts:episode_detail',
-                       kwargs=dict(podcast_pk=self.podcast.pk, pk=self.pk))
+        return reverse('podcasts:episode_detail_slug',
+                       kwargs=dict(podcast_pk=self.podcast.pk,
+                                   pk=self.pk,
+                                   slug=slugify(self.title)))
 
 
 # ------------------------------------------------------------------------------

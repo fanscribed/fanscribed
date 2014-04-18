@@ -23,10 +23,18 @@ urlpatterns = patterns(
         name='detail',
         view=v.PodcastDetail.as_view()),
 
+    url(r'^(?P<pk>\d+)-(?P<slug>[\w-]+)/$',
+        name='detail_slug',
+        view=v.PodcastDetail.as_view()),
+
     # -- episodes --------------------------------------
 
     url(r'^(?P<podcast_pk>\d+)/episodes/(?P<pk>\d+)/$',
         name='episode_detail',
+        view=v.EpisodeDetail.as_view()),
+
+    url(r'^(?P<podcast_pk>\d+)/episodes/(?P<pk>\d+)-(?P<slug>[\w-]+)/$',
+        name='episode_detail_slug',
         view=v.EpisodeDetail.as_view()),
 
     url(r'^(?P<podcast_pk>\d+)/episodes/(?P<pk>\d+)/create_transcript/$',

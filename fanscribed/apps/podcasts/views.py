@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.utils.text import slugify
 import vanilla
 
 from ..transcripts.models import Transcript
@@ -33,8 +34,9 @@ class EpisodeDetail(vanilla.DetailView):
         transcript = self.object.transcript
         if transcript:
             # Episode already has transcript; jump to the transcript page.
-            transcript_url = reverse('transcripts:detail',
-                                     kwargs=dict(pk=transcript.pk))
+            transcript_url = reverse(
+                'transcripts:detail_slug',
+                kwargs=dict(pk=transcript.pk, slug=slugify(transcript.title)))
             return HttpResponseRedirect(transcript_url)
         else:
             # Show a skeletal view of the episode, w/o transcript.
@@ -63,4 +65,6 @@ class EpisodeCreateTranscript(vanilla.RedirectView):
         fetch_episode_raw_media.delay(episode.pk)
 
         transcript = episode.transcript
-        return reverse('transcripts:detail', kwargs=dict(pk=transcript.pk))
+        return reverse(
+            'transcripts:detail_slug',
+            kwargs=dict(pk=transcript.pk, slug=slugify(transcript.title)))

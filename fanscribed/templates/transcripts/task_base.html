@@ -182,7 +182,7 @@
 
 {% block content %}
 
-  <h1><a href="{% url 'transcripts:detail' pk=task.transcript.pk %}">{{ task.transcript }}</a></h1>
+  <h1><a href="{% url 'transcripts:detail_slug' pk=task.transcript.pk slug=task.transcript.title|slugify %}">{{ task.transcript }}</a></h1>
 
   <div id="sm2-container">
    <!-- SM2 flash goes here -->
