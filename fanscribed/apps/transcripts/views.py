@@ -163,7 +163,11 @@ class TaskPerformView(vanilla.UpdateView, AssignsTasks):
     def get_queryset(self):
         task_type = self.kwargs['type']
         model = m.TASK_MODEL[task_type]
-        return model
+        if self.request.user.is_staff:
+            return model
+        else:
+            assigned_to_user = model.objects.filter(assignee=self.request.user)
+            return assigned_to_user
 
     def get_template_names(self):
         task_type = self.kwargs['type']
@@ -194,7 +198,11 @@ class TaskAudioView(vanilla.DetailView):
     def get_queryset(self):
         task_type = self.kwargs['type']
         model = m.TASK_MODEL[task_type]
-        return model
+        if self.request.user.is_staff:
+            return model
+        else:
+            assigned_to_user = model.objects.filter(assignee=self.request.user)
+            return assigned_to_user
 
     def get_object(self):
         task = super(TaskAudioView, self).get_object()
