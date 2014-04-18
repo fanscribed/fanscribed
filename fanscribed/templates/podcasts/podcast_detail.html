@@ -42,7 +42,9 @@
             <tr>
               {% url 'podcasts:episode_detail' podcast_pk=podcast.pk pk=episode.pk as episode_url %}
               <td>
-                {% if episode.external_transcript or episode.transcript.state == 'finished' %}
+                {% if episode.external_transcript %}
+                  <a class="btn btn-xs btn-success" href="{{ episode_url }}">Read Transcript</a>
+                {% elif episode.transcript.state == 'finished' %}
                   <a class="btn btn-xs btn-success" href="{% url 'transcripts:detail' pk=episode.transcript.id %}">Read Transcript</a>
                 {% elif episode.external_transcript or episode.transcript.state == 'unfinished' %}
                   <a class="btn btn-xs btn-primary" href="{% url 'transcripts:detail' pk=episode.transcript.id %}">Help Transcribe</a>
