@@ -140,14 +140,17 @@
 
       var saveAndContinue = function () {
         $('button[name="continue"]').click();
+        return false;
       };
 
       var saveAndExit = function () {
         $('button[name="exit"]').click();
+        return false;
       };
 
       var cancelAndExit = function () {
         $('button[name="cancel"]').click();
+        return false;
       };
 
       // Bind keys.
