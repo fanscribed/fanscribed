@@ -1,25 +1,16 @@
 <h2>Tasks</h2>
 
-{% if user.is_authenticated %}
-  <form action="{{ task_assign_url }}" method="post">
-    {% csrf_token %}
-    {% if perms.transcripts.add_transcribetask %}
-      <button class="btn btn-primary" type="submit" name="type" value="any_sequential">
-        Assign Any (Sequential)
-      </button>
-      <button class="btn btn-primary" type="submit" name="type" value="any_eager">
-        Assign Any (Eager)
-      </button>
-    {% endif %}
-    <a class="btn btn-link" href="{% url 'transcripts:text' pk=transcript.pk %}">Read Text</a>
-  </form>
-{% else %}
-  <a class="btn btn-primary"
-     href="{% url 'account_login' %}?next={{ detail_url }}">
-    Sign In
-  </a>
-{% endif %}
-
+<form action="{{ task_assign_url }}" method="post">
+  {% csrf_token %}
+  {% if perms.transcripts.add_transcribetask %}
+    <button class="btn btn-primary" type="submit" name="type" value="any_sequential">
+      Assign Any (Sequential)
+    </button>
+    <button class="btn btn-primary" type="submit" name="type" value="any_eager">
+      Assign Any (Eager)
+    </button>
+  {% endif %}
+</form>
 
 <div class="row">
 
