@@ -15,6 +15,23 @@
 {% endblock %}
 
 
+{% block meta_description %}
+  {% with episode=transcript.episode %}
+    {% if episode %}
+      {% if transcript.state == 'finished' %}Complete{% else %}Work-in-progress{% endif %}
+      transcript of the
+      "{{ episode.title }}"
+      episode of the
+      "{{ episode.podcast.title }}"
+      podcast.
+    {% else %}
+      {% if transcript.state == 'finished' %}Complete{% else %}Work-in-progress{% endif %}
+      transcript entitled "{{ transcript.title }}".
+    {% endif %}
+  {% endwith %}
+{% endblock %}
+
+
 {% block nav_class_transcribe %}
   active
 {% endblock %}

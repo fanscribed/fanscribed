@@ -8,6 +8,20 @@
 {% endblock %}
 
 
+{% block meta_description %}
+  {% if episode.external_transcript %}
+    How to obtain
+  {% else %}
+    How to help create
+  {% endif %}
+  a complete transcript of the
+  "{{ episode.title }}"
+  episode from the
+  "{{ episode.podcast.title }}"
+  podcast.
+{% endblock %}
+
+
 {% block nav_class_read %}
   active
 {% endblock %}
