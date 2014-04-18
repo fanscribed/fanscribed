@@ -14,29 +14,45 @@
 
     <div class="col-xs-12">
       <div class="jumbotron text-center">
-        <h1>Accessible podcasts.</h1>
+        <h1>Welcome to Fanscribed!</h1>
         <p>
           We help podcasts reach a wider audience
-          using high-quality transcripts.
+          using high-quality speech-to-text transcripts.
         </p>
       </div>
     </div>
 
-    <div class="col-xs-12 col-sm-4 text-center">
-      <p>
+  </div>
+
+  <div class="row">
+
+    <div class="col-xs-12 col-sm-4">
+      <p class="text-center">
         <a class="btn btn-primary btn-lg" href="{% url 'podcasts:index' %}">Read Podcasts</a>
       </p>
-    </div>
-
-    <div class="col-xs-12 col-sm-4 text-center">
-      <p>
-        <a class="btn btn-primary btn-lg" href="{% url 'transcripts:index' %}">Help Transcribe</a>
+      <p style="font-size:20px;font-weight:300;margin-left:1em;margin-right:1em;">
+        Browse our directory of podcasts that have full transcripts.
+        It's growing every day!
       </p>
     </div>
 
-    <div class="col-xs-12 col-sm-4 text-center">
-      <p>
+    <div class="col-xs-12 col-sm-4">
+      <p class="text-center">
+        <a class="btn btn-primary btn-lg" href="{% url 'transcripts:index' %}">Help Transcribe</a>
+      </p>
+      <p style="font-size:20px;font-weight:300;margin-left:1em;margin-right:1em;">
+        Your favorite podcast can benefit from transcripts.
+        Find out how easy it is to help!
+      </p>
+    </div>
+
+    <div class="col-xs-12 col-sm-4">
+      <p class="text-center">
         <a class="btn btn-default btn-lg" href="{% url 'help' %}#register-your-podcast">Register a Podcast</a>
+      </p>
+      <p style="font-size:20px;font-weight:300;margin-left:1em;margin-right:1em;">
+        If you're a podcaster and would like transcripts of your shows,
+        we'd love to add you to our directory.
       </p>
     </div>
 
