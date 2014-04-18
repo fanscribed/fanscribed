@@ -1,2 +1,13 @@
+{% if 'staging' in request.get_host %}
 User-agent: *
-Disallow: /
+Disallow: *
+{% else %}
+User-agent: *
+Allow: /podcasts/*/
+Allow: /podcasts/*/episodes/*/
+Allow: /transcripts/*/
+Disallow: /accounts/
+Disallow: /admin/
+Disallow: /profiles/
+Disallow: /transcripts/
+{% endif %}
