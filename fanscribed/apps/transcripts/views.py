@@ -187,7 +187,7 @@ class TaskPerformView(vanilla.UpdateView, AssignsTasks):
             messages.success(self.request,
                              "Thank you for your work!")
             return reverse(
-                'transcripts:detail_slugify',
+                'transcripts:detail_slug',
                 kwargs=dict(pk=self.object.transcript.id,
                             slug=slugify(self.object.transcript.title)))
         else:
