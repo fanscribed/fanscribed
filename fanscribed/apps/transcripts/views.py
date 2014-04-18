@@ -122,8 +122,8 @@ class AssignsTasks(object):
             return task.get_absolute_url() + '?t=' + requested_task_type
         else:
             messages.info(self.request,
-                          'There are no tasks for you on this transcript at this time.')
-            return reverse('transcript:detail', kwargs=dict(pk=transcript.pk))
+                          'For this transcript, there are no tasks for you at this time.')
+            return reverse('transcripts:detail', kwargs=dict(pk=transcript.pk))
 
 
 class TaskAssignView(vanilla.RedirectView, AssignsTasks):
