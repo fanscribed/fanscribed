@@ -199,6 +199,70 @@
             </p>
           {% endif %}
 
+          <hr/>
+
+          <h4>Transcription Progress</h4>
+
+          <p>This transcript will go through five stages before completion:</p>
+
+          {% with stats=transcript.stats %}
+
+            <dl>
+              <dt>Transcribe</dt>
+              <dd>
+                <div class="progress">
+                  <div class="progress-bar {% if stats.transcribe == 100 %}progress-bar-success{% else %}progress-bar-info{% endif %}"
+                       role="progressbar" aria-valuenow="{{ stats.transcribe }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ stats.transcribe }}%">
+                    {{ stats.transcribe }}%
+                  </div>
+                </div>
+              </dd>
+
+              <dt>Stitch</dt>
+              <dd>
+                <div class="progress">
+                  <div class="progress-bar {% if stats.stitch == 100 %}progress-bar-success{% else %}progress-bar-info{% endif %}"
+                       role="progressbar" aria-valuenow="{{ stats.stitch }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ stats.stitch }}%">
+                    {{ stats.stitch }}%
+                  </div>
+                </div>
+              </dd>
+
+              <dt>Clean</dt>
+              <dd>
+                <div class="progress">
+                  <div class="progress-bar {% if stats.clean == 100 %}progress-bar-success{% else %}progress-bar-info{% endif %}"
+                       role="progressbar" aria-valuenow="{{ stats.clean }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ stats.clean }}%">
+                    {{ stats.clean }}%
+                  </div>
+                </div>
+              </dd>
+
+              <dt>Boundary</dt>
+              <dd>
+                <div class="progress">
+                  <div class="progress-bar {% if stats.boundary == 100 %}progress-bar-success{% else %}progress-bar-info{% endif %}"
+                       role="progressbar" aria-valuenow="{{ stats.boundary }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ stats.boundary }}%">
+                    {{ stats.boundary }}%
+                  </div>
+                </div>
+              </dd>
+
+              <dt>Speaker</dt>
+              <dd>
+                <div class="progress">
+                  <div class="progress-bar {% if stats.speaker == 100 %}progress-bar-success{% else %}progress-bar-info{% endif %}"
+                       role="progressbar" aria-valuenow="{{ stats.speaker }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ stats.speaker }}%">
+                    {{ stats.speaker }}%
+                  </div>
+                </div>
+              </dd>
+
+            </dl>
+
+
+          {% endwith %}
+
         </div>
 
       {% endif %}

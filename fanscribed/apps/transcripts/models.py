@@ -37,6 +37,24 @@ class SentenceManager(models.Manager):
 
     def completed(self):
         return self.filter(state='completed')
+    
+    def clean_edited(self):
+        return self.filter(clean_state='edited')
+    
+    def clean_reviewed(self):
+        return self.filter(clean_state='reviewed')
+
+    def boundary_edited(self):
+        return self.filter(boundary_state='edited')
+    
+    def boundary_reviewed(self):
+        return self.filter(boundary_state='reviewed')
+
+    def speaker_edited(self):
+        return self.filter(speaker_state='edited')
+    
+    def speaker_reviewed(self):
+        return self.filter(speaker_state='reviewed')
 
 
 class Sentence(models.Model):
@@ -425,6 +443,53 @@ class Transcript(TimeStampedModel):
     @property
     def completed_sentences(self):
         return self.sentences.filter(state='completed').order_by('latest_start')
+
+    @property
+    def stats(self):
+        """Return a dictionary with a percentage of completion of each phase."""
+        stats = {}
+
+        fragments_count = self.fragments.count()
+        if fragments_count == 0:
+            stats.update(transcribe=0)
+        else:
+            stats['transcribe'] = (
+                (self.fragments.transcribed().count() + self.fragments.reviewed().count()) * 100
+                /
+                (self.fragments.count() * 2)
+            )
+
+        stitches_count = self.stitches.count()
+        if stitches_count == 0:
+            stats.update(stitch=0)
+        else:
+            stats['stitch'] = (
+                (self.stitches.stitched().count() + self.stitches.reviewed().count()) * 100
+                /
+                (self.stitches.count() * 2)
+            )
+        
+        sentence_count = self.sentences.count()
+        if sentence_count == 0:
+            stats.update(clean=0, boundary=0, speaker=0)
+        else:
+            stats['clean'] = (
+                (self.sentences.clean_edited().count() + self.sentences.clean_reviewed().count()) * 100
+                /
+                (sentence_count * 2)
+            )
+            stats['boundary'] = (
+                (self.sentences.boundary_edited().count() + self.sentences.boundary_reviewed().count()) * 100
+                /
+                (sentence_count * 2)
+            )
+            stats['speaker'] = (
+                (self.sentences.speaker_edited().count() + self.sentences.speaker_reviewed().count()) * 100
+                /
+                (sentence_count * 2)
+            )
+
+        return stats
 
 
 # ---------------------
