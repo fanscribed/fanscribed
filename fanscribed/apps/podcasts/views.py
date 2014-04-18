@@ -33,7 +33,7 @@ class EpisodeDetail(vanilla.DetailView):
         transcript = self.object.transcript
         if transcript:
             # Episode already has transcript; jump to the transcript page.
-            transcript_url = reverse('transcript_detail',
+            transcript_url = reverse('transcripts:detail',
                                      kwargs=dict(pk=transcript.pk))
             return HttpResponseRedirect(transcript_url)
         else:
