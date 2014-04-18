@@ -51,7 +51,7 @@
                 {% elif episode.transcript.state == 'unfinished' %}
                   <a class="btn btn-xs btn-primary" href="{{ episode_url }}">Help Transcribe</a>
                 {% else %}
-                  <a class="btn btn-xs btn-default" href="{{ episode_url }}">Create Transcript</a>
+                  <a class="btn btn-xs btn-default" href="{{ episode_url }}">Start Transcript</a>
                 {% endif %}
               </td>
               <td><a href="{{ episode_url }}">{{ episode.title }}</a></td>
