@@ -405,6 +405,9 @@ def create_processed_transcript_media(transcript_media_pk):
     processed_media.create_file()
 
     processed_path = os.tempnam()
+    open(processed_path, 'wb').close()
+    os.chmod(processed_path, 0600)
+
     avlib.convert(raw_path, processed_path, PROCESSED_MEDIA_AVCONV_SETTINGS)
 
     # Find length of raw media.
@@ -420,6 +423,7 @@ def create_processed_transcript_media(transcript_media_pk):
         uuid = uuid4().hex
         processed_filename = '{transcript.id}_processed_{uuid}.mp3'.format(**locals())
         processed_media.file.save(processed_filename, File(f))
+    os.unlink(processed_path)
     processed_media.finish()
 
     # Set transcript's length based on processed media.
@@ -449,7 +453,11 @@ def create_transcript_media_file(transcript_media_pk):
     tm.create_file()
 
     full_path = _local_cache_path(full_tm.file)
+
     slice_path = os.tempnam()
+    open(slice_path, 'wb').close()
+    os.chmod(slice_path, 0600)
+
     log.info('create_transcript_media_file EXTRACTING')
     mp3splt.extract_segment(full_path, slice_path, tm.start, tm.end)
     with open(slice_path, 'rb') as f:
@@ -457,6 +465,7 @@ def create_transcript_media_file(transcript_media_pk):
         slice_filename = '{transcript.id}_{tm.start}_{tm.end}_slice_{uuid}.mp3'.format(**locals())
         log.info('create_transcript_media_file SAVING')
         tm.file.save(slice_filename, File(f))
+    os.unlink(slice_path)
 
     log.info('create_transcript_media_file FINISHED')
     tm.finish()
