@@ -19,11 +19,11 @@
 
   <h2>{% if not task.is_review %}Clean{% else %}Review Clean{% endif %}</h2>
 
-  <dl class="dl-horizontal">
-
-    {% include "transcripts/_task_detail_common.html" %}
-
-  </dl>
+  {% if user.is_staff %}
+    <dl class="dl-horizontal">
+      {% include "transcripts/_task_detail_common.html" %}
+    </dl>
+  {% endif %}
 
 {% endblock %}
 

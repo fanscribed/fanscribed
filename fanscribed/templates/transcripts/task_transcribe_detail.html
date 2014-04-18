@@ -19,17 +19,19 @@
 
   <h2>{% if not task.is_review %}Transcribe{% else %}Review Transcription{% endif %}</h2>
 
-  <dl class="dl-horizontal">
+  {% if user.is_staff %}
 
-    {% include "transcripts/_task_detail_common.html" %}
+    <dl class="dl-horizontal">
+      {% include "transcripts/_task_detail_common.html" %}
 
-    <dt>Start</dt>
-    <dd>{{ task.start }}</dd>
+      <dt>Start</dt>
+      <dd>{{ task.start }}</dd>
 
-    <dt>End</dt>
-    <dd>{{ task.end }}</dd>
+      <dt>End</dt>
+      <dd>{{ task.end }}</dd>
+    </dl>
 
-  </dl>
+  {% endif %}
 
   {% include 'transcripts/_guidelines_transcribe.html' %}
 

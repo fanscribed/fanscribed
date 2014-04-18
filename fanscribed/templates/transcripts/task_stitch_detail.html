@@ -11,11 +11,11 @@
 
   <h2>{% if not task.is_review %}Stitch{% else %}Review Stitch{% endif %}</h2>
 
-  <dl class="dl-horizontal">
-
-    {% include "transcripts/_task_detail_common.html" %}
-
-  </dl>
+  {% if user.is_staff %}
+    <dl class="dl-horizontal">
+      {% include "transcripts/_task_detail_common.html" %}
+    </dl>
+  {% endif %}
 
   {% include "transcripts/_guidelines_stitch.html" %}
 
