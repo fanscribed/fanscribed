@@ -9,11 +9,24 @@ class EpisodeAdmin(admin.ModelAdmin):
     ordering = ('podcast', '-published')
 
 
+# ---
+
+
+class TranscriptionApprovalInline(admin.StackedInline):
+
+    model = m.TranscriptionApproval
+    fields = ('approval_type', 'notes')
+    extra = 1
+
+
 class PodcastAdmin(admin.ModelAdmin):
 
     actions = ['fetch']
     fields = ('rss_url',)
     list_display = ('rss_url', 'title')
+    inlines = [
+        TranscriptionApprovalInline,
+    ]
 
     def fetch(self, request, queryset):
         fetched = 0
@@ -24,6 +37,9 @@ class PodcastAdmin(admin.ModelAdmin):
         message = 'fetched: {fetched}'
         self.message_user(request, message.format(**locals()))
     fetch.short_description = 'Fetch RSS for selected podcasts'
+
+
+# ---
 
 
 class RssFetchAdmin(admin.ModelAdmin):
