@@ -45,15 +45,13 @@
           {% for episode in podcast.episodes.all %}
             <tr>
               {% url 'podcasts:episode_detail_slug' podcast_pk=podcast.pk pk=episode.pk slug=episode.title|slugify as episode_url %}
-              <td>
-                {% if episode.external_transcript %}
+              <td class="text-center">
+                {% if episode.external_transcript or episode.transcript.state == 'finished'%}
                   <a class="btn btn-xs btn-success" href="{{ episode_url }}">Read Transcript</a>
-                {% elif episode.transcript.state == 'finished' %}
-                  <a class="btn btn-xs btn-success" href="{% url 'transcripts:detail_slug' pk=episode.transcript.id slug=episode.transcript.title|slugify %}">Read Transcript</a>
-                {% elif episode.external_transcript or episode.transcript.state == 'unfinished' %}
-                  <a class="btn btn-xs btn-primary" href="{% url 'transcripts:detail_slug' pk=episode.transcript.id slug=episode.transcript.title|slugify %}">Help Transcribe</a>
+                {% elif episode.transcript.state == 'unfinished' %}
+                  <a class="btn btn-xs btn-primary" href="{{ episode_url }}">Help Transcribe</a>
                 {% else %}
-                  <a class="btn btn-xs btn-default" href="{{ episode_url }}">Episode Details</a>
+                  <a class="btn btn-xs btn-default" href="{{ episode_url }}">Create Transcript</a>
                 {% endif %}
               </td>
               <td><a href="{{ episode_url }}">{{ episode.title }}</a></td>
