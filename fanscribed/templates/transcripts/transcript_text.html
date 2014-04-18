@@ -10,6 +10,8 @@
 
   <h1><a href="{% url 'transcripts:detail' pk=transcript.pk %}">{{ transcript.title }}</a></h1>
 
+  {% include "transcripts/_transcript_sentences_table.html" %}
+
   <table class="table table-condensed table-bordered">
     <thead>
       <tr>

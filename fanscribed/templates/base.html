@@ -66,11 +66,13 @@
             {% else %}
               {% if ACCOUNT_ALLOW_SIGNUPS %}
                 <li class="{% block nav_class_sign_up %}{% endblock %}">
-                  <a href="{% url 'account_signup' %}">Sign Up</a>
+                  <a class="" href="{% url 'account_signup' %}">Sign Up</a>
                 </li>
               {% endif %}
               <li class="{% block nav_class_sign_in %}{% endblock %}">
-                <a href="{% url 'account_login' %}">Sign In</a>
+                <form class="navbar-form" action="{% url 'account_login' %}" method="get">
+                  <button type="submit" class="btn btn-primary">Sign In</button>
+                </form>
               </li>
             {% endif %}
           </ul>

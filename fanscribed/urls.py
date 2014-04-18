@@ -37,15 +37,13 @@ urlpatterns = patterns(
         view=TemplateView.as_view(template_name='help.html')),
 
     url(r'^podcasts/',
-        include('fanscribed.apps.podcasts.urls', 'podcasts'),
-        kwargs=LOGGED_IN_USER),
+        include('fanscribed.apps.podcasts.urls', 'podcasts')),
 
     url(r'^profiles/',
         include('fanscribed.apps.profiles.urls', 'profiles')),
 
     url(r'^transcripts/',
-        include('fanscribed.apps.transcripts.urls', 'transcripts'),
-        kwargs=LOGGED_IN_USER),
+        include('fanscribed.apps.transcripts.urls', 'transcripts')),
 
     url(r'^$',
         name='home',

@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, url
-
 from vanilla import TemplateView
 
+from ...urls import LOGGED_IN_USER
 from . import views as v
 
 
@@ -31,6 +31,7 @@ urlpatterns = patterns(
 
     url(r'^(?P<podcast_pk>\d+)/episodes/(?P<pk>\d+)/create_transcript/$',
         name='episode_create_transcript',
-        view=v.EpisodeCreateTranscript.as_view()),
+        view=v.EpisodeCreateTranscript.as_view(),
+        kwargs=LOGGED_IN_USER),
 
 )

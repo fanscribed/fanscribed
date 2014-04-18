@@ -13,55 +13,82 @@
 
   {% include "transcripts/_transcript_title_heading.html" %}
 
-  {% if transcript.state == 'unfinished' %}
+  <div class="row">
+    <div class="col-md-8">
 
-    <h2>Help Finish This Transcript</h2>
+      {# -- body -- #}
 
-    <p>This transcript is not yet finished.
-    Helping us only takes a few minutes!</p>
+      {% if transcript.episode %}
 
-    {% if user.is_authenticated %}
-      <form action="{{ task_assign_url }}" method="post">
-        {% csrf_token %}
-        {% if perms.transcripts.add_transcribetask %}
-          <button class="btn btn-primary" type="submit" name="type" value="any_sequential">
-            Help Transcribe
-          </button>
-        {% endif %}
-      </form>
-    {% else %}
-      <p>
-        <a class="btn btn-primary"
-           href="{% url 'account_login' %}?next={{ detail_url }}">
-          Sign In
-        </a>
-        or
-        <a class="btn btn-default"
-           href="{% url 'account_signup' %}?next={{ detail_url }}">
-          Sign Up
-        </a>
-      </p>
-    {% endif %}
+        <h2>About This Episode</h2>
+        {% include "podcasts/_episode_description.html" with episode=transcript.episode %}
 
-  {% else %}
+        <hr/>
 
-    <a class="btn btn-success" href="{% url 'transcripts:text' pk=transcript.pk %}">Read Text</a>
+      {% endif %}
 
-  {% endif %}
+      <h2>Transcript</h2>
 
-  {# --- #}
+      {% if transcript.state == 'finished' %}
+        {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.sentences %}
+      {% else %}
+        <p class="text-muted">
+          Text will appear here when the transcript is finished.
+        </p>
+      {% endif %}
 
-  {% if transcript.episode %}
+    </div>
+    <div class="col-md-4">
 
-    <h2>About This Episode</h2>
-    {% include "podcasts/_episode_description.html" with episode=transcript.episode %}
+      {# -- sidebar -- #}
 
-  {% endif %}
+      {% if transcript.state == 'unfinished' %}
+
+        <div class="well">
+
+          <h3 style="margin-top:0">Help Finish This Transcript</h3>
+
+          <p>This transcript is not yet finished.
+          Helping us only takes a few minutes!</p>
+
+          {% if user.is_authenticated %}
+            <form action="{{ task_assign_url }}" method="post">
+              {% csrf_token %}
+              {% if perms.transcripts.add_transcribetask %}
+                <button class="btn btn-primary" type="submit" name="type" value="any_sequential">
+                  Help Transcribe
+                </button>
+              {% endif %}
+            </form>
+          {% else %}
+            <p>
+              <a class="btn btn-primary"
+                 href="{% url 'account_login' %}?next={{ detail_url }}">
+                Sign In
+              </a>
+              or
+              <a class="btn btn-default"
+                 href="{% url 'account_signup' %}?next={{ detail_url }}">
+                Sign Up
+              </a>
+            </p>
+          {% endif %}
+
+        </div>
+
+      {% else %}
+
+        <a class="btn btn-success" href="{% url 'transcripts:text' pk=transcript.pk %}">Read Text</a>
+
+      {% endif %}
+
+    </div>
+  </div>
 
   {# --- #}
 
   {% if request.user.is_staff and 'stats' in request.GET %}
-    <hr>
+    <hr/>
     {% include "transcripts/_transcript_detail_staff.html" %}
   {% endif %}
 
