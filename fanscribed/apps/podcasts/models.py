@@ -61,6 +61,9 @@ class Podcast(models.Model):
     title = models.CharField(max_length=200, blank=True, null=True)
     approval_state = FSMField(default='not_approved', protected=True)
 
+    class Meta:
+        ordering = ('title', 'rss_url')
+
     def __unicode__(self):
         return self.title or self.rss_url
 
