@@ -26,6 +26,7 @@ class Episode(models.Model):
     description = models.TextField(blank=True, null=True)
     transcript = models.OneToOneField('transcripts.Transcript', blank=True, null=True,
                                       related_name='episode')
+    external_transcript = models.URLField(blank=True, null=True)
 
     class Meta:
         ordering = ('-published',)
