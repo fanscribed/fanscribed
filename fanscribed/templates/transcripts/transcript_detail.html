@@ -1,6 +1,19 @@
 {% extends "base.html" %}
 
 
+{% block title %}
+  {% with episode=transcript.episode %}
+    {% if episode %}
+      Transcript of
+      "{{ episode.title }}"
+      (from {{ episode.podcast.title }})
+    {% else %}
+      {{ transcript.title }}
+    {% endif %}
+  {% endwith %}
+{% endblock %}
+
+
 {% block nav_class_transcribe %}
   active
 {% endblock %}

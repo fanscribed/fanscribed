@@ -5,7 +5,6 @@ from ...urls import LOGGED_IN_USER
 from .views import (
     TaskAssignView, TaskPerformView, TaskAudioView,
     TranscriptDetailView, TranscriptListView,
-    TranscriptTextView,
 )
 
 
@@ -19,10 +18,6 @@ urlpatterns = patterns(
     url(r'^(?P<pk>\d+)/$',
         name='detail',
         view=TranscriptDetailView.as_view()),
-
-    url(r'^(?P<pk>\d+)/text/$',
-        name='text',
-        view=TranscriptTextView.as_view()),
 
     url(r'^(?P<transcript_pk>\d+)/tasks/(?P<type>\w+)/(?P<pk>\d+)/$',
         name='task_perform',

@@ -2,6 +2,11 @@
 {% load bootstrap3 %}
 
 
+{% block title %}
+  {% if not task.is_review %}Stitch{% else %}Review Stitch{% endif %}
+{% endblock %}
+
+
 {% block task_info %}
 
   <h2>{% if not task.is_review %}Stitch{% else %}Review Stitch{% endif %}</h2>

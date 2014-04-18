@@ -1,6 +1,6 @@
 {% with episode=transcript.episode %}
 
-  {% if transcript.episode %}
+  {% if episode %}
     <h1>{{ episode.title }}
       <br><small><a href="{% url 'podcasts:detail' pk=episode.podcast.pk %}">{{ episode.podcast.title }}</a></small></h1>
   {% else %}

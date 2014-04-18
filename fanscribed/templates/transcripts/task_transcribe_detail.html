@@ -2,6 +2,11 @@
 {% load bootstrap3 %}
 
 
+{% block title %}
+  {% if not task.is_review %}Transcribe{% else %}Review Transcription{% endif %}
+{% endblock %}
+
+
 {% block extra_js %}
   {{ block.super }}
   <script type="text/javascript">

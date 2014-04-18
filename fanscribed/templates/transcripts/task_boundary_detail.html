@@ -2,6 +2,11 @@
 {% load bootstrap3 %}
 
 
+{% block title %}
+  {% if not task.is_review %}Boundary{% else %}Review Boundary{% endif %}
+{% endblock %}
+
+
 {% block extra_js %}
   {{ block.super }}
   <script type="text/javascript">
