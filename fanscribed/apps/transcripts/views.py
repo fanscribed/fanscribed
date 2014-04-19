@@ -126,7 +126,7 @@ class AssignsTasks(object):
                           'For this transcript, there are no tasks for you at this time.')
             return reverse(
                 'transcripts:detail_slug',
-                kwargs=dict(pk=transcript.pk), slug=slugify(transcript.title))
+                kwargs=dict(pk=transcript.pk, slug=slugify(transcript.title)))
 
 
 class TaskAssignView(vanilla.RedirectView, AssignsTasks):
