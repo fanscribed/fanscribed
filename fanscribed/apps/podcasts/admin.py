@@ -25,7 +25,7 @@ class PodcastAdmin(admin.ModelAdmin):
 
     actions = ['fetch']
     fields = ('rss_url',)
-    list_display = ('rss_url', 'title')
+    list_display = ('title', 'link_url', 'rss_url')
     inlines = [
         TranscriptionApprovalInline,
     ]

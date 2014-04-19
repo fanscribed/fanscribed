@@ -10,6 +10,7 @@
       {% endif %}
       {{ episode.title }}
       <br><small><a href="{% url 'podcasts:detail_slug' pk=episode.podcast.pk slug=episode.podcast.title|slugify %}">{{ episode.podcast.title }}</a></small>
+      {% if episode.podcast.link_url %}<a class="btn btn-default" href="{{ episode.podcast.link_url }}">Visit Website <span class="glyphicon glyphicon-new-window"></span></a>{% endif %}
     </h1>
   {% else %}
     <h1>

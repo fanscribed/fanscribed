@@ -93,6 +93,7 @@
     {% endif %}
     {{ episode.title }}
     <br><small><a href="{% url 'podcasts:detail_slug' pk=episode.podcast.id slug=episode.podcast.title|slugify %}">{{ episode.podcast.title }}</a></small>
+    {% if episode.podcast.link_url %}<a class="btn btn-default btn-sm" href="{{ episode.podcast.link_url }}">Visit Website <span class="glyphicon glyphicon-new-window"></span></a>{% endif %}
   </h1>
 
   <div class="row">
@@ -114,7 +115,7 @@
 
         <p>This episode has a transcript hosted on another website.</p>
         
-        <p><a class="btn btn-success" href="{{ episode.external_transcript }}">Read Transcript</a></p>
+        <p><a class="btn btn-success" href="{{ episode.external_transcript }}" target="_blank">Read Transcript <span class="glyphicon glyphicon-new-window"></span></a></p>
         
       {% else %}
 

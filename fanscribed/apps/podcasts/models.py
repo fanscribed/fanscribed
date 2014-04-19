@@ -67,8 +67,9 @@ class Podcast(models.Model):
     """
 
     rss_url = models.URLField(unique=True)
-    title = models.CharField(max_length=200, blank=True, null=True)
     approval_state = FSMField(default='not_approved', protected=True)
+    title = models.CharField(max_length=200, blank=True, null=True)
+    link_url = models.URLField(blank=True, null=True)
 
     class Meta:
         ordering = ('title', 'rss_url')
@@ -191,6 +192,7 @@ def update_podcast_title_and_episodes_from_rssfetch(instance, target, **kwargs):
 
         podcast = instance.podcast
         podcast.title = d['feed']['title']
+        podcast.link_url = d['feed'].get('link')
         podcast.save()
 
         for entry in d.entries:
