@@ -114,14 +114,8 @@ else:
 # STATIC
 # ------
 
-if AWS_ACCESS_KEY_ID:
-    # noinspection PyUnresolvedReferences
-    STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-    STATIC_ROOT = '/static/'
-    STATIC_URL = '//fanscribed.s3.amazonaws.com/static/'
-else:
-    STATIC_ROOT = normpath(join(PACKAGE_ROOT, 'assets'))
-    STATIC_URL = '/static/'
+STATIC_ROOT = normpath(join(PACKAGE_ROOT, 'assets'))
+STATIC_URL = '/static/'
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 
