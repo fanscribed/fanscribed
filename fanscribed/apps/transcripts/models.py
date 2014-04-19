@@ -1,9 +1,7 @@
 import logging
-from django.utils.text import slugify
-
-
 log = logging.getLogger(__name__)
 
+import datetime
 from decimal import Decimal
 
 from allauth.account.signals import user_signed_up
@@ -13,7 +11,10 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils.text import slugify
+from django.utils.timezone import utc
 from django_fsm.db.fields import FSMField, transition
+from django_fsm.signals import pre_transition
 from model_utils.models import TimeStampedModel
 from redis_cache import get_redis_connection
 
@@ -981,6 +982,8 @@ class Task(TimeStampedModel):
     state = FSMField(default='preparing', protected=True)
     assignee = models.ForeignKey('auth.User', blank=True, null=True)
     media = models.ForeignKey('TranscriptMedia', blank=True, null=True)
+    presented_at = models.DateTimeField(blank=True, null=True)
+    validated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         abstract = True
@@ -1602,6 +1605,17 @@ TASK_MODEL = {
     'boundary': BoundaryTask,
     'speaker': SpeakerTask,
 }
+
+
+def track_task_presentation_stats(instance, target, **kwargs):
+    utcnow = datetime.datetime.utcnow().replace(tzinfo=utc)
+    if target == 'presented':
+        instance.presented_at = utcnow
+    elif target == 'valid':
+        instance.validated_at = utcnow
+
+for _ModelClass in TASK_MODEL.values():
+    receiver(pre_transition, sender=_ModelClass)(track_task_presentation_stats)
 
 
 # ---------------------
