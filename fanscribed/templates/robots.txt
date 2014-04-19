@@ -14,5 +14,4 @@ Disallow: /podcasts/*/episodes/*/create_transcript/
 Disallow: /profiles/
 Disallow: /profiles/*
 Disallow: /transcripts/
-Disallow: /transcripts/*
 {% endif %}
