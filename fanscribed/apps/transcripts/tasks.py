@@ -321,6 +321,7 @@ def process_speaker_task(pk):
 # These settings are optimal for creating single-channel,
 # 44.1KHz, 64k bitstream MP3 audio files.
 PROCESSED_MEDIA_AVCONV_SETTINGS = [
+    '-y',
     '-ac', '1',
     '-ar', '44100',
     '-b:a', '64k',
