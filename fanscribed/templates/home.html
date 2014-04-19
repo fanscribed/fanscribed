@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load staticfiles %}
 
 {% block title %}
   Welcome
@@ -16,7 +17,15 @@
 
     <div class="col-xs-12">
       <div class="jumbotron text-center">
-        <h1>Welcome to Fanscribed!</h1>
+        <h1>
+          Fanscribed
+          <br/>
+          <small>Podcast Transcripts</small>
+        </h1>
+        <p>
+          <img src="{% static 'img/protologo-806x285.png' %}" class="img-responsive hidden-md hidden-lg" alt="Fanscribed Diagram: Audio, broadcast to a cloud of people, resulting in a transcript">
+          <img src="{% static 'img/protologo-806x285.png' %}" class="hidden-xs hidden-sm" alt="Fanscribed Diagram: Audio, broadcast to a cloud of people, resulting in a transcript" width="806" height="285">
+        </p>
         <p>
           We help podcasts reach a wider audience
           using high-quality speech-to-text transcripts.
@@ -32,30 +41,45 @@
       <p class="text-center">
         <a class="btn btn-primary btn-lg" href="{% url 'podcasts:index' %}">Read Podcasts</a>
       </p>
-      <p style="font-size:20px;font-weight:300;margin-left:1em;margin-right:1em;">
+      <p style="font-size:20px;font-weight:300">
         Browse our directory of podcasts that have full transcripts.
-        It's growing every day!
+        It's growing every&nbsp;day!
       </p>
+      <ul>
+        <li>Share favorite podcast moments with friends.</li>
+        <li>Search through past episodes.</li>
+      </ul>
     </div>
 
     <div class="col-xs-12 col-sm-4">
       <p class="text-center">
-        <a class="btn btn-primary btn-lg" href="{% url 'transcripts:index' %}">Help Transcribe</a>
+        <a class="btn btn-info btn-lg" href="{% url 'transcripts:index' %}">Help Transcribe</a>
       </p>
-      <p style="font-size:20px;font-weight:300;margin-left:1em;margin-right:1em;">
-        Your favorite podcast can benefit from transcripts.
+      <p style="font-size:20px;font-weight:300">
+        Your favorite podcast will benefit from transcripts.
         Find out how easy it is to help!
       </p>
+      <ul>
+        <li>Get early access to transcripts.</li>
+        <li>Takes only two minutes.</li>
+      </ul>
+      <ul>
+
+      </ul>
     </div>
 
     <div class="col-xs-12 col-sm-4">
       <p class="text-center">
-        <a class="btn btn-default btn-lg" href="{% url 'help' %}#register-your-podcast">Register a Podcast</a>
+        <a class="btn btn-info btn-lg" href="{% url 'help' %}#register-your-podcast">Register a Podcast</a>
       </p>
-      <p style="font-size:20px;font-weight:300;margin-left:1em;margin-right:1em;">
+      <p style="font-size:20px;font-weight:300">
         If you're a podcaster and would like transcripts of your shows,
         we'd love to add you to our directory.
       </p>
+      <ul>
+        <li>Reach a wider audience.</li>
+        <li>Free to use, with no obligations.</li>
+      </ul>
     </div>
 
   </div>
