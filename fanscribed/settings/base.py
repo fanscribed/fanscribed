@@ -327,6 +327,7 @@ DJANGO_APPS = (
 THIRD_PARTY_APPS += (
     'bootstrap3',
     'django_extensions',
+    'django_object_actions',
     'djsupervisor',
     'storages',
 )

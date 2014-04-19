@@ -25,6 +25,7 @@ class Episode(models.Model):
     title = models.CharField(max_length=200)
     published = models.DateTimeField()
     media_url = models.URLField()
+    link_url = models.URLField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     transcript = models.OneToOneField('transcripts.Transcript', blank=True, null=True,
                                       related_name='episode')
@@ -203,12 +204,14 @@ def update_podcast_title_and_episodes_from_rssfetch(instance, target, **kwargs):
             if not existing_episode.exists():
                 published = datetime_from_feedparser(entry)
                 media_url = entry.enclosures[0]['href']
+                link_url = entry.get('link')
                 Episode.objects.create(
                     podcast=podcast,
                     guid=entry.id,
                     title=entry.title,
                     published=published,
                     media_url=media_url,
+                    link_url=link_url,
                     description=entry.description,
                 )
 

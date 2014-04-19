@@ -1,14 +1,21 @@
 from django.contrib import admin
+from django_object_actions import DjangoObjectActions
 
 from . import models as m
 
 
-class EpisodeAdmin(admin.ModelAdmin):
+class EpisodeAdmin(DjangoObjectActions, admin.ModelAdmin):
 
     list_display = ('podcast', 'title', 'published',
                     'transcript', 'external_transcript')
+    objectactions = ('use_link_as_external_transcript',)
     ordering = ('podcast', '-published')
     readonly_fields = ('podcast', 'guid', 'published')
+
+    def use_link_as_external_transcript(self, request, obj):
+        obj.external_transcript = obj.link_url
+        obj.save()
+    use_link_as_external_transcript.label = 'Use Link as External Transcript'
 
 
 # ---
