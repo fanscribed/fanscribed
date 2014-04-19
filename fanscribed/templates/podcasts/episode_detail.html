@@ -143,6 +143,12 @@
 
       {# -- sidebar -- #}
 
+      {% if episode.image_url %}
+        <p><img style="width:100%" src="{{ episode.image_url }}" alt="Cover art for &ldquo;{{ episode.title|html_escape }}&rdquo; (from the &ldquo;{{ episode.podcast.title }}&rdquo; podcast)"/></p>
+      {% elif episode.podcast.image_url %}
+        <p><img style="width:100%" src="{{ episode.podcast.image_url }}" alt="Cover art for the &ldquo;{{ episode.podcast.title }}&rdquo; podcast"/></p>
+      {% endif %}
+
       {% if not episode.external_transcript %}
         <div class="well">
 

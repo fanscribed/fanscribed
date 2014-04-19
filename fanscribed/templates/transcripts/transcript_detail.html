@@ -152,6 +152,12 @@
 
       {# -- sidebar -- #}
 
+      {% if transcript.episode.image_url %}
+        <p><img style="width:100%" src="{{ transcript.episode.image_url }}" alt="Cover art for &ldquo;{{ transcript.episode.title|html_escape }}&rdquo; (from the &ldquo;{{ transcript.episode.podcast.title }}&rdquo; podcast)"/></p>
+      {% elif transcript.episode.podcast.image_url %}
+        <p><img style="width:100%" src="{{ transcript.episode.podcast.image_url }}" alt="Cover art for the &ldquo;{{ transcript.episode.podcast.title }}&rdquo; podcast"/></p>
+      {% endif %}
+
       {% if transcript.state == 'unfinished' %}
 
         <div class="well">

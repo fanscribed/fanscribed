@@ -71,6 +71,10 @@
 
       {# -- sidebar -- #}
 
+      {% if podcast.image_url %}
+        <p><img style="width:100%" src="{{ podcast.image_url }}" alt="Cover art for the &ldquo;{{ podcast.title }}&rdquo; podcast"/></p>
+      {% endif %}
+
       <h3>Licensing</h3>
       {% include "podcasts/_podcast_license_approvals.html" %}
 

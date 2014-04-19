@@ -31,7 +31,7 @@ class TranscriptionApprovalInline(admin.StackedInline):
 class PodcastAdmin(admin.ModelAdmin):
 
     actions = ['fetch']
-    fields = ('rss_url',)
+    fields = ('title', 'link_url', 'rss_url', 'image_url')
     list_display = ('title', 'link_url', 'rss_url')
     inlines = [
         TranscriptionApprovalInline,

@@ -26,6 +26,7 @@ class Episode(models.Model):
     published = models.DateTimeField()
     media_url = models.URLField()
     link_url = models.URLField(blank=True, null=True)
+    image_url = models.URLField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     transcript = models.OneToOneField('transcripts.Transcript', blank=True, null=True,
                                       related_name='episode')
@@ -71,6 +72,7 @@ class Podcast(models.Model):
     approval_state = FSMField(default='not_approved', protected=True)
     title = models.CharField(max_length=200, blank=True, null=True)
     link_url = models.URLField(blank=True, null=True)
+    image_url = models.URLField(blank=True, null=True)
 
     class Meta:
         ordering = ('title', 'rss_url')
@@ -194,6 +196,7 @@ def update_podcast_title_and_episodes_from_rssfetch(instance, target, **kwargs):
         podcast = instance.podcast
         podcast.title = d['feed']['title']
         podcast.link_url = d['feed'].get('link')
+        podcast.image_url = d['feed'].get('image', {}).get('href')
         podcast.save()
 
         for entry in d.entries:
@@ -201,10 +204,11 @@ def update_podcast_title_and_episodes_from_rssfetch(instance, target, **kwargs):
                 continue
             existing_episode = Episode.objects.filter(
                 podcast=podcast, guid=entry.id)
+            link_url = entry.get('link')
+            image_url = entry.get('image', {}).get('href')
             if not existing_episode.exists():
                 published = datetime_from_feedparser(entry)
                 media_url = entry.enclosures[0]['href']
-                link_url = entry.get('link')
                 Episode.objects.create(
                     podcast=podcast,
                     guid=entry.id,
@@ -212,8 +216,13 @@ def update_podcast_title_and_episodes_from_rssfetch(instance, target, **kwargs):
                     published=published,
                     media_url=media_url,
                     link_url=link_url,
+                    image_url=image_url,
                     description=entry.description,
                 )
+            else:
+                # Update existing episodes due to addition of link_url and image_url.
+                existing_episode.filter(link_url=None).update(link_url=link_url)
+                existing_episode.filter(image_url=None).update(image_url=image_url)
 
 
 # ------------------------------------------------------------------------------
