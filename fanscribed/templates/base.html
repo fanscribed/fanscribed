@@ -46,7 +46,10 @@
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li class="{% block nav_class_help %}{% endblock %}">
-              <a href="{% url 'help' %}">Get Help</a>
+              <a href="{% url 'help' %}">Help</a>
+            </li>
+            <li class="{% block nav_class_about %}{% endblock %}">
+              <a href="{% url 'transcription-engine' %}">About</a>
             </li>
             {% if user.is_authenticated %}
 

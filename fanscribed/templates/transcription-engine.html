@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+  Fanscribed Transcription Engine
+{% endblock %}
+
+
+{% block nav_class_about %}
+  active
+{% endblock %}
+
+
+{% block content %}
+
+  <h1>Fanscribed Transcription Engine (FTE)</h1>
+
+  <p>
+    Fanscribed Transcription Engine (FTE) is a unique way to
+    manage all aspects of creating an accurate written transcript
+    of recorded speech using crowdsourced human workers.
+  </p>
+
+  <p>
+    FTE differs from wiki-style crowdsourced transcription
+    (as used by the
+    <a href="https://github.com/fanscribed/fanscribed/">Classic Fanscribed</a>
+    open source project):
+  </p>
+
+  <ul>
+    <li>A quality-control process leads to very accurate transcripts.</li>
+    <li>Task isolation allows casual volunteers to help without requiring deep knowledge (such as speaker names).</li>
+  </ul>
+
+  <p>
+    FTE differs from traditional single-person transcription:
+  </p>
+
+  <ul>
+    <li>Tedium is relieved by time-boxing each transcription task, and varying the types of work.</li>
+    <li>The quality-control process can be spread throughout a group, leading to higher accuracy.</li>
+  </ul>
+
+  <h2>How FTE Works</h2>
+
+  <p>
+    The transcript is first split into segments, usually 10 seconds in length.
+    Then, the transcript goes through five stages, each broken into many individual tasks:
+  </p>
+
+  <ol>
+    <li><strong>Transcribe</strong>: In each segment, every spoken sentence or sentence fragment is transcribed to text.</li>
+    <li><strong>Stitch</strong>: At the edges of each fragment, sentence fragments are bound together into complete sentences.</li>
+    <li><strong>Boundary</strong>: The precise time code for each sentence is found.</li>
+    <li><strong>Clean</strong>: Capitalization, punctuation, repetition, and other errors are corrected.</li>
+    <li><strong>Speaker</strong>: The speaker of each sentence is identified.</li>
+  </ol>
+
+  <p>
+    After each task, another person is given that task to review it,
+    and make any needed changes.
+  </p>
+
+  <p>
+    Once all stages are completed, you have an accurate,
+    time-coded transcript!
+  </p>
+
+{% endblock %}

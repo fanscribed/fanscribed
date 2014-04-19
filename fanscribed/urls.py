@@ -45,6 +45,10 @@ urlpatterns = patterns(
     url(r'^transcripts/',
         include('fanscribed.apps.transcripts.urls', 'transcripts')),
 
+    url(r'^transcription-engine/',
+        name='transcription-engine',
+        view=TemplateView.as_view(template_name='transcription-engine.html')),
+
     url(r'^$',
         name='home',
         view=TemplateView.as_view(template_name='home.html')),

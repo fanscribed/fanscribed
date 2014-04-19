@@ -114,9 +114,12 @@
       {% if episode.external_transcript %}
 
         <p>This episode has a transcript hosted on another website.</p>
-        
+
+        <p><small class="text-muted">Note: This transcript was not created using the
+          <a href="{% url 'transcription-engine' %}">Fanscribed Transcription Engine</a>.</small></p>
+
         <p><a class="btn btn-success" href="{{ episode.external_transcript }}" target="_blank">Read Transcript <span class="glyphicon glyphicon-new-window"></span></a></p>
-        
+
       {% else %}
 
         <p class="text-muted">
