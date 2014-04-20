@@ -19,7 +19,7 @@
 
   <h2>{% if not task.is_review %}Transcribe{% else %}Review Transcription{% endif %}</h2>
 
-  {% if user.is_staff and 'sparse' not in request.GET %}
+  {% if user.is_staff and 'details' in request.GET %}
 
     <dl class="dl-horizontal">
       {% include "transcripts/_task_detail_common.html" %}
@@ -33,7 +33,7 @@
 
   {% endif %}
 
-  {% include 'transcripts/_guidelines_transcribe.html' %}
+  <div class="well">{% include 'transcripts/_guidelines_transcribe.html' %}</div>
 
 {% endblock %}
 
