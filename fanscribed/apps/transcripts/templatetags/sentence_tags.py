@@ -51,4 +51,6 @@ def overlapped_join(first, second):
         if at_word_boundary and (does_overlap or is_duplicate):
             overlap_len = len(first) - i
             return u''.join([first, second[overlap_len:]])
-        i = first_lower.find(u' ', i + 1) + 1
+        i = first_lower.find(u' ', i + 1)
+        if i != -1:
+            i += 1
