@@ -1,8 +1,12 @@
 import logging
+import unicodedata
+
+
 log = logging.getLogger(__name__)
 
 import datetime
 from decimal import Decimal
+import re
 
 from allauth.account.signals import user_signed_up
 from django.conf import settings
@@ -1278,7 +1282,9 @@ class StitchTask(Task):
         right_sentence_fragments = stitch.right.revisions.latest().sentence_fragments.all()
 
         def normify(text):
-            return ' '.join(text.lower().split())
+            text = unicodedata.normalize('NFKD', text)
+            text = re.sub(ur'[^\w\s:\)-]', u'', text).strip().lower()
+            return re.sub(ur'[ \s]+', u' ', text)
 
         for left_sf in left_sentence_fragments:
             left_text = left_sf.text
