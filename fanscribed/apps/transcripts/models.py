@@ -1462,7 +1462,7 @@ class BoundaryTaskManager(TaskManager):
             # First, look for the most recently bounded sentence,
             # just in case we're doing.
             bounded_sentences = transcript.sentences.completed().filter(
-                boundary_state__in=['editing', 'edited', 'reviewed'])
+                boundary_state__in=['edited', 'reviewed'])
             if bounded_sentences.exists():
                 latest_bounded = bounded_sentences.order_by('-latest_end')[0]
 
@@ -1540,7 +1540,13 @@ class BoundaryTask(Task):
 
     def _submit(self):
         from .tasks import process_boundary_task
-        process_boundary_task.delay(self.pk)
+        # NOTE: These types of calls are normally processed as a celery task,
+        # but we are interested in getting very quick feedback for new tasks
+        # as far as predicting the next sentence start.
+        #
+        # Therefore, we are running it synchronously here:
+        #
+        process_boundary_task(self.pk)
 
     def _validate(self):
         if not self.is_review:
