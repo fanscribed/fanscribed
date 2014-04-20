@@ -100,7 +100,7 @@ class StitchTaskTestCase(TransactionTestCase):
             stitch=stitch,
         )
         task.lock()
-        task.create_pairings_from_existing_candidates()
+        task.create_pairings_from_prior_task()
         task.prepare()
 
         sf_left = tf_left.revisions.latest().sentence_fragments.all()
@@ -524,37 +524,25 @@ class StitchTaskTestCase(TransactionTestCase):
             [m] adam curry, john c. dvorak
             it's sunday december
         """)
+
         self.transcribe_and_review(1, """
             [m] john c. dvorak
             it's sunday december 23rd 2012
             time for your gitmo nation media assassination episode
-        """)
-        self.transcribe_and_review(2, """
-            assassination episode 472
-            [m] this is no agenda
-            welcome to the
         """)
 
         task = self.stitch(0, 1, [
             (2, 0),  # [m] adam curry, john c. dvorak; [m] john c. dvorak
             (3, 1),  # it's sunday december; it's sunday december 23rd 2012
         ])
-        print '---'
-        for pairing in task.pairings.all():
-            print pairing
+
+        self.transcribe_and_review(2, """
+            assassination episode 472
+            [m] this is no agenda
+            welcome to the
+        """)
 
         task = self.review(0, 1, verify=[(2, 0), (3, 1)])
-        print '--- review'
-        for pairing in task.pairings.all():
-            print pairing
-
-        task = self.stitch(1, 2, [
-            (0, 1),  # [m] john c. dvorak; [m] this is no agenda
-            (2, 0),  # time for your gitmo nation media assassination episode; assassination episode 472
-        ])
-        print '---'
-        for pairing in task.pairings.all():
-            print pairing
 
         self.transcribe_and_review(3, """
             [m]
@@ -563,7 +551,10 @@ class StitchTaskTestCase(TransactionTestCase):
             day 17
         """)
 
+        task = self.stitch(1, 2, [
+            (0, 1),  # [m] john c. dvorak; [m] this is no agenda
+            (2, 0),
+            # time for your gitmo nation media assassination episode; assassination episode 472
+        ])
+
         task = self.review(1, 2, verify=[(0, 1), (2, 0)])
-        print '--- review'
-        for pairing in task.pairings.all():
-            print pairing

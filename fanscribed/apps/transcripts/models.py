@@ -1209,7 +1209,7 @@ class StitchTaskManager(TaskManager):
             raise
 
         if is_review:
-            task.create_pairings_from_existing_candidates()
+            task.create_pairings_from_prior_task()
 
         task.prepare()
         task.assign_to(user)
@@ -1246,36 +1246,17 @@ class StitchTask(Task):
     def _invalidate(self):
         self.stitch.unlock()
 
-    def create_pairings_from_existing_candidates(self):
-        # Create StitchTaskPairings based on existing candidate pairings.
-        left_fragment_revision = self.stitch.left.revisions.latest()
-        right_fragment_revision = self.stitch.right.revisions.latest()
-        for left_fragment in left_fragment_revision.sentence_fragments.all():
-            for left_sentence in left_fragment.candidate_sentences.all():
-                left_sentence_fragment = None
-                right_sentence_fragment = None
-                for candidate in left_sentence.fragment_candidates.all():
-                    if candidate.revision == left_fragment_revision:
-                        left_sentence_fragment = candidate
-                    if candidate.revision == right_fragment_revision:
-                        right_sentence_fragment = candidate
-                if (left_sentence_fragment is not None
-                    and right_sentence_fragment is not None
-                ):
-                    pairing = self.pairings.create(
-                        left=left_sentence_fragment,
-                        right=right_sentence_fragment,
-                    )
-        # # Create StitchTaskPairings based on previous completed task.
-        # previous_completed_task = StitchTask.objects.filter(
-        #     state='valid',
-        #     stitch=self.stitch,
-        # ).latest()
-        # for previous_pairing in previous_completed_task.pairings.all():
-        #     self.pairings.create(
-        #         left=previous_pairing.left,
-        #         right=previous_pairing.right,
-        #     )
+    def create_pairings_from_prior_task(self):
+        # Create StitchTaskPairings based on previous completed task.
+        previous_completed_task = StitchTask.objects.filter(
+            state='valid',
+            stitch=self.stitch,
+        ).latest()
+        for previous_pairing in previous_completed_task.pairings.all():
+            self.pairings.get_or_create(
+                left=previous_pairing.left,
+                right=previous_pairing.right,
+            )
 
     def suggested_pairs(self):
         """Return a list of suggested (left, right) sentence fragment pairs."""

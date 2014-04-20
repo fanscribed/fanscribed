@@ -89,24 +89,19 @@ def process_stitch_task(pk):
     left_fragment_revision = task.stitch.left.revisions.latest()
     right_fragment_revision = task.stitch.right.revisions.latest()
 
-    if not task.is_review:
-        old_pairings = set([])
-    else:
-        # Detect prior pairings.
-        old_pairings = set([
-            # (left_sentence_fragment_id, right_sentence_fragment_id),
-        ])
-        for left_fragment in left_fragment_revision.sentence_fragments.all():
-            for left_sentence in left_fragment.candidate_sentences.all():
-                left_sf = None
-                right_sf = None
-                for candidate in left_sentence.fragment_candidates.all():
-                    if candidate.revision == left_fragment_revision:
-                        left_sf = candidate
-                    if candidate.revision == right_fragment_revision:
-                        right_sf = candidate
-                if left_sf is not None and right_sf is not None:
-                    old_pairings.add((left_sf.id, right_sf.id))
+    old_pairings = set([
+        # (left_sentence_fragment_id, right_sentence_fragment_id),
+    ])
+
+    if task.is_review:
+        # Load prior pairings from previous task.
+        previous_completed_task = StitchTask.objects.filter(
+            state='valid',
+            stitch=task.stitch,
+        ).latest()
+        for previous_pairing in previous_completed_task.pairings.all():
+            old_pairings.add(
+                (previous_pairing.left.id, previous_pairing.right.id))
 
     # Create new pairings.
     new_pairings = set([
