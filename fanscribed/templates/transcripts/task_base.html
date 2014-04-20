@@ -197,7 +197,9 @@
       {% endblock %}
     </div>
     <div class="col-md-8">
-      {% include "transcripts/_task_detail_audio.html" %}
+      {% block task_audio %}
+        {% include "transcripts/_task_detail_audio.html" %}
+      {% endblock %}
       {% block task_workarea %}
       {% endblock %}
     </div>

@@ -9,8 +9,43 @@
 
 {% block extra_js %}
   {{ block.super }}
+
   <script type="text/javascript">
-    jQuery('#id_start').focus();
+
+    $(function () {
+
+      $('#id_start').focus();
+
+      // Bind Ctrl+R to reload the audio.
+      var reloadAudio = function () {
+        var start = Math.max(0, parseInt($('#id_start').val()));
+        var end = $('#id_end').val();
+        var url = "{% url 'transcripts:task_audio' transcript_pk=task.transcript.id type=task.TASK_TYPE pk=task.id %}?start=" + start + '&end=' + end;
+
+        // Regenerate and reinitialize the pagePlayer system.
+        var $playlist = $('ul.playlist');
+        $playlist.empty().append('<li><a/></li>');
+        $playlist.find('a').attr('href', url).addClass('playable').text('Task Audio');
+        pagePlayer.init(PP_CONFIG);
+
+        // Update the visible start/end next to the player.
+        $('#playing-start').text(start);
+        $('#playing-end').text(end);
+
+        return false;
+      };
+      
+      var bindReloadHotkeys = function (e) {
+        var $e = $(e);
+        $e.bind('keydown', 'ctrl+r', reloadAudio);
+      };
+
+      bindReloadHotkeys($('body'));
+      bindReloadHotkeys($('input'));
+      bindReloadHotkeys($('textarea'));
+
+    });
+
   </script>
 {% endblock %}
 
@@ -25,6 +60,13 @@
     </dl>
   {% endif %}
 
+  {% include "transcripts/_guidelines_boundary.html" %}
+
+{% endblock %}
+
+
+{% block task_audio %}
+  {% include "transcripts/_task_detail_audio.html" with reload=True %}
 {% endblock %}
 
 
@@ -32,9 +74,9 @@
 
   {% if task.state == 'presented' %}
 
-    <p>Find the precise start and end point of the sentence:</p>
-
-    <p><strong>{{ task.sentence.latest_text }}</strong></p>
+    <div class="well">
+      <p style="font-size:20px"><strong>{{ task.sentence.latest_text }}</strong></p>
+    </div>
 
     <form action="" method="post" class="form">
       {% csrf_token %}

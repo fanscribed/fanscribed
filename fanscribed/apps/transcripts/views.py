@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -211,17 +213,38 @@ class TaskAudioView(vanilla.DetailView):
             assigned_to_user = model.objects.filter(assignee=self.request.user)
             return assigned_to_user
 
-    def get_object(self):
-        task = super(TaskAudioView, self).get_object()
-        media = task.media
-        return media
-
     def render_to_response(self, context):
-        media = context['object']
+        task = context['object']
+
+        start = self.request.GET.get('start')
+        end = self.request.GET.get('end')
+        if start and end:
+            start, end = Decimal(start), Decimal(end)
+            start = max(start, Decimal(0))
+            end = min(end, task.transcript.length)
+
+            # Get or create a new media object.
+            media, created = task.transcript.media.get_or_create(
+                is_processed=True,
+                is_full_length=False,
+                start=start,
+                end=end,
+            )
+            task.media = media
+
+            # Update the task in case the page is reloaded.
+            task.start = start
+            task.end = end
+
+            task.save()
+        else:
+            media = task.media
+
         if not media.file:
             result = media.create_file_task()
             # Wait for it before continuing.
             result.get()
             media = refresh(media)
+
         media.record_download()
         return HttpResponseRedirect(media.file.url)

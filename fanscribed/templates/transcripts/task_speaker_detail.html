@@ -7,6 +7,18 @@
 {% endblock %}
 
 
+{% block extra_js %}
+  {{ block.super }}
+  <script type="text/javascript">
+
+    $(function () {
+      $('input[type="radio"]').first().focus();
+    });
+
+  </script>
+{% endblock %}
+
+
 {% block task_info %}
 
   <h2>{% if not task.is_review %}Speaker{% else %}Review Speaker{% endif %}</h2>
@@ -17,6 +29,8 @@
     </dl>
   {% endif %}
 
+  {% include "transcripts/_guidelines_speaker.html" %}
+
 {% endblock %}
 
 
@@ -24,9 +38,9 @@
 
   {% if task.state == 'presented' %}
 
-    <p>Select the speaker for this sentence, or give the name of a new speaker:</p>
-
-    <p><strong>{{ task.sentence.latest_text }}</strong></p>
+    <div class="well">
+      <p style="font-size:20px"><strong>{{ task.sentence.latest_text }}</strong></p>
+    </div>
 
     <form action="" method="post" class="form">
       {% csrf_token %}

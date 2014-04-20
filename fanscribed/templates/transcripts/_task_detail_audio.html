@@ -1,5 +1,5 @@
 <ul class="playlist">
-  <li><a class="playable" href="{% url 'transcripts:task_audio' transcript_pk=task.transcript.id type=task.TASK_TYPE pk=task.id %}">Task Audio</a></li>
+  <li><a class="playable" href="{% url 'transcripts:task_audio' transcript_pk=task.transcript.id type=task.TASK_TYPE pk=task.id %}?start={{ task.start }}&end={{ task.end }}">Task Audio</a></li>
 </ul>
 <div id="audio-controls">
   <div class="btn-group">
@@ -12,4 +12,10 @@
       <kbd>\</kbd>
     </button>
   </div>
+  {% if reload %}
+    <div class="pull-right">
+      <span style="margin-right:1em">Playing <span id="playing-start">{{ task.start }}</span> &rarr; <span id="playing-stop">{{ task.end }}</span></span>
+      <button class="btn btn-info" id="audio-reload"><span class="glyphicon glyphicon-reload"></span> Reload<br><kbd>Ctrl+R</kbd></button>
+    </div>
+  {% endif %}
 </div>
