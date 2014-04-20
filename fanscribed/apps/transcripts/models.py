@@ -1298,7 +1298,6 @@ class StitchTask(Task):
 
                 for i in range(len(left_words)):
                     left_partial_norm = ' '.join(left_words[i:])
-                    print left_partial_norm, ';', right_norm
                     if right_norm.startswith(left_partial_norm):
                         # Potential overlap of text; suggest.
                         suggestions.append((left_sf.id, right_sf.id))
