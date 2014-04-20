@@ -18,7 +18,7 @@ from django.dispatch import receiver
 from django.utils.text import slugify
 from django.utils.timezone import utc
 from django_fsm.db.fields import FSMField, transition
-from django_fsm.signals import pre_transition
+from django_fsm.signals import pre_transition, post_transition
 from model_utils.models import TimeStampedModel
 from redis_cache import get_redis_connection
 
@@ -1539,14 +1539,8 @@ class BoundaryTask(Task):
         self.sentence.save()
 
     def _submit(self):
-        from .tasks import process_boundary_task
-        # NOTE: These types of calls are normally processed as a celery task,
-        # but we are interested in getting very quick feedback for new tasks
-        # as far as predicting the next sentence start.
-        #
-        # Therefore, we are running it synchronously here:
-        #
-        process_boundary_task(self.pk)
+        # See below in `process_boundary_task_synchronously_on_submit`.
+        pass
 
     def _validate(self):
         if not self.is_review:
@@ -1569,6 +1563,19 @@ class BoundaryTask(Task):
             self.sentence.boundary_state = 'edited'
         self.sentence.unlock_boundary()
         self.sentence.save()
+
+
+# NOTE: Calls to _submit are normally processed as a celery task,
+# but we are interested in getting very quick feedback for new tasks
+# as far as predicting the next sentence start.
+#
+# Therefore, we are running it synchronously here:
+#
+@receiver(post_transition, sender=BoundaryTask)
+def process_boundary_task_synchronously_on_submit(instance, target, **kwargs):
+    if target == 'submitted':
+        from .tasks import process_boundary_task
+        process_boundary_task(instance.pk)
 
 
 # ---------------------
