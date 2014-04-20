@@ -34,8 +34,8 @@
 
       // Bind Ctrl+R to reload the audio.
       var reloadAudio = function () {
-        var start = Math.max(0, parseInt($('#id_start').val()));
-        var end = $('#id_end').val();
+        var start = Math.max(0, parseFloat($('#id_start').val()));
+        var end = parseFloat($('#id_end').val());
         var url = "{% url 'transcripts:task_audio' transcript_pk=task.transcript.id type=task.TASK_TYPE pk=task.id %}?start=" + start + '&end=' + end;
 
         // Regenerate and reinitialize the pagePlayer system.
