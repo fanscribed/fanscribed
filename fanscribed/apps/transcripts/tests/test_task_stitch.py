@@ -514,3 +514,56 @@ class StitchTaskTestCase(TransactionTestCase):
         self.check_sentences([
             (u'completed', [], [u'A1', u'A2', u'A3']),
         ])
+
+    def test_non_review_stitch_accurately_creates_pairings(self):
+        self.setup_transcript('20.00', 4)
+
+        self.transcribe_and_review(0, """
+            stellar, stellar
+            :)
+            [m] adam curry, john c. dvorak
+            it's sunday december
+        """)
+        self.transcribe_and_review(1, """
+            [m] john c. dvorak
+            it's sunday december 23rd 2012
+            time for your gitmo nation media assassination episode
+        """)
+        self.transcribe_and_review(2, """
+            assassination episode 472
+            [m] this is no agenda
+            welcome to the
+        """)
+
+        task = self.stitch(0, 1, [
+            (2, 0),  # [m] adam curry, john c. dvorak; [m] john c. dvorak
+            (3, 1),  # it's sunday december; it's sunday december 23rd 2012
+        ])
+        print '---'
+        for pairing in task.pairings.all():
+            print pairing
+
+        task = self.review(0, 1, verify=[(2, 0), (3, 1)])
+        print '--- review'
+        for pairing in task.pairings.all():
+            print pairing
+
+        task = self.stitch(1, 2, [
+            (0, 1),  # [m] john c. dvorak; [m] this is no agenda
+            (2, 0),  # time for your gitmo nation media assassination episode; assassination episode 472
+        ])
+        print '---'
+        for pairing in task.pairings.all():
+            print pairing
+
+        self.transcribe_and_review(3, """
+            [m]
+            welcome to the other side of the apocalypse
+            coming to you from the gitmo nation lowlands
+            day 17
+        """)
+
+        task = self.review(1, 2, verify=[(0, 1), (2, 0)])
+        print '--- review'
+        for pairing in task.pairings.all():
+            print pairing

@@ -1225,6 +1225,7 @@ class StitchTask(Task):
     objects = StitchTaskManager()
 
     class Meta:
+        get_latest_by = 'created'
         permissions = (
             ('add_stitchtask_review', 'Can add review stitch task'),
         )
@@ -1261,10 +1262,20 @@ class StitchTask(Task):
                 if (left_sentence_fragment is not None
                     and right_sentence_fragment is not None
                 ):
-                    self.pairings.create(
+                    pairing = self.pairings.create(
                         left=left_sentence_fragment,
                         right=right_sentence_fragment,
                     )
+        # # Create StitchTaskPairings based on previous completed task.
+        # previous_completed_task = StitchTask.objects.filter(
+        #     state='valid',
+        #     stitch=self.stitch,
+        # ).latest()
+        # for previous_pairing in previous_completed_task.pairings.all():
+        #     self.pairings.create(
+        #         left=previous_pairing.left,
+        #         right=previous_pairing.right,
+        #     )
 
     def suggested_pairs(self):
         """Return a list of suggested (left, right) sentence fragment pairs."""
@@ -1318,6 +1329,9 @@ class StitchTaskPairing(models.Model):
         unique_together = [
             ('task', 'left',),
         ]
+
+    def __unicode__(self):
+        return 'Pairing between "{self.left.text}" and "{self.right.text}"'.format(**locals())
 
 
 # ---------------------
