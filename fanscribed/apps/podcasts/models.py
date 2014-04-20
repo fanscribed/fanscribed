@@ -196,7 +196,9 @@ def update_podcast_title_and_episodes_from_rssfetch(instance, target, **kwargs):
         podcast = instance.podcast
         podcast.title = d['feed']['title']
         podcast.link_url = d['feed'].get('link')
-        podcast.image_url = d['feed'].get('image', {}).get('href')
+        if not podcast.image_url:
+            # Don't replace image URL in case manual override is in place.
+            podcast.image_url = d['feed'].get('image', {}).get('href')
         podcast.save()
 
         for entry in d.entries:
