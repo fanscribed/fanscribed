@@ -1462,7 +1462,7 @@ class BoundaryTaskManager(TaskManager):
             # First, look for the most recently bounded sentence,
             # just in case we're doing.
             bounded_sentences = transcript.sentences.completed().filter(
-                boundary_state__in=['edited', 'reviewed'])
+                boundary_state__in=['editing', 'edited', 'reviewed'])
             if bounded_sentences.exists():
                 latest_bounded = bounded_sentences.order_by('-latest_end')[0]
 
