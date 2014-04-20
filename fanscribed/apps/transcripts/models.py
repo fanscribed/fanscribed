@@ -1266,6 +1266,46 @@ class StitchTask(Task):
                         right=right_sentence_fragment,
                     )
 
+    def suggested_pairs(self):
+        """Return a list of suggested (left, right) sentence fragment pairs."""
+
+        suggestions = [
+            # (left_sentence_fragment_id, right_sentence_fragment_id),
+        ]
+
+        stitch = self.stitch
+        left_sentence_fragments = stitch.left.revisions.latest().sentence_fragments.all()
+        right_sentence_fragments = stitch.right.revisions.latest().sentence_fragments.all()
+
+        def normify(text):
+            return ' '.join(text.lower().split())
+
+        for left_sf in left_sentence_fragments:
+            left_text = left_sf.text
+            left_norm = normify(left_text)
+            left_words = left_norm.split('-')
+
+            for right_sf in right_sentence_fragments:
+                right_text = right_sf.text
+
+                if left_text.startswith('[m]') and right_text.startswith('[m]'):
+                    # Both start with music; suggest.
+                    suggestions.append((left_sf.id, right_sf.id))
+                    continue
+
+                right_norm = normify(right_text)
+                right_words = right_norm.split('-')
+
+                for i in range(len(left_words)):
+                    left_partial_norm = '-'.join(left_words[i:])
+                    print left_partial_norm, right_norm
+                    if right_norm.startswith(left_partial_norm):
+                        # Potential overlap of text; suggest.
+                        suggestions.append((left_sf.id, right_sf.id))
+                        break
+
+        return suggestions
+
 
 class StitchTaskPairing(models.Model):
 

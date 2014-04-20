@@ -7,6 +7,32 @@
 {% endblock %}
 
 
+{% block extra_js %}
+  {{ block.super }}
+
+  {% if task.state == 'presented' %}
+    <script type="text/javascript">
+      $(function () {
+
+        var suggestPair = function (left, right) {
+          var $input = $('input[name="fragment_' + left + '"][value="' + right + '"]');
+          var inputId = $input.attr('id');
+          var $label = $('label[for="' + inputId + '"]');
+          $label.css('background-color', 'yellow');
+        };
+
+        window.suggestPair = suggestPair;
+
+        {% for left, right in task.suggested_pairs %}
+        suggestPair({{ left }}, {{ right }});
+        {% endfor %}
+
+      });
+    </script>
+  {% endif %}
+{% endblock %}
+
+
 {% block task_info %}
 
   <h2>{% if not task.is_review %}Stitch{% else %}Review Stitch{% endif %}</h2>
