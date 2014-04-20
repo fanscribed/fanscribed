@@ -393,6 +393,8 @@ class Transcript(TimeStampedModel):
     state = FSMField(default='unfinished', protected=True)
     length = models.DecimalField(max_digits=8, decimal_places=2, null=True)
     length_state = FSMField(default='unset', protected=True)
+    contributors = models.ManyToManyField(
+        'auth.User', related_name='contributed_to_transcripts')
 
     objects = TranscriptManager()
 
@@ -1039,6 +1041,7 @@ class Task(TimeStampedModel):
     @transition(state, 'submitted', 'valid', save=True)
     def validate(self):
         self._validate()
+        self.transcript.contributors.add(self.assignee)
 
     def _validate(self):
         raise NotImplementedError()

@@ -145,6 +145,20 @@
             {% endif %}
           </p>
         </form>
+
+        {% if user in transcript.contributors.all %}
+          <h3>Preview</h3>
+
+          <p>
+            Thank you for contributing! To show our appreciation,
+            here is a preview of the unfinished transcript:
+          </p>
+
+          <h4>Completed Sentences</h4>
+
+          {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.completed_sentences %}
+
+        {% endif %}
       {% endif %}
 
     </div>
