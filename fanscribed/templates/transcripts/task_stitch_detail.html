@@ -27,6 +27,8 @@
         suggestPair({{ left }}, {{ right }});
         {% endfor %}
 
+        $('input[type="radio"]').first().focus();
+
       });
     </script>
   {% endif %}

@@ -1283,7 +1283,7 @@ class StitchTask(Task):
         for left_sf in left_sentence_fragments:
             left_text = left_sf.text
             left_norm = normify(left_text)
-            left_words = left_norm.split('-')
+            left_words = left_norm.split(' ')
 
             for right_sf in right_sentence_fragments:
                 right_text = right_sf.text
@@ -1294,11 +1294,11 @@ class StitchTask(Task):
                     continue
 
                 right_norm = normify(right_text)
-                right_words = right_norm.split('-')
+                right_words = right_norm.split(' ')
 
                 for i in range(len(left_words)):
-                    left_partial_norm = '-'.join(left_words[i:])
-                    print left_partial_norm, right_norm
+                    left_partial_norm = ' '.join(left_words[i:])
+                    print left_partial_norm, ';', right_norm
                     if right_norm.startswith(left_partial_norm):
                         # Potential overlap of text; suggest.
                         suggestions.append((left_sf.id, right_sf.id))
