@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load cache %}
 {% load staticfiles %}
 {% load utility_tags %}
 
@@ -118,7 +119,9 @@
       <h2>Transcript</h2>
 
       {% if transcript.state == 'finished' %}
-        {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.completed_sentences %}
+        {% cache 600 transcript_finished_sentences transcript.pk %}
+          {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.completed_sentences %}
+        {% endcache %}
       {% else %}
         <p class="text-muted">
           Text will appear here when the transcript is finished.
@@ -151,13 +154,13 @@
 
           <p>
             Thank you for contributing! To show our appreciation,
-            here is a preview of the unfinished transcript:
+            here is a draft of the unfinished transcript:
           </p>
 
           <div class="text-muted">
-
-            {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.completed_sentences %}
-
+            {% cache 60 transcript_unfinished_sentences transcript.pk %}
+              {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.completed_sentences %}
+            {% endcache %}
           </div>
 
         {% endif %}
