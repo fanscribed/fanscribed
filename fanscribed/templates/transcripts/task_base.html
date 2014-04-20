@@ -95,37 +95,35 @@
 
       soundManager.onready(window.prepareTaskSound);
 
+      var offsetAndPlayAudio = function (amount) {
+        var newPosition = Math.max(0, taskSound.position + amount);
+        taskSound.setPosition(newPosition);
+
+        // Play if not already playing.
+        if (!isPlaying(taskSound)) {
+          taskSound.play();
+        }
+
+        return false;
+      };
+
       var playOrPauseAudio = function () {
 
         if (!isPlaying(taskSound)) {
-
-          console.log('currently stopped or paused; now playing');
-          // rewind by .75 seconds
-          var newPosition = Math.max(0, taskSound.position - 750);
-          taskSound.setPosition(newPosition);
-          taskSound.play();
-
+          offsetAndPlayAudio(-750);
         } else {
-
-          console.log('currently playing; now pausing');
           taskSound.pause();
-
         }
 
         return false;
       };
 
       var rewindAudio = function () {
-        // rewind by 2 seconds
-        var newPosition = Math.max(0, taskSound.position - 2000);
-        taskSound.setPosition(newPosition);
+        return offsetAndPlayAudio(-2000);
+      };
 
-        // play if not already playing
-        if (!isPlaying(taskSound)) {
-          taskSound.play();
-        }
-
-        return false;
+      var ffwdAudio = function () {
+        return offsetAndPlayAudio(2000);
       };
 
       var restartAudio = function () {
@@ -161,6 +159,8 @@
         var $e = $(e);
         $e.bind('keydown', '\\', playOrPauseAudio);
         $e.bind('keydown', '`', rewindAudio);
+        $e.bind('keydown', 'ctrl+[', rewindAudio);
+        $e.bind('keydown', 'ctrl+]', ffwdAudio);
         $e.bind('keydown', 'shift+`', restartAudio);
         $e.bind('keydown', 'ctrl+s', saveAndContinue);
         $e.bind('keydown', 'ctrl+shift+s', saveAndExit);
@@ -174,6 +174,7 @@
       // Bind audio control buttons.
 
       $('#audio-back').click(rewindAudio);
+      $('#audio-forward').click(ffwdAudio);
       $('#audio-restart').click(restartAudio);
       $('#audio-playpause').click(playOrPauseAudio);
 

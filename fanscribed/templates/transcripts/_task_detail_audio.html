@@ -7,19 +7,20 @@
 </ul>
 <div id="audio-controls">
   <div class="btn-group">
-    <button class="btn btn-default" id="audio-back"><span class="glyphicon glyphicon-step-backward"></span> Back<br><kbd>`</kbd></button>
-    <button class="btn btn-default" id="audio-restart"><span class="glyphicon glyphicon-fast-backward"></span> Restart<br><kbd>~</kbd></button>
     <button class="btn btn-default" id="audio-playpause">
-      <span class="paused"><span class="glyphicon glyphicon-play"></span> Play</span>
-      <span class="playing"><span class="glyphicon glyphicon-pause"></span> Pause</span>
+      <span class="paused"><span class="glyphicon glyphicon-play"></span> <small>Play</small></span>
+      <span class="playing"><span class="glyphicon glyphicon-pause"></span> <small>Pause</small></span>
       <br>
       <kbd>\</kbd>
     </button>
+    <button class="btn btn-default" id="audio-back"><span class="glyphicon glyphicon-step-backward"></span> <small>Back</small><br><kbd>^[</kbd> <kbd>`</kbd></button>
+    <button class="btn btn-default" id="audio-forward"><span class="glyphicon glyphicon-step-forward"></span> <small>Forward</small><br><kbd>^]</kbd></button>
+    <button class="btn btn-default" id="audio-restart"><span class="glyphicon glyphicon-fast-backward"></span> <small>Restart</small><br><kbd>~</kbd></button>
   </div>
   {% if reload %}
     <div class="pull-right">
       <div class="pull-left" style="margin-right:1em">Playing <span id="playing-start">{{ task.start }}</span> &rarr; <span id="playing-end">{{ task.end }}</span><br>Current: <span id="playing-current">{{ task.start }}</span></div>
-      <button class="btn btn-info" id="audio-reload"><span class="glyphicon glyphicon-reload"></span> Reload<br><kbd>Ctrl+R</kbd></button>
+      <button class="btn btn-info" id="audio-reload"><span class="glyphicon glyphicon-refresh"></span> Reload<br><kbd>Ctrl+R</kbd></button>
     </div>
   {% endif %}
 </div>
