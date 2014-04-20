@@ -1,5 +1,6 @@
 {% extends "transcripts/task_base.html" %}
 {% load bootstrap3 %}
+{% load sentence_tags %}
 
 
 {% block title %}
@@ -10,7 +11,29 @@
 {% block extra_js %}
   {{ block.super }}
   <script type="text/javascript">
+
     jQuery('#id_text').focus();
+
+    $('.candidate').each(function () {
+      var $span = $(this);
+      var sequence = $span.data('sequence');
+      var $text = $('#id_text');
+
+      var setTextToCandidate = function () {
+        $text.val($span.text());
+      };
+
+      // Bind clicking.
+      $span.parent('li').click(setTextToCandidate);
+
+      // Bind hotkeys.
+      var hotkey = 'ctrl+' + sequence;
+      $('body').bind('keydown', hotkey, setTextToCandidate);
+      $('input').bind('keydown', hotkey, setTextToCandidate);
+      $('textarea').bind('keydown', hotkey, setTextToCandidate);
+
+    });
+
   </script>
 {% endblock %}
 
@@ -37,6 +60,20 @@
     <form action="" method="post" class="form">
       {% csrf_token %}
       {% bootstrap_form form %}
+      {% with candidates=task.sentence|cleanupcandidates  %}
+        {% if candidates %}
+          <p>Here are possible ways to begin cleanup.</p>
+          <p>Click on one to copy it into your editor.</p>
+          <ul>
+            {% for text in candidates %}
+              <li style="margin-bottom:1em">
+                <kbd>^{{ forloop.counter }}</kbd>
+                <span style="font-size:20px" class="candidate" data-sequence="{{ forloop.counter }}">{{ text }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
       {% include "transcripts/_task_buttons.html" %}
     </form>
 
