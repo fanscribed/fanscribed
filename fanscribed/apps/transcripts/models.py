@@ -403,7 +403,11 @@ class Transcript(TimeStampedModel):
             'transcripts:detail_slug',
             kwargs=dict(pk=self.pk, slug=slugify(self.title)))
 
-    @transition(state, 'unfinished', 'finished', save=True)
+    def _all_tasks_complete(self):
+        return all(v == 100 for v in self.stats.values())
+
+    @transition(state, 'unfinished', 'finished', save=True,
+                conditions=[_all_tasks_complete])
     def finish(self):
         pass
 
@@ -455,7 +459,7 @@ class Transcript(TimeStampedModel):
             stats.update(transcribe=0)
         else:
             stats['transcribe'] = (
-                (self.fragments.transcribed().count() + self.fragments.reviewed().count()) * 100
+                (self.fragments.transcribed().count() + self.fragments.reviewed().count() * 2) * 100
                 /
                 (self.fragments.count() * 2)
             )
@@ -465,7 +469,7 @@ class Transcript(TimeStampedModel):
             stats.update(stitch=0)
         else:
             stats['stitch'] = (
-                (self.stitches.stitched().count() + self.stitches.reviewed().count()) * 100
+                (self.stitches.stitched().count() + self.stitches.reviewed().count() * 2) * 100
                 /
                 (self.stitches.count() * 2)
             )
@@ -475,17 +479,17 @@ class Transcript(TimeStampedModel):
             stats.update(clean=0, boundary=0, speaker=0)
         else:
             stats['clean'] = (
-                (self.sentences.clean_edited().count() + self.sentences.clean_reviewed().count()) * 100
+                (self.sentences.clean_edited().count() + self.sentences.clean_reviewed().count() * 2) * 100
                 /
                 (sentence_count * 2)
             )
             stats['boundary'] = (
-                (self.sentences.boundary_edited().count() + self.sentences.boundary_reviewed().count()) * 100
+                (self.sentences.boundary_edited().count() + self.sentences.boundary_reviewed().count() * 2) * 100
                 /
                 (sentence_count * 2)
             )
             stats['speaker'] = (
-                (self.sentences.speaker_edited().count() + self.sentences.speaker_reviewed().count()) * 100
+                (self.sentences.speaker_edited().count() + self.sentences.speaker_reviewed().count() * 2) * 100
                 /
                 (sentence_count * 2)
             )
@@ -507,7 +511,7 @@ class TranscriptFragmentManager(models.Manager):
         return self.filter(state='transcribed')
 
     def reviewed(self):
-        return self.filter(state='transcript_reviewed')
+        return self.filter(state='reviewed')
 
     def locked(self):
         return self.filter(lock_state='locked')
@@ -997,6 +1001,10 @@ class Task(TimeStampedModel):
             pk=self.pk,
         ))
 
+    def finish_transcript_if_all_tasks_complete(self):
+        if self.transcript._all_tasks_complete():
+            self.transcript.finish()
+
     def lock(self):
         raise NotImplementedError()
 
@@ -1405,6 +1413,8 @@ class CleanTask(Task):
         self.sentence.unlock_clean()
         self.sentence.save()
 
+        self.finish_transcript_if_all_tasks_complete()
+
     def _invalidate(self):
         if not self.is_review:
             self.sentence.clean_state = 'untouched'
@@ -1518,6 +1528,8 @@ class BoundaryTask(Task):
         self.sentence.unlock_boundary()
         self.sentence.save()
 
+        self.finish_transcript_if_all_tasks_complete()
+
     def _invalidate(self):
         if not self.is_review:
             self.sentence.boundary_state = 'untouched'
@@ -1618,6 +1630,8 @@ class SpeakerTask(Task):
                 self.sentence.speaker_state = 'edited'
         self.sentence.unlock_speaker()
         self.sentence.save()
+
+        self.finish_transcript_if_all_tasks_complete()
 
     def _invalidate(self):
         if not self.is_review:
