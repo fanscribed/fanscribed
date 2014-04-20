@@ -234,22 +234,22 @@
                 </div>
               </dd>
 
-              <dt>Clean</dt>
-              <dd>
-                <div class="progress">
-                  <div class="progress-bar {% if stats.clean == 100 %}progress-bar-success{% else %}progress-bar-info{% endif %}"
-                       role="progressbar" aria-valuenow="{{ stats.clean }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ stats.clean }}%">
-                    {{ stats.clean }}%
-                  </div>
-                </div>
-              </dd>
-
               <dt>Boundary</dt>
               <dd>
                 <div class="progress">
                   <div class="progress-bar {% if stats.boundary == 100 %}progress-bar-success{% else %}progress-bar-info{% endif %}"
                        role="progressbar" aria-valuenow="{{ stats.boundary }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ stats.boundary }}%">
                     {{ stats.boundary }}%
+                  </div>
+                </div>
+              </dd>
+
+              <dt>Clean</dt>
+              <dd>
+                <div class="progress">
+                  <div class="progress-bar {% if stats.clean == 100 %}progress-bar-success{% else %}progress-bar-info{% endif %}"
+                       role="progressbar" aria-valuenow="{{ stats.clean }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ stats.clean }}%">
+                    {{ stats.clean }}%
                   </div>
                 </div>
               </dd>
