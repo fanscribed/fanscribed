@@ -71,18 +71,18 @@
         return (sound.playState == 1 && !sound.paused);
       };
 
-      var showPlaying = function () {
+      window.showPlaying = function () {
         $('.playing').show();
         $('.paused').hide();
       };
 
-      var showPaused = function () {
+      window.showPaused = function () {
         $('.paused').show();
         $('.playing').hide();
       };
 
       window.prepareTaskSound = function () {
-        var taskSound = window.taskSound = pagePlayer.sounds[0];
+        var taskSound = window.taskSound = pagePlayer.sounds[pagePlayer.sounds.length - 1];
         // Shim the callbacks onto the sound, so page-player calls them
         // along with normal behavior.
         {# TODO: clean this up #}
