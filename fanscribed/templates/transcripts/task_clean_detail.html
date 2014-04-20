@@ -1,6 +1,7 @@
 {% extends "transcripts/task_base.html" %}
 {% load bootstrap3 %}
 {% load sentence_tags %}
+{% load staticfiles %}
 
 
 {% block title %}
@@ -10,6 +11,9 @@
 
 {% block extra_js %}
   {{ block.super }}
+
+  <script type="text/javascript" src="{% static 'js/jquery.selectrange.js' %}"></script>
+
   <script type="text/javascript">
 
     jQuery('#id_text').focus();
@@ -21,6 +25,7 @@
 
       var setTextToCandidate = function () {
         $text.val($span.text());
+        $text.selectRange(0);
       };
 
       // Bind clicking.
