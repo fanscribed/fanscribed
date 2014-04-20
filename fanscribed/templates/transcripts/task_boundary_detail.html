@@ -16,6 +16,23 @@
 
       $('#id_start').focus();
 
+      var offset = {{ task.start }};
+
+      var updatePosition = function () {
+        var actualPosition = taskSound.position / 1000 + offset;
+        $('#playing-current').text(actualPosition.toFixed(2));
+      };
+
+      window.prepareTaskSoundPositionTracking = function () {
+        var taskSound = window.taskSound = pagePlayer.sounds[0];
+        // Shim the callbacks onto the sound, so page-player calls them
+        // along with normal behavior.
+        {# TODO: clean this up #}
+        taskSound.whileplaying_shim = updatePosition;
+      };
+
+      soundManager.onready(window.prepareTaskSoundPositionTracking);
+
       // Bind Ctrl+R to reload the audio.
       var reloadAudio = function () {
         var start = Math.max(0, parseInt($('#id_start').val()));
@@ -27,6 +44,8 @@
         $playlist.empty().append('<li><a/></li>');
         $playlist.find('a').attr('href', url).addClass('playable').text('Task Audio');
         pagePlayer.init(PP_CONFIG);
+        prepareTaskSound();
+        prepareTaskSoundPositionTracking();
 
         // Update the visible start/end next to the player.
         $('#playing-start').text(start);

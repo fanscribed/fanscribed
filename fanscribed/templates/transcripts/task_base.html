@@ -81,10 +81,8 @@
         $('.playing').hide();
       };
 
-      var taskSound;
-
-      soundManager.onready(function () {
-        taskSound = pagePlayer.sounds[0];
+      window.prepareTaskSound = function () {
+        var taskSound = window.taskSound = pagePlayer.sounds[0];
         // Shim the callbacks onto the sound, so page-player calls them
         // along with normal behavior.
         {# TODO: clean this up #}
@@ -93,7 +91,9 @@
         taskSound.onstop_shim = showPaused;
         taskSound.onpause_shim = showPaused;
         taskSound.onfinish_shim = showPaused;
-      });
+      };
+
+      soundManager.onready(window.prepareTaskSound);
 
       var playOrPauseAudio = function () {
 

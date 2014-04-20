@@ -420,6 +420,7 @@ function PagePlayer() {
     },
 
     whileplaying: function() {
+      if (this.whileplaying_shim) { this.whileplaying_shim() }
       var d = null;
       if (pl.dragActive || !pl.config.useThrottling) {
         self.updateTime.apply(this);
