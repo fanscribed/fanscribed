@@ -154,9 +154,13 @@
             here is a preview of the unfinished transcript:
           </p>
 
-          <h4>Completed Sentences</h4>
+          <div class="text-muted">
 
-          {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.completed_sentences %}
+            <h4>Completed Sentences</h4>
+
+            {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.completed_sentences %}
+
+          </div>
 
         {% endif %}
       {% endif %}
