@@ -1458,15 +1458,33 @@ class BoundaryTaskManager(TaskManager):
             return None
 
         if not is_review:
-            # Apply overlap.
-            start = sentence.latest_start - settings.TRANSCRIPT_FRAGMENT_OVERLAP
-            end = sentence.latest_end + settings.TRANSCRIPT_FRAGMENT_OVERLAP
 
-            # Correct for out of bounds.
-            start = max(Decimal('0.00'), start)
-            end = min(transcript.length, end)
+            # First, look for the most recently bounded sentence,
+            # just in case we're doing.
+            bounded_sentences = transcript.sentences.completed().filter(
+                boundary_state__in=['edited', 'reviewed'])
+            if bounded_sentences.exists():
+                latest_bounded = bounded_sentences.order_by('-latest_end')[0]
+
+                # Use the end of the last sentence as the start of this one.
+                start = latest_bounded.latest_end
+
+                # Apply overlap and correct for out of bounds.
+                end = sentence.latest_end + settings.TRANSCRIPT_FRAGMENT_OVERLAP
+                end = min(transcript.length, end)
+
+            # Fall back to applying the default start/end.
+            else:
+                # Apply overlap.
+                start = sentence.latest_start - settings.TRANSCRIPT_FRAGMENT_OVERLAP
+                end = sentence.latest_end + settings.TRANSCRIPT_FRAGMENT_OVERLAP
+
+                # Correct for out of bounds.
+                start = max(Decimal('0.00'), start)
+                end = min(transcript.length, end)
+
         else:
-            # TODO: Instead of bounding it here, give the overlapped version to the UI, but make it stop playing.
+            # Reviews pass through.
             start = sentence.latest_start
             end = sentence.latest_end
 
@@ -1480,8 +1498,8 @@ class BoundaryTaskManager(TaskManager):
             is_review=is_review,
             media=media,
             sentence=sentence,
-            start=sentence.latest_start,
-            end=sentence.latest_end,
+            start=start,
+            end=end,
         )
 
         try:
