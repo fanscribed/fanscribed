@@ -149,21 +149,26 @@
           </p>
         </form>
 
-        {% if user in transcript.contributors.all %}
-          <h3>Preview</h3>
+        <div class="text-muted">
 
-          <p>
-            Thank you for contributing! To show our appreciation,
-            here is a draft of the unfinished transcript:
-          </p>
+          <h2>Draft Transcript</h2>
 
-          <div class="text-muted">
-            {% cache 60 transcript_unfinished_sentences transcript.pk %}
-              {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.completed_sentences %}
-            {% endcache %}
-          </div>
+          <p><strong>The following transcript is not complete or fully edited.</strong></p>
 
-        {% endif %}
+          <h3>Complete Sentences</h3>
+
+          {% cache 60 transcript_unfinished_sentences transcript.pk %}
+            {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.completed_sentences %}
+          {% endcache %}
+
+          <h3>Sentence Fragments</h3>
+
+          {% cache 60 transcript_unfinished_fragments transcript.pk  %}
+            {% include "transcripts/_transcript_fragments_table.html" with fragments=transcript.fragments %}
+          {% endcache %}
+
+        </div>
+
       {% endif %}
 
     </div>
@@ -181,10 +186,23 @@
 
         <div class="well">
 
-          <h3 style="margin-top:0">Help Finish This Transcript</h3>
+          {% if user in transcript.contributors.all %}
 
-          <p>This transcript is not finished.
-          You can help us complete it!</p>
+            <h3 style="margin-top:0">Thank you</h3>
+
+            <p>
+              Have a spare moment?
+              Consider helping more to finish this transcript.
+            </p>
+
+          {% else %}
+
+            <h3 style="margin-top:0">Help Finish This Transcript</h3>
+
+            <p>This transcript is not finished.
+            You can help us complete it!</p>
+
+          {% endif %}
 
           <p>The process is simple,
           there's no obligation,

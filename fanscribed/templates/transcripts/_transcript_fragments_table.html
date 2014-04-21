@@ -1,0 +1,15 @@
+{# params: fragments #}
+{% load timecode_tags %}
+
+<table class="table table-condensed">
+  <tbody>
+    {% for fragment in fragments.all %}
+      {% for sf in fragment.revisions.latest.sentence_fragments.all %}
+        <tr>
+          <td class="text-right hidden-xs" style="width:6em"><small>{{ fragment.start|timecode }}</small></td>
+          <td>{{ sf.text }}</td>
+        </tr>
+      {% endfor %}
+    {% endfor %}
+  </tbody>
+</table>

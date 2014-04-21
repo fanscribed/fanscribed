@@ -5,8 +5,8 @@
   <tbody>
     {% for sentence in sentences %}
       <tr>
-        <td class="text-right"><small>{{ sentence.latest_start|timecode }}</small></td>
-        <td style="min-width:10em" class="text-right">{% if sentence.latest_speaker %}<strong>{{ sentence.latest_speaker }}</strong>{% else %}&nbsp;{% endif %}</td>
+        <td class="text-right hidden-xs" style="width:6em"><small>{{ sentence.latest_start|timecode }}</small></td>
+        <td style="width:10em" class="text-right">{% if sentence.latest_speaker %}<strong>{{ sentence.latest_speaker }}</strong>{% else %}&nbsp;{% endif %}</td>
         <td>{{ sentence.latest_text }}</td>
       </tr>
     {% endfor %}
