@@ -194,7 +194,10 @@ def update_podcast_title_and_episodes_from_rssfetch(instance, target, **kwargs):
         d = feedparser.parse(instance.body)
 
         podcast = instance.podcast
-        podcast.title = d['feed']['title']
+        if not podcast.title:
+            # TODO: add an "override title" flag and only skip setting the title if it's set
+            # For now, if title already exists, don't update it.
+            podcast.title = d['feed']['title']
         podcast.link_url = d['feed'].get('link')
         if not podcast.image_url:
             # Don't replace image URL in case manual override is in place.
