@@ -22,6 +22,7 @@ def media_length(filename):
     output = check_output([
         AVPROBE_PATH,
         '-loglevel', 'error',
+        '-f', 'mp3',
         '-show_format',
         filename,
     ])
@@ -43,6 +44,7 @@ def convert(raw_file, processed_file, avconv_settings):
     """
     return call([
         AVCONV_PATH,
+        '-f', 'mp3',
         '-i', raw_file
     ] + list(avconv_settings) + [
         processed_file,
