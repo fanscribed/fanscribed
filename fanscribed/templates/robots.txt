@@ -3,8 +3,10 @@ User-agent: *
 Disallow: *
 {% else %}
 User-agent: *
+Allow: /podcasts/
 Allow: /podcasts/*/
 Allow: /podcasts/*/episodes/*/
+Allow: /transcripts/
 Allow: /transcripts/*/
 Disallow: /accounts/
 Disallow: /accounts/*
@@ -13,5 +15,4 @@ Disallow: /admin/*
 Disallow: /podcasts/*/episodes/*/create_transcript/
 Disallow: /profiles/
 Disallow: /profiles/*
-Disallow: /transcripts/
 {% endif %}
