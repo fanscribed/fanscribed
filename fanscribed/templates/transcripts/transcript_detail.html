@@ -105,87 +105,7 @@
 
       {% if transcript.episode %}
 
-        <ul class="playlist">
-          <li><a class="playable" href="{{ transcript.episode.media_url }}">Listen to This Episode</a></li>
-        </ul>
-
-        <h2>About This Episode</h2>
-        {% include "podcasts/_episode_description.html" with episode=transcript.episode %}
-
-        <hr/>
-
-      {% endif %}
-
-      <h2>Transcript</h2>
-
-      {% if transcript.state == 'finished' %}
-        {% cache 600 transcript_finished_sentences transcript.pk %}
-          {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.completed_sentences %}
-        {% endcache %}
-      {% else %}
-        <p class="text-muted">
-          Text will appear here when the transcript is finished.
-        </p>
-        <form action="{{ task_assign_url }}" method="post">
-          {% csrf_token %}
-          <p>
-            {% if user.is_authenticated %}
-              <button class="btn btn-primary btn-sm" type="submit" name="type" value="any_sequential">
-                Help Transcribe
-              </button>
-              this episode to get it done faster!
-            {% else %}
-              <a class="btn btn-primary btn-sm"
-                 href="{% url 'account_login' %}?next={{ detail_url }}">
-                Sign In
-              </a>
-              or
-              <a class="btn btn-default btn-sm"
-                 href="{% url 'account_signup' %}?next={{ detail_url }}">
-                Sign Up
-              </a>
-              to help transcribe this episode!
-            {% endif %}
-          </p>
-        </form>
-
-        <div class="text-muted">
-
-          <h2>Draft Transcript</h2>
-
-          <p><strong>The following transcript is not complete or fully edited.</strong></p>
-
-          <h3>Complete Sentences</h3>
-
-          {% cache 60 transcript_unfinished_sentences transcript.pk %}
-            {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.completed_sentences %}
-          {% endcache %}
-
-          <h3>Sentence Fragments</h3>
-
-          {% cache 60 transcript_unfinished_fragments transcript.pk  %}
-            {% include "transcripts/_transcript_fragments_table.html" with fragments=transcript.fragments %}
-          {% endcache %}
-
-        </div>
-
-      {% endif %}
-
-    </div>
-    <div class="col-md-4">
-
-      {# -- sidebar -- #}
-
-      {% if transcript.episode.image_url %}
-        <p><img style="width:100%" src="{{ transcript.episode.image_url }}" alt="Cover art for &ldquo;{{ transcript.episode.title|html_escape }}&rdquo; (from the &ldquo;{{ transcript.episode.podcast.title }}&rdquo; podcast)"/></p>
-      {% elif transcript.episode.podcast.image_url %}
-        <p><img style="width:100%" src="{{ transcript.episode.podcast.image_url }}" alt="Cover art for the &ldquo;{{ transcript.episode.podcast.title }}&rdquo; podcast"/></p>
-      {% endif %}
-
-      {% if transcript.state == 'unfinished' %}
-
         <div class="well">
-
           {% if user in transcript.contributors.all %}
 
             <h3 style="margin-top:0">Thank you</h3>
@@ -241,8 +161,68 @@
               </a>
             </p>
           {% endif %}
+        </div>
+
+        <ul class="playlist">
+          <li><a class="playable" href="{{ transcript.episode.media_url }}">Listen to This Episode</a></li>
+        </ul>
+
+        <h2>About This Episode</h2>
+        {% include "podcasts/_episode_description.html" with episode=transcript.episode %}
+
+        <hr/>
+
+      {% endif %}
+
+      <h2>Transcript</h2>
+
+      {% if transcript.state == 'finished' %}
+        {% cache 600 transcript_finished_sentences transcript.pk %}
+          {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.completed_sentences %}
+        {% endcache %}
+      {% else %}
+        <p class="text-muted">
+          Text will appear here when the transcript is finished.
+        </p>
+
+        <div class="text-muted">
 
           <hr/>
+
+          <h2>Draft Transcript</h2>
+
+          <p><strong>The following transcript is not complete or fully edited.</strong></p>
+
+          <h3>Complete Sentences</h3>
+
+          {% cache 60 transcript_unfinished_sentences transcript.pk %}
+            {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.completed_sentences %}
+          {% endcache %}
+
+          <h3>Sentence Fragments</h3>
+
+          {% cache 60 transcript_unfinished_fragments transcript.pk  %}
+            {% include "transcripts/_transcript_fragments_table.html" with fragments=transcript.fragments %}
+          {% endcache %}
+
+        </div>
+
+      {% endif %}
+
+    </div>
+    <div class="col-md-4">
+
+      {# -- sidebar -- #}
+
+      {% if transcript.episode.image_url %}
+        <p><img style="width:100%" src="{{ transcript.episode.image_url }}" alt="Cover art for &ldquo;{{ transcript.episode.title|html_escape }}&rdquo; (from the &ldquo;{{ transcript.episode.podcast.title }}&rdquo; podcast)"/></p>
+      {% elif transcript.episode.podcast.image_url %}
+        <p><img style="width:100%" src="{{ transcript.episode.podcast.image_url }}" alt="Cover art for the &ldquo;{{ transcript.episode.podcast.title }}&rdquo; podcast"/></p>
+      {% endif %}
+
+      {% if transcript.state == 'unfinished' %}
+
+        <div class="well">
 
           <h4>Transcription Progress</h4>
 

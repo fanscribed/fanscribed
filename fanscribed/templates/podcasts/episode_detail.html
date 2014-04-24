@@ -101,54 +101,6 @@
 
       {# -- body -- #}
 
-      <ul class="playlist">
-        <li><a class="playable" href="{{ episode.media_url }}">Listen to This Episode</a></li>
-      </ul>
-
-      <h2>About This Episode</h2>
-
-      {% include "podcasts/_episode_description.html" %}
-
-      <h2>Transcript</h2>
-      
-      {% if episode.external_transcript %}
-
-        <p>This episode has a transcript hosted on another website.</p>
-
-        <p><small class="text-muted">Note: This transcript was not created using the
-          <a href="{% url 'transcription-engine' %}">Fanscribed Transcription Engine</a>.</small></p>
-
-        <p><a class="btn btn-success" href="{{ episode.external_transcript }}" target="_blank">Read Transcript <span class="glyphicon glyphicon-new-window"></span></a></p>
-
-      {% else %}
-
-        <p class="text-muted">
-          No transcript has been started for this episode.
-        </p>
-  
-        <form action="{{ create_transcript_url }}" method="post">
-          {% csrf_token %}
-          <p>
-            <button class="btn btn-primary btn-sm" type="submit">
-              Start a transcript
-            </button>
-            of this episode if you think there should be one!
-          </p>
-        </form>
-  
-      {% endif %} 
-
-    </div>
-    <div class="col-md-4">
-
-      {# -- sidebar -- #}
-
-      {% if episode.image_url %}
-        <p><img style="width:100%" src="{{ episode.image_url }}" alt="Cover art for &ldquo;{{ episode.title|html_escape }}&rdquo; (from the &ldquo;{{ episode.podcast.title }}&rdquo; podcast)"/></p>
-      {% elif episode.podcast.image_url %}
-        <p><img style="width:100%" src="{{ episode.podcast.image_url }}" alt="Cover art for the &ldquo;{{ episode.podcast.title }}&rdquo; podcast"/></p>
-      {% endif %}
-
       {% if not episode.external_transcript %}
         <div class="well">
 
@@ -183,6 +135,54 @@
           {% endif %}
 
         </div>
+      {% endif %}
+
+      <ul class="playlist">
+        <li><a class="playable" href="{{ episode.media_url }}">Listen to This Episode</a></li>
+      </ul>
+
+      <h2>About This Episode</h2>
+
+      {% include "podcasts/_episode_description.html" %}
+
+      <h2>Transcript</h2>
+      
+      {% if episode.external_transcript %}
+
+        <p>This episode has a transcript hosted on another website.</p>
+
+        <p><small class="text-muted">Note: This transcript was not created using the
+          <a href="{% url 'transcription-engine' %}">Fanscribed Transcription Engine</a>.</small></p>
+
+        <p><a class="btn btn-success" href="{{ episode.external_transcript }}" target="_blank">Read Transcript <span class="glyphicon glyphicon-new-window"></span></a></p>
+
+      {% else %}
+
+        <p class="text-muted">
+          No transcript has been started for this episode.
+        </p>
+  
+{#        <form action="{{ create_transcript_url }}" method="post">#}
+{#          {% csrf_token %}#}
+{#          <p>#}
+{#            <button class="btn btn-primary btn-sm" type="submit">#}
+{#              Start a transcript#}
+{#            </button>#}
+{#            of this episode if you think there should be one!#}
+{#          </p>#}
+{#        </form>#}
+  
+      {% endif %} 
+
+    </div>
+    <div class="col-md-4">
+
+      {# -- sidebar -- #}
+
+      {% if episode.image_url %}
+        <p><img style="width:100%" src="{{ episode.image_url }}" alt="Cover art for &ldquo;{{ episode.title|html_escape }}&rdquo; (from the &ldquo;{{ episode.podcast.title }}&rdquo; podcast)"/></p>
+      {% elif episode.podcast.image_url %}
+        <p><img style="width:100%" src="{{ episode.podcast.image_url }}" alt="Cover art for the &ldquo;{{ episode.podcast.title }}&rdquo; podcast"/></p>
       {% endif %}
 
       <h3>Licensing</h3>
