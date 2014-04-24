@@ -1,4 +1,11 @@
 from django.conf import settings
+from django.contrib.sites.models import Site
+
+
+def allow_signups(request):
+    return {
+        'ACCOUNT_ALLOW_SIGNUPS': settings.ACCOUNT_ALLOW_SIGNUPS,
+    }
 
 
 def debug(request):
@@ -18,7 +25,5 @@ def piwik(request):
         return {}
 
 
-def allow_signups(request):
-    return {
-        'ACCOUNT_ALLOW_SIGNUPS': settings.ACCOUNT_ALLOW_SIGNUPS,
-    }
+def site(request):
+    return {'site': Site.objects.get_current()}
