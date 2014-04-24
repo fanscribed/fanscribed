@@ -29,7 +29,7 @@ class Episode(models.Model):
     image_url = models.URLField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     transcript = models.OneToOneField('transcripts.Transcript', blank=True, null=True,
-                                      related_name='episode')
+                                      related_name='episode', on_delete=models.SET_NULL)
     external_transcript = models.URLField(blank=True, null=True)
 
     class Meta:
