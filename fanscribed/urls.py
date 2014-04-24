@@ -1,11 +1,12 @@
 from django.conf import settings
 from django.conf.urls import patterns, include, url
 from django.conf.urls.static import static
+from django.contrib import admin
 from django.views.generic import TemplateView
 
+from .sitemaps import SITEMAPS
 
-# Uncomment the next two lines to enable the admin:
-from django.contrib import admin
+
 admin.autodiscover()
 
 
@@ -41,6 +42,10 @@ urlpatterns = patterns(
 
     url(r'^profiles/',
         include('fanscribed.apps.profiles.urls', 'profiles')),
+
+    url(r'^sitemap\.xml$',
+        view='django.contrib.sitemaps.views.sitemap',
+        kwargs=dict(sitemaps=SITEMAPS)),
 
     url(r'^transcripts/',
         include('fanscribed.apps.transcripts.urls', 'transcripts')),

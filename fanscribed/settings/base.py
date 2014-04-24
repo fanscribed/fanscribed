@@ -309,19 +309,18 @@ MIDDLEWARE_CLASSES += (
 # ----
 
 DJANGO_APPS = (
-    # Default Django apps:
+    # Django apps:
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.sites',
+    'django.contrib.humanize',
     'django.contrib.messages',
+    'django.contrib.sessions',
+    'django.contrib.sitemaps',
+    'django.contrib.sites',
     'django.contrib.staticfiles',
 
-    # Useful template tags:
-    # 'django.contrib.humanize',
-
-    # Admin panel and documentation:
-    'suit',
+    # Admin:
+    'suit',  # (Must be included before django.contrib.admin)
     'django.contrib.admin',
 )
 THIRD_PARTY_APPS += (
