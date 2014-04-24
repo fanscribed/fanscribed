@@ -74,6 +74,16 @@ DEFAULT_FILE_STORAGE = 'storages.backends.overwrite.OverwriteStorage'
 ACCOUNT_ALLOW_SIGNUPS = True
 
 
+# SUPERVISOR
+# ----------
+
+# Watchdog's inotify observer does not detect changes to files
+# made on the host and exposed to the Linux VM via VMware's HGFS.
+# Therefore, we must use the polling autoreloader.
+SUPERVISOR_AUTORELOAD_POLL_ONLY = True
+SUPERVISOR_AUTORELOAD_TIMEOUT = 5
+
+
 # TODO: reinstall the toolbar after figuring out how to avoid conflict with waffle
 
 # # TOOLBAR
