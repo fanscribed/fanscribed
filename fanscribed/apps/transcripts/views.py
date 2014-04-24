@@ -37,11 +37,13 @@ class AssignsTasks(object):
     # noinspection PyUnresolvedReferences
     def assigned_task_url(self, transcript, requested_task_type):
 
+        user = self.request.user
+
         # Check for existing tasks in this transcript.
         for task_class in m.TASK_MODEL.values():
             existing_tasks = task_class.objects.filter(
                 transcript=transcript,
-                assignee=self.request.user,
+                assignee=user,
                 state='presented',
             )
             if existing_tasks:
@@ -95,15 +97,22 @@ class AssignsTasks(object):
                     is_review = False
                 L = [(requested_task_type, is_review)]
 
+            preferred_task_types = user.profile.preferred_task_names
             for task_type, is_review in L:
-                # Does the user have permission?
+
+                # Does the user want to perform this kind of task?
+                if task_type not in preferred_task_types:
+                    continue
+
+                # Does the user have permission to perform the task?
                 perm_name = 'transcripts.add_{}task{}'.format(
                     task_type,
                     '_review' if is_review else '',
                 )
-                if not self.request.user.has_perm(perm_name):
+                if not user.has_perm(perm_name):
                     continue
-                # User has permission, so try to create this type of task.
+
+                # Permission granted; try to create this type of task.
                 tasks = m.TASK_MODEL[task_type].objects
                 if tasks.can_create(transcript, is_review):
                     # Try to get this kind of task,
@@ -111,7 +120,7 @@ class AssignsTasks(object):
                     for x in xrange(5):
                         try:
                             task = tasks.create_next(
-                                self.request.user, transcript, is_review)
+                                user, transcript, is_review)
                         except LockException:
                             # Try again.
                             continue
@@ -196,7 +205,8 @@ class TaskPerformView(vanilla.UpdateView, AssignsTasks):
             # Give them the next task for the given task type.
             messages.success(self.request,
                              "Thank you for your work! Here's another task.")
-            default_task_type = 'any_sequential'
+            default_task_type = 'any_{}'.format(
+                self.request.user.profile.task_order)
             requested_task_type = self.request.GET.get('t', default_task_type)
             return self.assigned_task_url(
                 self.object.transcript, requested_task_type)

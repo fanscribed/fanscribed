@@ -1,0 +1,47 @@
+[
+{
+  "pk": 1, 
+  "model": "profiles.tasktype", 
+  "fields": {
+    "order": 1, 
+    "name": "transcribe", 
+    "description": "Transcribe speech to text."
+  }
+},
+{
+  "pk": 2, 
+  "model": "profiles.tasktype", 
+  "fields": {
+    "order": 2, 
+    "name": "stitch", 
+    "description": "Combine sentence fragments into complete sentences."
+  }
+},
+{
+  "pk": 3, 
+  "model": "profiles.tasktype", 
+  "fields": {
+    "order": 3,
+    "name": "boundary", 
+    "description": "Find start and end time codes for sentences."
+  }
+},
+{
+  "pk": 4, 
+  "model": "profiles.tasktype", 
+  "fields": {
+    "order": 4, 
+    "name": "clean", 
+    "description": "Clean up text of sentences to remove repeated words, and correct capitalization and punctuation."
+  }
+},
+{
+  "pk": 5, 
+  "model": "profiles.tasktype", 
+  "fields": {
+    "order": 5, 
+    "name": "speaker", 
+    "description": "Identify speakers of sentences."
+  }
+}
+]

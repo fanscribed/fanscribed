@@ -1,5 +1,5 @@
 {% extends 'profiles/base.html' %}
-
+{% load bootstrap3 %}
 
 {% block title %}
   Your Profile
@@ -9,19 +9,13 @@
 {% block profile_content %}
   {% with profile=user.profile  %}
 
-    <dl>
-
-      <dt>Nickname</dt>
-      <dd>
-        {% if profile.nickname_state == 'unset' %}
-          <i>(No nickname set)</i>
-        {% endif %}
-        {% if profile.nickname_state == 'set' %}
-          {{ profile.nickname }}
-        {% endif %}
-      </dd>
-
-    </dl>
+    <form action="" method="post" class="form">
+      {% csrf_token %}
+      {% bootstrap_form form %}
+      {% buttons %}
+        <button class="btn btn-primary" type="submit">Save</button>
+      {% endbuttons %}
+    </form>
 
   {% endwith %}
 {% endblock %}
