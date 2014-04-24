@@ -20,6 +20,9 @@
   <h1>
     {{ podcast.title }}
     {% if podcast.link_url %}<a class="btn btn-default" href="{{ podcast.link_url }}" target="_blank">Visit Website <span class="glyphicon glyphicon-new-window"></span></a>{% endif %}
+    {% if user.is_staff %}
+      <span class="pull-right"><a class="btn btn-default" href="{% url 'admin:podcasts_podcast_change' podcast.pk %}">Admin: Podcast</a></span>
+    {% endif %}
   </h1>
 
   <div class="row">
