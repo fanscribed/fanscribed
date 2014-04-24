@@ -53,7 +53,10 @@ class EpisodeCreateTranscript(vanilla.RedirectView):
 
         if not episode.transcript:
             # Create a transcript for this episode.
-            episode.transcript = Transcript.objects.create(title=episode.title)
+            episode.transcript = Transcript.objects.create(
+                title=episode.title,
+                created_by=self.request.user,
+            )
             episode.save()
             messages.success(self.request,
                              "Thanks! We're now getting this episode ready to transcribe.")

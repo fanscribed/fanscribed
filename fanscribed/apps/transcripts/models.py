@@ -393,6 +393,7 @@ class Transcript(TimeStampedModel):
     state = FSMField(default='unfinished', protected=True)
     length = models.DecimalField(max_digits=8, decimal_places=2, null=True)
     length_state = FSMField(default='unset', protected=True)
+    created_by = models.ForeignKey('auth.User', blank=True, null=True)
     contributors = models.ManyToManyField(
         'auth.User', related_name='contributed_to_transcripts')
 
