@@ -28,11 +28,13 @@ class TranscriptionApprovalInline(admin.StackedInline):
     extra = 1
 
 
-class PodcastAdmin(admin.ModelAdmin):
+class PodcastAdmin(DjangoObjectActions, admin.ModelAdmin):
 
     actions = ['fetch']
     fields = ('title', 'link_url', 'rss_url', 'image_url')
     list_display = ('title', 'link_url', 'rss_url')
+    objectactions = ('fetch_individual',)
+
     inlines = [
         TranscriptionApprovalInline,
     ]
@@ -40,12 +42,16 @@ class PodcastAdmin(admin.ModelAdmin):
     def fetch(self, request, queryset):
         fetched = 0
         for podcast in queryset:
-            rss_fetch = m.RssFetch.objects.create(podcast=podcast)
-            rss_fetch.start()
+            podcast.fetches.create().start()
             fetched += 1
         message = 'fetched: {fetched}'
         self.message_user(request, message.format(**locals()))
     fetch.short_description = 'Fetch RSS for selected podcasts'
+
+    def fetch_individual(self, request, obj):
+        obj.fetches.create().start()
+        self.message_user(request, 'RSS fetch started.')
+    fetch_individual.label = 'Fetch RSS'
 
 
 # ---
