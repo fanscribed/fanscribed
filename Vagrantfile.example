@@ -15,7 +15,7 @@ Vagrant.configure("2") do |config|
     config.vm.hostname = "fanscribed-dev"
 
     config.vm.synced_folder "salt/roots", "/srv"
-    config.vm.synced_folder "..", "/src"
+    config.vm.synced_folder "..", "/vagrant"
 
     config.vm.provision 'shell', path: 'vagrant/set-apt-mirrors.sh'
     config.vm.provision 'shell', path: 'vagrant/install-upgrades.sh'
