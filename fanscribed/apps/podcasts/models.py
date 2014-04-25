@@ -185,6 +185,16 @@ def datetime_from_feedparser(entry):
         time.mktime(entry.published_parsed), tz=utc)
 
 
+def _fixed_url(url):
+    # Some RSS feeds don't have properly-formatted URLs.
+    # If we notice that is the case, prefix 'http://'
+    # and hope for the best.
+    if url and '://' not in url:
+        return 'http://{}'.format(url)
+    else:
+        return url
+
+
 @receiver(post_transition, sender=RssFetch)
 def update_podcast_title_and_episodes_from_rssfetch(instance, target, **kwargs):
     """
@@ -198,10 +208,10 @@ def update_podcast_title_and_episodes_from_rssfetch(instance, target, **kwargs):
             # TODO: add an "override title" flag and only skip setting the title if it's set
             # For now, if title already exists, don't update it.
             podcast.title = d['feed']['title']
-        podcast.link_url = d['feed'].get('link')
+        podcast.link_url = _fixed_url(d['feed'].get('link'))
         if not podcast.image_url:
             # Don't replace image URL in case manual override is in place.
-            podcast.image_url = d['feed'].get('image', {}).get('href')
+            podcast.image_url = _fixed_url(d['feed'].get('image', {}).get('href'))
         podcast.save()
 
         for entry in d.entries:
@@ -209,14 +219,7 @@ def update_podcast_title_and_episodes_from_rssfetch(instance, target, **kwargs):
                 continue
             existing_episode = Episode.objects.filter(
                 podcast=podcast, guid=entry.id)
-            link_url = entry.get('link')
-
-            # Some RSS feeds don't have properly-formatted URLs.
-            # If we notice that is the case, prefix 'http://'
-            # and hope for the best.
-            if '://' not in link_url:
-                link_url = 'http://{}'.format(link_url)
-
+            link_url = _fixed_url(entry.get('link'))
             image_url = entry.get('image', {}).get('href')
             if not existing_episode.exists():
                 published = datetime_from_feedparser(entry)
