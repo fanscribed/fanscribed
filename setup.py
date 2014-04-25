@@ -9,7 +9,7 @@ CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 setup(
     name='fanscribed',
     version='2.0',
-    description='Fanscribed turns your favorite podcasts into text',
+    description='Fanscribed helps podcasts reach a wider audience using high-quality speech-to-text transcripts.',
     long_description=README + '\n\n' +  CHANGES,
     classifiers=[
         "Programming Language :: Python",
