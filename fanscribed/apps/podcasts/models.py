@@ -210,6 +210,13 @@ def update_podcast_title_and_episodes_from_rssfetch(instance, target, **kwargs):
             existing_episode = Episode.objects.filter(
                 podcast=podcast, guid=entry.id)
             link_url = entry.get('link')
+
+            # Some RSS feeds don't have properly-formatted URLs.
+            # If we notice that is the case, prefix 'http://'
+            # and hope for the best.
+            if '://' not in link_url:
+                link_url = 'http://{}'.format(link_url)
+
             image_url = entry.get('image', {}).get('href')
             if not existing_episode.exists():
                 published = datetime_from_feedparser(entry)
