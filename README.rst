@@ -11,7 +11,7 @@ One-time preparation
 
 2.  Clone this repo and change to its directory::
 
-      $ git clone git@bitbucket.org:fanscribed/fanscribed
+      $ git clone git@github.com:fanscribed/fanscribed
       $ cd fanscribed
 
 3.  Make a ``Vagrantfile``, then edit it
