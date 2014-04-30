@@ -21,6 +21,24 @@
       }
       radioToFocus.focus();
 
+      // Assign keyboard shortcuts to first 9 speakers.
+      $('input[name="speaker"]').each(function () {
+        var $input = $(this);
+        var id = $input.attr('id');
+        var sequence = parseInt(id.substr(11));
+        if (1 <= sequence && sequence <= 9) {
+          $input.after('<kbd>^' + sequence + '</kbd>');
+          var hotkey = 'ctrl+' + sequence;
+          function selectSpeaker() {
+            $input.attr('checked', 'checked');
+            $input.focus();
+          }
+          $('body').bind('keydown', hotkey, selectSpeaker);
+          $('input').bind('keydown', hotkey, selectSpeaker);
+          $('textarea').bind('keydown', hotkey, selectSpeaker);
+        }
+      });
+
     });
 
   </script>
