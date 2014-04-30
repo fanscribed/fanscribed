@@ -12,7 +12,15 @@
   <script type="text/javascript">
 
     $(function () {
-      $('input[type="radio"]').first().focus();
+
+      // Try to focus the first selected radio button.
+      var radioToFocus = $('input[type="radio"]:checked').first();
+      if (!radioToFocus) {
+        // There weren't any selected radio buttons, so focus the first one.
+        radioToFocus = $('input[type="radio"]').first();
+      }
+      radioToFocus.focus();
+
     });
 
   </script>

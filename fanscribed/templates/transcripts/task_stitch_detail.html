@@ -27,7 +27,12 @@
         suggestPair({{ left }}, {{ right }});
         {% endfor %}
 
-        $('input[type="radio"]').first().focus();
+        var radioToFocus = $('input[type="radio"]:checked').first();
+        if (!radioToFocus) {
+          // There weren't any selected radio buttons, so focus the first one.
+          radioToFocus = $('input[type="radio"]').first();
+        }
+        radioToFocus.focus();
 
       });
     </script>
