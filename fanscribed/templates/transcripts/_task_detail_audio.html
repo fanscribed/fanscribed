@@ -19,8 +19,14 @@
   </div>
   {% if reload %}
     <div class="pull-right">
-      <div class="pull-left" style="margin-right:1em">Playing <span id="playing-start">{{ task.start }}</span> &rarr; <span id="playing-end">{{ task.end }}</span><br>Current: <span id="playing-current">{{ task.start }}</span></div>
-      <button class="btn btn-info" id="audio-reload"><span class="glyphicon glyphicon-refresh"></span> Reload<br><kbd>Ctrl+R</kbd></button>
+      <div class="pull-left" style="margin-right:1em">
+        Playing <span id="playing-start">{{ task.start }}</span> &rarr; <span id="playing-end">{{ task.end }}</span>
+        <br>
+        Current: <span id="playing-current">{{ task.start }}</span>
+        <br>
+        <kbd>^B</kbd> <kbd>^E</kbd>
+      </div>
+      <button class="btn btn-info" id="audio-reload"><span class="glyphicon glyphicon-refresh"></span> Reload<br><kbd>^R</kbd></button>
     </div>
   {% endif %}
 </div>
