@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.dispatch import receiver
 from django.utils.text import slugify
-from django.utils.timezone import utc
+from django.utils.timezone import now as datetime_now, utc
 from django_extensions.db.models import CreationDateTimeField
 from django_fsm.signals import post_transition
 from django_fsm.db.fields import FSMField, transition
@@ -156,11 +156,11 @@ class RssFetch(models.Model):
                 self.body = f.read()
         else:
             raise TypeError('Specify either `body` or `filename`.')
-        self.fetched = datetime.datetime.now()
+        self.fetched = datetime_now()
 
     @transition(state, 'not_fetched', 'fetching', save=True)
     def start(self):
-        self.fetched = datetime.datetime.now()
+        self.fetched = datetime_now()
 
     @transition(state, 'fetching', 'fetched', save=True)
     def finish(self, body):
