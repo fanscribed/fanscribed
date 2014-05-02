@@ -15,11 +15,13 @@ def debug(request):
     }
 
 
-def piwik(request):
+def analytics(request):
     if not request.user.is_superuser:
         return {
             'PIWIK_HOST': settings.PIWIK_HOST,
             'PIWIK_SITE_ID': settings.PIWIK_SITE_ID,
+            'GOOGLE_ANALYTICS_DOMAIN': settings.GOOGLE_ANALYTICS_DOMAIN,
+            'GOOGLE_ANALYTICS_ID': settings.GOOGLE_ANALYTICS_ID,
         }
     else:
         return {}

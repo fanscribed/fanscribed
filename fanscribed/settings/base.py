@@ -382,11 +382,15 @@ AVPROBE_PATH = getenv('AVPROBE_PATH', '/usr/bin/avprobe')
 AVCONV_PATH = getenv('AVCONV_PATH', '/usr/bin/avconv')
 
 
-# PIWIK
-# -----
+# ANALYTICS
+# ---------
 
 PIWIK_HOST = getenv('PIWIK_HOST')
 PIWIK_SITE_ID = getenv('PIWIK_SITE_ID')
+
+GOOGLE_ANALYTICS_DOMAIN = getenv('GOOGLE_ANALYTICS_DOMAIN')
+GOOGLE_ANALYTICS_ID = getenv('GOOGLE_ANALYTICS_ID')
+
 TEMPLATE_CONTEXT_PROCESSORS += (
-    'fanscribed.context_processors.piwik',
+    'fanscribed.context_processors.analytics',
 )
