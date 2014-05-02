@@ -29,13 +29,29 @@
         if (1 <= sequence && sequence <= 9) {
           $input.after('<kbd>^' + sequence + '</kbd>');
           var hotkey = 'ctrl+' + sequence;
-          function selectSpeaker() {
-            $input.attr('checked', 'checked');
+          function selectSpeaker () {
+            $input.prop('checked', true);
             $input.focus();
           }
           $('body').bind('keydown', hotkey, selectSpeaker);
           $('input').bind('keydown', hotkey, selectSpeaker);
           $('textarea').bind('keydown', hotkey, selectSpeaker);
+        }
+      });
+
+      // Deselect any preselected speaker when a new name is given.
+      function deselectSpeaker () {
+        console.log('deselecting');
+        $('#id_speaker').find('input').prop('checked', false);
+        $('#id_speaker_0').prop('checked', true);
+      }
+      var $newName = $('#id_new_name');
+      var oldNewNameValue = $newName.val();
+      $newName.bind('propertychange keyup input paste', function () {
+        var currentVal = $newName.val();
+        if (currentVal != oldNewNameValue && currentVal != '') {
+          oldNewNameValue = currentVal;
+          deselectSpeaker();
         }
       });
 
