@@ -5,8 +5,8 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
-
 import vanilla
+from waffle import flag_is_active
 
 from ...utils import refresh
 from . import forms as f
@@ -27,6 +27,14 @@ class TranscriptDetailView(vanilla.DetailView):
 
     model = m.Transcript
 
+    def render_to_response(self, context):
+
+        # Allow superusers to set ?dwft_bypass_teamwork=1
+        # while viewing a transcript.
+        flag_is_active(self.request, 'bypass_teamwork')
+
+        return super(TranscriptDetailView, self).render_to_response(context)
+
 
 # -----------------------------
 
@@ -44,7 +52,7 @@ class AssignsTasks(object):
                           "We found a task you haven't completed.")
         else:
             task = m.assign_next_transcript_task(
-                transcript, user, requested_task_type)
+                transcript, user, requested_task_type, request=self.request)
 
         if task:
             return task.get_absolute_url() + '?t=' + requested_task_type

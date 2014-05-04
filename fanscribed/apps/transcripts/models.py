@@ -1,12 +1,10 @@
 import logging
-import unicodedata
-
-
 log = logging.getLogger(__name__)
 
 import datetime
 from decimal import Decimal
 import re
+import unicodedata
 
 from allauth.account.signals import user_signed_up
 from django.conf import settings
@@ -21,6 +19,7 @@ from django_fsm.db.fields import FSMField, transition
 from django_fsm.signals import pre_transition, post_transition
 from model_utils.models import TimeStampedModel
 from redis_cache import get_redis_connection
+from waffle import flag_is_active
 
 from ... import locks
 
@@ -946,7 +945,7 @@ def existing_transcript_task(transcript, user):
             return existing_tasks[0]
 
 
-def assign_next_transcript_task(transcript, user, requested_task_type):
+def assign_next_transcript_task(transcript, user, requested_task_type, request=None):
     """Try to create the next available task of the requested type."""
 
     # Determine which order to search for available tasks.
@@ -1008,18 +1007,24 @@ def assign_next_transcript_task(transcript, user, requested_task_type):
 
         # Permission granted; try to create this type of task.
         tasks = TASK_MODEL[task_type].objects
-        if tasks.can_create(user, transcript, is_review):
+        if tasks.can_create(user, transcript, is_review, request):
             # Try to get this kind of task,
             # ignoring lock failures up to 5 times.
             for x in xrange(5):
                 try:
-                    task = tasks.create_next(user, transcript, is_review)
+                    task = tasks.create_next(user, transcript, is_review, request)
                 except locks.LockException:
                     # Try again.
                     continue
                 else:
                     task.present()
                     return task
+
+
+def request_bypasses_teamwork(request):
+    return (request is not None
+            and request.user.is_superuser
+            and flag_is_active(request, 'bypass_teamwork'))
 
 
 class TaskManager(models.Manager):
@@ -1035,7 +1040,7 @@ class TaskManager(models.Manager):
     def invalid(self):
         return self.filter(state='invalid')
 
-    def can_create(self, user, transcript, is_review):
+    def can_create(self, user, transcript, is_review, request=None):
         """Can we create a new task?
 
         :ptype user: django.contrib.auth.models.User
@@ -1044,7 +1049,7 @@ class TaskManager(models.Manager):
         """
         return False
 
-    def create_next(self, user, transcript, is_review):
+    def create_next(self, user, transcript, is_review, request=None):
         """Create and return the next new task.
 
         :ptype user: django.contrib.auth.models.User
@@ -1163,7 +1168,7 @@ class Task(TimeStampedModel):
 
 class TranscribeTaskManager(TaskManager):
 
-    def _available_fragments(self, user, transcript, is_review):
+    def _available_fragments(self, user, transcript, is_review, request=None):
         if not is_review:
             fragments = transcript.fragments.filter(
                 state='empty',
@@ -1175,16 +1180,16 @@ class TranscribeTaskManager(TaskManager):
                 lock_state='unlocked',
             )
 
-        if settings.TRANSCRIPTS_REQUIRE_TEAMWORK:
+        if settings.TRANSCRIPTS_REQUIRE_TEAMWORK and not request_bypasses_teamwork(request):
             fragments = fragments.exclude(last_editor=user)
 
         return fragments
 
-    def can_create(self, user, transcript, is_review):
-        return bool(self._available_fragments(user, transcript, is_review).count())
+    def can_create(self, user, transcript, is_review, request=None):
+        return bool(self._available_fragments(user, transcript, is_review, request).count())
 
-    def create_next(self, user, transcript, is_review):
-        fragment = self._available_fragments(user, transcript, is_review).first()
+    def create_next(self, user, transcript, is_review, request=None):
+        fragment = self._available_fragments(user, transcript, is_review, request).first()
         if fragment is None:
             return None
 
@@ -1279,7 +1284,7 @@ class TranscribeTask(Task):
 
 class StitchTaskManager(TaskManager):
 
-    def _available_stitches(self, user, transcript, is_review):
+    def _available_stitches(self, user, transcript, is_review, request=None):
         if not is_review:
             stitches = transcript.stitches.filter(
                 state='unstitched',
@@ -1291,16 +1296,16 @@ class StitchTaskManager(TaskManager):
                 lock_state='unlocked',
             )
 
-        if settings.TRANSCRIPTS_REQUIRE_TEAMWORK:
+        if settings.TRANSCRIPTS_REQUIRE_TEAMWORK and not request_bypasses_teamwork(request):
             stitches = stitches.exclude(last_editor=user)
 
         return stitches
 
-    def can_create(self, user, transcript, is_review):
-        return bool(self._available_stitches(user, transcript, is_review).count())
+    def can_create(self, user, transcript, is_review, request=None):
+        return bool(self._available_stitches(user, transcript, is_review, request).count())
 
-    def create_next(self, user, transcript, is_review):
-        stitch = self._available_stitches(user, transcript, is_review).first()
+    def create_next(self, user, transcript, is_review, request=None):
+        stitch = self._available_stitches(user, transcript, is_review, request).first()
         if not stitch:
             return None
 
@@ -1444,7 +1449,7 @@ class StitchTaskPairing(models.Model):
 
 class CleanTaskManager(TaskManager):
 
-    def _available_sentences(self, user, transcript, is_review):
+    def _available_sentences(self, user, transcript, is_review, request=None):
         if not is_review:
             sentences = transcript.sentences.filter(
                 state='completed',
@@ -1456,16 +1461,16 @@ class CleanTaskManager(TaskManager):
                 clean_state='edited',
             )
 
-        if settings.TRANSCRIPTS_REQUIRE_TEAMWORK:
+        if settings.TRANSCRIPTS_REQUIRE_TEAMWORK and not request_bypasses_teamwork(request):
             sentences = sentences.exclude(clean_last_editor=user)
 
         return sentences
 
-    def can_create(self, user, transcript, is_review):
-        return bool(self._available_sentences(user, transcript, is_review).count())
+    def can_create(self, user, transcript, is_review, request=None):
+        return bool(self._available_sentences(user, transcript, is_review, request).count())
 
-    def create_next(self, user, transcript, is_review):
-        sentence = self._available_sentences(user, transcript, is_review).first()
+    def create_next(self, user, transcript, is_review, request=None):
+        sentence = self._available_sentences(user, transcript, is_review, request).first()
         if sentence is None:
             return None
 
@@ -1551,7 +1556,7 @@ class CleanTask(Task):
 
 class BoundaryTaskManager(TaskManager):
 
-    def _available_sentences(self, user, transcript, is_review):
+    def _available_sentences(self, user, transcript, is_review, request=None):
         if not is_review:
             sentences = transcript.sentences.filter(
                 state='completed',
@@ -1563,17 +1568,17 @@ class BoundaryTaskManager(TaskManager):
                 boundary_state='edited',
             )
 
-        if settings.TRANSCRIPTS_REQUIRE_TEAMWORK:
+        if settings.TRANSCRIPTS_REQUIRE_TEAMWORK and not request_bypasses_teamwork(request):
             sentences = sentences.exclude(boundary_last_editor=user)
 
         return sentences
 
 
-    def can_create(self, user, transcript, is_review):
-        return bool(self._available_sentences(user, transcript, is_review).count())
+    def can_create(self, user, transcript, is_review, request=None):
+        return bool(self._available_sentences(user, transcript, is_review, request).count())
 
-    def create_next(self, user, transcript, is_review):
-        sentence = self._available_sentences(user, transcript, is_review).first()
+    def create_next(self, user, transcript, is_review, request=None):
+        sentence = self._available_sentences(user, transcript, is_review, request).first()
         if sentence is None:
             return None
 
@@ -1704,7 +1709,7 @@ def process_boundary_task_synchronously_on_submit(instance, target, **kwargs):
 
 class SpeakerTaskManager(TaskManager):
 
-    def _available_sentences(self, user, transcript, is_review):
+    def _available_sentences(self, user, transcript, is_review, request=None):
         if not is_review:
             sentences = transcript.sentences.filter(
                 state='completed',
@@ -1716,17 +1721,17 @@ class SpeakerTaskManager(TaskManager):
                 speaker_state='edited',
             )
 
-        if settings.TRANSCRIPTS_REQUIRE_TEAMWORK:
+        if settings.TRANSCRIPTS_REQUIRE_TEAMWORK and not request_bypasses_teamwork(request):
             sentences = sentences.exclude(speaker_last_editor=user)
 
         return sentences
 
 
-    def can_create(self, user, transcript, is_review):
-        return bool(self._available_sentences(user, transcript, is_review).count())
+    def can_create(self, user, transcript, is_review, request=None):
+        return bool(self._available_sentences(user, transcript, is_review, request).count())
 
-    def create_next(self, user, transcript, is_review):
-        sentence = self._available_sentences(user, transcript, is_review).first()
+    def create_next(self, user, transcript, is_review, request=None):
+        sentence = self._available_sentences(user, transcript, is_review, request).first()
         if sentence is None:
             return None
 

@@ -1,0 +1,7 @@
+flags:
+
+- name: bypass_teamwork
+  note: "Bypasses teamwork requirements when turned on"
+  meta: "Only effective when used by a superuser"
+  initial_testing: true
+  initial_superuser: false
