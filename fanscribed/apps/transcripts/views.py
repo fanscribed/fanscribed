@@ -7,7 +7,6 @@ from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 
 import vanilla
-from fanscribed.locks import LockException
 
 from ...utils import refresh
 from . import forms as f
@@ -39,96 +38,13 @@ class AssignsTasks(object):
 
         user = self.request.user
 
-        # Check for existing tasks in this transcript.
-        for task_class in m.TASK_MODEL.values():
-            existing_tasks = task_class.objects.filter(
-                transcript=transcript,
-                assignee=user,
-                state='presented',
-            )
-            if existing_tasks:
-                # Assign the first existing presented task.
-                messages.info(self.request,
-                              "We found a task you haven't completed.")
-                task = existing_tasks[0]
-                break
+        task = m.existing_transcript_task(transcript, user)
+        if task is not None:
+            messages.info(self.request,
+                          "We found a task you haven't completed.")
         else:
-            # Try to create the next available type of task.
-            task = None
-
-            # Determine which order to search for available tasks.
-            if requested_task_type == 'any_sequential':
-                # Sequential moves through the pipeline in one stage at a time.
-                L = [
-                    # (task_type, is_review),
-                    ('transcribe', False),
-                    ('transcribe', True),
-                    ('stitch', False),
-                    ('stitch', True),
-                    ('boundary', False),
-                    ('boundary', True),
-                    ('clean', False),
-                    ('clean', True),
-                    ('speaker', False),
-                    ('speaker', True),
-                ]
-            elif requested_task_type == 'any_eager':
-                # Eager switches you to a new task type as soon as one is available.
-                L = [
-                    # (task_type, is_review),
-                    ('boundary', True),
-                    ('clean', True),
-                    ('speaker', True),
-                    ('boundary', False),
-                    ('clean', False),
-                    ('speaker', False),
-                    ('stitch', True),
-                    ('stitch', False),
-                    ('transcribe', True),
-                    ('transcribe', False),
-                ]
-            else:
-                # An individual task type was selected.
-                if requested_task_type.endswith('_review'):
-                    task_type = requested_task_type.split('_review')[
-                        0]  # Remove '_review'.
-                    is_review = True
-                else:
-                    is_review = False
-                L = [(requested_task_type, is_review)]
-
-            preferred_task_types = user.profile.preferred_task_names
-            for task_type, is_review in L:
-
-                # Does the user want to perform this kind of task?
-                if task_type not in preferred_task_types:
-                    continue
-
-                # Does the user have permission to perform the task?
-                perm_name = 'transcripts.add_{}task{}'.format(
-                    task_type,
-                    '_review' if is_review else '',
-                )
-                if not user.has_perm(perm_name):
-                    continue
-
-                # Permission granted; try to create this type of task.
-                tasks = m.TASK_MODEL[task_type].objects
-                if tasks.can_create(transcript, is_review):
-                    # Try to get this kind of task,
-                    # ignoring lock failures up to 5 times.
-                    for x in xrange(5):
-                        try:
-                            task = tasks.create_next(
-                                user, transcript, is_review)
-                        except LockException:
-                            # Try again.
-                            continue
-                        else:
-                            break
-                    if task:
-                        task.present()
-                        break
+            task = m.assign_next_transcript_task(
+                transcript, user, requested_task_type)
 
         if task:
             return task.get_absolute_url() + '?t=' + requested_task_type

@@ -97,12 +97,15 @@ class Sentence(models.Model):
 
     clean_state = FSMField(default='untouched')     # Not protected.
     clean_lock_id = models.CharField(max_length=32, blank=True, null=True)
+    clean_last_editor = models.ForeignKey('auth.User', blank=True, null=True, related_name='+')
 
     boundary_state = FSMField(default='untouched')  # Not protected.
     boundary_lock_id = models.CharField(max_length=32, blank=True, null=True)
+    boundary_last_editor = models.ForeignKey('auth.User', blank=True, null=True, related_name='+')
 
     speaker_state = FSMField(default='untouched')   # Not protected.
     speaker_lock_id = models.CharField(max_length=32, blank=True, null=True)
+    speaker_last_editor = models.ForeignKey('auth.User', blank=True, null=True, related_name='+')
 
     fragments = models.ManyToManyField(
         'SentenceFragment', related_name='sentences')
@@ -556,6 +559,7 @@ class TranscriptFragment(models.Model):
     state = FSMField(default='empty', protected=True)
     lock_state = FSMField(default='unlocked', protected=True)
     lock_id = models.CharField(max_length=32, blank=True, null=True)
+    last_editor = models.ForeignKey('auth.User', blank=True, null=True, related_name='+')
 
     objects = TranscriptFragmentManager()
 
@@ -661,6 +665,7 @@ class TranscriptStitch(models.Model):
     state = FSMField(default='notready', protected=True)
     lock_state = FSMField(default='unlocked', protected=True)
     lock_id = models.CharField(max_length=32, blank=True, null=True)
+    last_editor = models.ForeignKey('auth.User', blank=True, null=True, related_name='+')
 
     objects = TranscriptStitchManager()
 
@@ -929,6 +934,94 @@ class TranscriptMedia(TimeStampedModel):
 # ================================================================
 
 
+def existing_transcript_task(transcript, user):
+    """Check for existing tasks in this transcript."""
+    for task_class in TASK_MODEL.values():
+        existing_tasks = task_class.objects.filter(
+            transcript=transcript,
+            assignee=user,
+            state='presented',
+        )
+        if existing_tasks:
+            return existing_tasks[0]
+
+
+def assign_next_transcript_task(transcript, user, requested_task_type):
+    """Try to create the next available task of the requested type."""
+
+    # Determine which order to search for available tasks.
+    if requested_task_type == 'any_sequential':
+        # Sequential moves through the pipeline in one stage at a time.
+        L = [
+            # (task_type, is_review),
+            ('transcribe', False),
+            ('transcribe', True),
+            ('stitch', False),
+            ('stitch', True),
+            ('boundary', False),
+            ('boundary', True),
+            ('clean', False),
+            ('clean', True),
+            ('speaker', False),
+            ('speaker', True),
+        ]
+    elif requested_task_type == 'any_eager':
+        # Eager switches you to a new task type as soon as one is available.
+        L = [
+            # (task_type, is_review),
+            ('boundary', True),
+            ('clean', True),
+            ('speaker', True),
+            ('boundary', False),
+            ('clean', False),
+            ('speaker', False),
+            ('stitch', True),
+            ('stitch', False),
+            ('transcribe', True),
+            ('transcribe', False),
+        ]
+    else:
+        # An individual task type was selected.
+        if requested_task_type.endswith('_review'):
+            # Remove '_review' from requested task type.
+            requested_task_type = requested_task_type.split('_review')[0]
+            is_review = True
+        else:
+            # No changes to requested task type.
+            is_review = False
+        L = [(requested_task_type, is_review)]
+
+    preferred_task_types = user.profile.preferred_task_names
+    for task_type, is_review in L:
+
+        # Does the user want to perform this kind of task?
+        if task_type not in preferred_task_types:
+            continue
+
+        # Does the user have permission to perform the task?
+        perm_name = 'transcripts.add_{}task{}'.format(
+            task_type,
+            '_review' if is_review else '',
+        )
+        if not user.has_perm(perm_name):
+            continue
+
+        # Permission granted; try to create this type of task.
+        tasks = TASK_MODEL[task_type].objects
+        if tasks.can_create(user, transcript, is_review):
+            # Try to get this kind of task,
+            # ignoring lock failures up to 5 times.
+            for x in xrange(5):
+                try:
+                    task = tasks.create_next(user, transcript, is_review)
+                except locks.LockException:
+                    # Try again.
+                    continue
+                else:
+                    task.present()
+                    return task
+
+
 class TaskManager(models.Manager):
 
     use_for_related_fields = True
@@ -942,9 +1035,10 @@ class TaskManager(models.Manager):
     def invalid(self):
         return self.filter(state='invalid')
 
-    def can_create(self, transcript, is_review):
+    def can_create(self, user, transcript, is_review):
         """Can we create a new task?
 
+        :ptype user: django.contrib.auth.models.User
         :ptype transcript: Transcript
         :ptype review: bool
         """
@@ -953,6 +1047,7 @@ class TaskManager(models.Manager):
     def create_next(self, user, transcript, is_review):
         """Create and return the next new task.
 
+        :ptype user: django.contrib.auth.models.User
         :ptype transcript: Transcript
         :ptype review: bool
         """
@@ -1068,23 +1163,28 @@ class Task(TimeStampedModel):
 
 class TranscribeTaskManager(TaskManager):
 
-    def _available_fragments(self, transcript, is_review):
+    def _available_fragments(self, user, transcript, is_review):
         if not is_review:
-            return transcript.fragments.filter(
+            fragments = transcript.fragments.filter(
                 state='empty',
                 lock_state='unlocked',
             )
         else:
-            return transcript.fragments.filter(
+            fragments = transcript.fragments.filter(
                 state='transcribed',
                 lock_state='unlocked',
             )
 
-    def can_create(self, transcript, is_review):
-        return bool(self._available_fragments(transcript, is_review).count())
+        if settings.TRANSCRIPTS_REQUIRE_TEAMWORK:
+            fragments = fragments.exclude(last_editor=user)
+
+        return fragments
+
+    def can_create(self, user, transcript, is_review):
+        return bool(self._available_fragments(user, transcript, is_review).count())
 
     def create_next(self, user, transcript, is_review):
-        fragment = self._available_fragments(transcript, is_review).first()
+        fragment = self._available_fragments(user, transcript, is_review).first()
         if fragment is None:
             return None
 
@@ -1165,6 +1265,7 @@ class TranscribeTask(Task):
         result = process_transcribe_task.delay(self.pk)
 
     def _validate(self):
+        self.fragment.last_editor = self.assignee
         self.fragment.unlock()
 
     def _invalidate(self):
@@ -1178,23 +1279,28 @@ class TranscribeTask(Task):
 
 class StitchTaskManager(TaskManager):
 
-    def _available_stitches(self, transcript, is_review):
+    def _available_stitches(self, user, transcript, is_review):
         if not is_review:
-            return transcript.stitches.filter(
+            stitches = transcript.stitches.filter(
                 state='unstitched',
                 lock_state='unlocked',
             )
         else:
-            return transcript.stitches.filter(
+            stitches = transcript.stitches.filter(
                 state='stitched',
                 lock_state='unlocked',
             )
 
-    def can_create(self, transcript, is_review):
-        return bool(self._available_stitches(transcript, is_review).count())
+        if settings.TRANSCRIPTS_REQUIRE_TEAMWORK:
+            stitches = stitches.exclude(last_editor=user)
+
+        return stitches
+
+    def can_create(self, user, transcript, is_review):
+        return bool(self._available_stitches(user, transcript, is_review).count())
 
     def create_next(self, user, transcript, is_review):
-        stitch = self._available_stitches(transcript, is_review).first()
+        stitch = self._available_stitches(user, transcript, is_review).first()
         if not stitch:
             return None
 
@@ -1257,6 +1363,7 @@ class StitchTask(Task):
         process_stitch_task.delay(self.pk)
 
     def _validate(self):
+        self.stitch.last_editor = self.assignee
         self.stitch.unlock()
 
     def _invalidate(self):
@@ -1337,23 +1444,28 @@ class StitchTaskPairing(models.Model):
 
 class CleanTaskManager(TaskManager):
 
-    def _available_sentences(self, transcript, is_review):
+    def _available_sentences(self, user, transcript, is_review):
         if not is_review:
-            return transcript.sentences.filter(
+            sentences = transcript.sentences.filter(
                 state='completed',
                 clean_state='untouched',
             )
         else:
-            return transcript.sentences.filter(
+            sentences = transcript.sentences.filter(
                 state='completed',
                 clean_state='edited',
             )
 
-    def can_create(self, transcript, is_review):
-        return bool(self._available_sentences(transcript, is_review).count())
+        if settings.TRANSCRIPTS_REQUIRE_TEAMWORK:
+            sentences = sentences.exclude(clean_last_editor=user)
+
+        return sentences
+
+    def can_create(self, user, transcript, is_review):
+        return bool(self._available_sentences(user, transcript, is_review).count())
 
     def create_next(self, user, transcript, is_review):
-        sentence = self._available_sentences(transcript, is_review).first()
+        sentence = self._available_sentences(user, transcript, is_review).first()
         if sentence is None:
             return None
 
@@ -1419,6 +1531,7 @@ class CleanTask(Task):
                 self.sentence.clean_state = 'reviewed'
             else:
                 self.sentence.clean_state = 'edited'
+        self.sentence.clean_last_editor = self.assignee
         self.sentence.unlock_clean()
         self.sentence.save()
 
@@ -1438,23 +1551,29 @@ class CleanTask(Task):
 
 class BoundaryTaskManager(TaskManager):
 
-    def _available_sentences(self, transcript, is_review):
+    def _available_sentences(self, user, transcript, is_review):
         if not is_review:
-            return transcript.sentences.filter(
+            sentences = transcript.sentences.filter(
                 state='completed',
                 boundary_state='untouched',
             )
         else:
-            return transcript.sentences.filter(
+            sentences = transcript.sentences.filter(
                 state='completed',
                 boundary_state='edited',
             )
 
-    def can_create(self, transcript, is_review):
-        return bool(self._available_sentences(transcript, is_review).count())
+        if settings.TRANSCRIPTS_REQUIRE_TEAMWORK:
+            sentences = sentences.exclude(boundary_last_editor=user)
+
+        return sentences
+
+
+    def can_create(self, user, transcript, is_review):
+        return bool(self._available_sentences(user, transcript, is_review).count())
 
     def create_next(self, user, transcript, is_review):
-        sentence = self._available_sentences(transcript, is_review).first()
+        sentence = self._available_sentences(user, transcript, is_review).first()
         if sentence is None:
             return None
 
@@ -1552,6 +1671,7 @@ class BoundaryTask(Task):
                 self.sentence.boundary_state = 'reviewed'
             else:
                 self.sentence.boundary_state = 'edited'
+        self.sentence.boundary_last_editor = self.assignee
         self.sentence.unlock_boundary()
         self.sentence.save()
 
@@ -1584,23 +1704,29 @@ def process_boundary_task_synchronously_on_submit(instance, target, **kwargs):
 
 class SpeakerTaskManager(TaskManager):
 
-    def _available_sentences(self, transcript, is_review):
+    def _available_sentences(self, user, transcript, is_review):
         if not is_review:
-            return transcript.sentences.filter(
+            sentences = transcript.sentences.filter(
                 state='completed',
                 speaker_state='untouched',
             )
         else:
-            return transcript.sentences.filter(
+            sentences = transcript.sentences.filter(
                 state='completed',
                 speaker_state='edited',
             )
 
-    def can_create(self, transcript, is_review):
-        return bool(self._available_sentences(transcript, is_review).count())
+        if settings.TRANSCRIPTS_REQUIRE_TEAMWORK:
+            sentences = sentences.exclude(speaker_last_editor=user)
+
+        return sentences
+
+
+    def can_create(self, user, transcript, is_review):
+        return bool(self._available_sentences(user, transcript, is_review).count())
 
     def create_next(self, user, transcript, is_review):
-        sentence = self._available_sentences(transcript, is_review).first()
+        sentence = self._available_sentences(user, transcript, is_review).first()
         if sentence is None:
             return None
 
@@ -1668,6 +1794,7 @@ class SpeakerTask(Task):
                 self.sentence.speaker_state = 'reviewed'
             else:
                 self.sentence.speaker_state = 'edited'
+        self.sentence.speaker_last_editor = self.assignee
         self.sentence.unlock_speaker()
         self.sentence.save()
 

@@ -18,6 +18,9 @@ CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 TRANSCRIPT_FRAGMENT_LENGTH = Decimal('5.00')
 TRANSCRIPT_FRAGMENT_OVERLAP = Decimal('1.50')
 
+# For most tests, don't worry about teamwork requirement when assigning tasks.
+TRANSCRIPTS_REQUIRE_TEAMWORK = False
+
 CACHES = {
     'default': {
         'BACKEND': 'redis_cache.cache.RedisCache',
