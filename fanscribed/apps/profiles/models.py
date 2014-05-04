@@ -5,6 +5,7 @@ Inspired by http://www.turnkeylinux.org/blog/django-profile
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.dispatch import receiver
 from django.utils.text import slugify
 
 from django_fsm.db.fields import FSMField, transition
@@ -59,7 +60,7 @@ class Profile(models.Model):
 
 class TaskType(models.Model):
 
-    # See ... for the data migration that populates this.
+    # See 0004_load_default_data for the data migration that populates this.
 
     name = models.CharField(max_length=10, unique=True)
     description = models.CharField(max_length=200)
@@ -70,6 +71,13 @@ class TaskType(models.Model):
 
     def __unicode__(self):
         return u'{}: {}'.format(self.name.title(), self.description)
+
+
+# New users start out preferring all task types.
+@receiver(models.signals.post_save, sender=Profile)
+def new_profiles_prefer_all_task_types(instance, created, raw, **kwargs):
+    if created and not raw:
+        instance.task_types.add(*TaskType.objects.all())
 
 
 # Add a property to User to always get-or-create a corresponding Profile.

@@ -50,3 +50,7 @@ class NicknameTestCase(TestCase):
         self.profile.set_nickname(u'   My   New  \n  Nickname   ')
         self.assertEqual(self.profile.nickname, u'My New Nickname')
         self.assertEqual(self.profile.nickname_slug, u'my-new-nickname')
+
+    def test_new_users_have_all_task_types(self):
+        expected = {'transcribe', 'stitch', 'boundary', 'clean', 'speaker'}
+        self.assertEqual(self.user.profile.preferred_task_names, expected)
