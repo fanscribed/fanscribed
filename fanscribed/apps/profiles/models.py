@@ -12,8 +12,8 @@ from django_fsm.db.fields import FSMField, transition
 
 
 TASK_ORDER_CHOICES = [
-    ('sequential', 'Give me the same kinds of tasks in sequence.'),
     ('eager', 'Give me different kinds of tasks when they are available.'),
+    ('sequential', 'Give me the same kinds of tasks in sequence.'),
 ]
 
 
@@ -31,7 +31,7 @@ class Profile(models.Model):
     task_order = models.CharField(
         choices=TASK_ORDER_CHOICES,
         verbose_name='Which order would you like to receive tasks?',
-        default='sequential',
+        default='eager',
         max_length=10)
 
     def __unicode__(self):
