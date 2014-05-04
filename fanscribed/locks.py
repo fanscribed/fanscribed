@@ -53,14 +53,12 @@ def acquire_model_lock(conn, instance, lockname, lockid_field):
         raise LockException('{lockname} already locked'.format(**locals()))
     else:
         setattr(instance, lockid_field, identifier)
-        print 'acquired', lockname, lock
         return lock
 
 
 def release_model_lock(conn, instance, lockname, lockid_field):
     lockid = getattr(instance, lockid_field)
     released = release_lock(conn, lockname, lockid)
-    print 'released', lockname, released
     setattr(instance, lockid_field, None)
     return released
 
