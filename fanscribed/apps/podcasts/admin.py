@@ -31,7 +31,7 @@ class TranscriptionApprovalInline(admin.StackedInline):
 class PodcastAdmin(DjangoObjectActions, admin.ModelAdmin):
 
     actions = ['fetch']
-    fields = ('title', 'link_url', 'rss_url', 'image_url')
+    fields = ('title', 'link_url', 'rss_url', 'image_url', 'provides_own_transcripts')
     list_display = ('title', 'link_url', 'rss_url')
     objectactions = ('fetch_individual',)
 

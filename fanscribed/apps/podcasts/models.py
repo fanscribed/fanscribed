@@ -73,6 +73,7 @@ class Podcast(models.Model):
     title = models.CharField(max_length=200, blank=True, null=True)
     link_url = models.URLField(blank=True, null=True)
     image_url = models.URLField(blank=True, null=True)
+    provides_own_transcripts = models.BooleanField(default=False, help_text="If True, episodes have external transcript set to the episode's link URL")
 
     class Meta:
         ordering = ('title', 'rss_url')
@@ -233,6 +234,7 @@ def update_podcast_title_and_episodes_from_rssfetch(instance, target, **kwargs):
                     link_url=link_url,
                     image_url=image_url,
                     description=entry.description,
+                    external_transcript=link_url if podcast.provides_own_transcripts else None,
                 )
             else:
                 # Update existing episodes due to addition of link_url and image_url.
