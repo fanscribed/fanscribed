@@ -1584,17 +1584,21 @@ class BoundaryTaskManager(TaskManager):
 
         if not is_review:
 
-            # First, look for the most recently bounded sentence,
-            # just in case we're doing.
+            # First, look for the end of the most recently bounded sentence,
+            # to try to predict where this sentence will start.
             bounded_sentences = transcript.sentences.completed().filter(
                 boundary_state__in=['edited', 'reviewed'])
             if bounded_sentences.exists():
                 latest_bounded = bounded_sentences.order_by('-latest_end')[0]
 
-                # Use the end of the last sentence as the start of this one.
+                # Use the end of the last sentence as the start of this one...
                 start = latest_bounded.latest_end
 
-                # Apply overlap and correct for out of bounds.
+                # ...but only if it comes after the default starting position.
+                default_start = sentence.latest_start - settings.TRANSCRIPT_FRAGMENT_OVERLAP
+                start = max(start, default_start)
+
+                # Apply overlap to end, and correct for out of bounds.
                 end = sentence.latest_end + settings.TRANSCRIPT_FRAGMENT_OVERLAP
                 end = min(transcript.length, end)
 
