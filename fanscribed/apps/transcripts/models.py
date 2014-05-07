@@ -1591,16 +1591,21 @@ class BoundaryTaskManager(TaskManager):
             if bounded_sentences.exists():
                 latest_bounded = bounded_sentences.order_by('-latest_end')[0]
 
-                # Use the end of the last sentence as the start of this one...
-                start = latest_bounded.latest_end
-
-                # ...but only if it comes after the default starting position.
-                default_start = sentence.latest_start - settings.TRANSCRIPT_FRAGMENT_OVERLAP
-                start = max(start, default_start)
-
                 # Apply overlap to end, and correct for out of bounds.
                 end = sentence.latest_end + settings.TRANSCRIPT_FRAGMENT_OVERLAP
                 end = min(transcript.length, end)
+
+                # Use the end of the last sentence as the start of this one...
+                start = latest_bounded.latest_end
+
+                # ...but only if it comes after the default starting position...
+                default_start = sentence.latest_start - settings.TRANSCRIPT_FRAGMENT_OVERLAP
+                start = max(start, default_start)
+
+                # ...and only if the calculated starting position comes before
+                # the default ending position.
+                if start > end:
+                    start = default_start
 
             # Fall back to applying the default start/end.
             else:
