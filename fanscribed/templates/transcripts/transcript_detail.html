@@ -21,7 +21,16 @@
 
 
 {% block nav_class_transcribe %}
-  active
+  {% if transcript.state != 'finished' %}
+    active
+  {% endif %}
+{% endblock %}
+
+
+{% block nav_class_read %}
+  {% if transcript.state == 'finished' %}
+    active
+  {% endif %}
 {% endblock %}
 
 
@@ -136,7 +145,7 @@
       useWaveformData: false,// [Flash 9 only] show raw waveform data - WARNING: LIKELY VERY CPU-HEAVY
       useEQData: false,      // [Flash 9 only] show EQ (frequency spectrum) data
       useFavIcon: false     // try to apply peakData to address bar (Firefox + Opera) - performance note: appears to make Firefox 3 do some temporary, heavy disk access/swapping/garbage collection at first(?) - may be too heavy on CPU
-    }
+    };
 
   </script>
 
@@ -237,9 +246,9 @@
       <h2>Transcript</h2>
 
       {% if transcript.state == 'finished' %}
-{#        {% cache 600 transcript_finished_sentences transcript.pk %}#}
+        {% cache 600 transcript_finished_sentences transcript.pk %}
           {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.completed_sentences %}
-{#        {% endcache %}#}
+        {% endcache %}
       {% else %}
         <p class="text-muted">
           Text will appear here when the transcript is finished.
