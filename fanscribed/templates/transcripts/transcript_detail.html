@@ -124,6 +124,32 @@
       sound.onfinish_shim = removeAllSentenceHighlights;
     }
 
+    var ENABLE_JUMP_TO_SENTENCE = false;
+    if (ENABLE_JUMP_TO_SENTENCE) {
+
+      function jumpToSentence (sentenceId) {
+        // TODO: fix position jumping when using Flash
+        pagePlayer.autoStart();
+        var start = completedSentences[sentenceId][0];
+        if (start !== undefined) {
+          taskSound.setPosition(start * 1000);
+        }
+      }
+
+      function onTimecodeClick (e) {
+        // TODO: fix position jumping when using Flash
+        var $a = $(e.target);
+        var sentenceId = $a.attr('href').substr(2);  // Strip #s from beginning.
+        jumpToSentence(sentenceId);
+        return false;
+      }
+
+      $(function () {
+        $('.timecode a').click(onTimecodeClick);
+      });
+
+    }
+
     soundManager.setup({
       {% if DEBUG %}debugMode: true,{% endif %}
       // preferFlash: false
@@ -138,6 +164,7 @@
 
     var PP_CONFIG = {
       onNewSound: prepareTaskSound,
+      updatePageTitle: false,
       autoStart: false,      // begin playing first sound when page loads
       playNext: false,        // stop after one sound, or play through list until end
       useThrottling: false,  // try to rate-limit potentially-expensive calls (eg. dragging position around)</span>

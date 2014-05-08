@@ -927,6 +927,12 @@ function PagePlayer() {
     }
   };
 
+  this.autoStart = function () {
+    if (self.sounds.length == 0) {
+      pl.handleClick({target:pl.getByClassName('playlist', 'ul')[0].getElementsByTagName('a')[0]});
+    }
+  };
+
   this.init = function(oConfig) {
 
     if (oConfig) {
@@ -1072,7 +1078,7 @@ function PagePlayer() {
 
     if (self.config.autoStart) {
       // grab the first ul.playlist link
-      pl.handleClick({target:pl.getByClassName('playlist', 'ul')[0].getElementsByTagName('a')[0]});
+      self.autoStart();
     }
 
   };
