@@ -1,4 +1,5 @@
 from decimal import Decimal
+import json
 
 from django.contrib import messages
 from django.core.urlresolvers import reverse
@@ -26,6 +27,19 @@ class TranscriptListView(vanilla.ListView):
 class TranscriptDetailView(vanilla.DetailView):
 
     model = m.Transcript
+
+    def get_context_data(self, **kwargs):
+        data = super(TranscriptDetailView, self).get_context_data(**kwargs)
+        transcript = self.get_object()
+        data['completed_sentences_json'] = json.dumps(
+            dict(
+                (item['id'], [float(item['latest_start']), float(item['latest_end'])])
+                for item
+                in transcript.completed_sentences.values('id', 'latest_start', 'latest_end')
+            )
+        )
+        return data
+
 
     def render_to_response(self, context):
 

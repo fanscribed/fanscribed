@@ -3,3 +3,11 @@
 footer {
   margin-top: 20px;
 }
+
+.transcript td.timecode {
+  width: 6em;
+}
+
+.transcript td.speaker {
+  width: 10em;
+}

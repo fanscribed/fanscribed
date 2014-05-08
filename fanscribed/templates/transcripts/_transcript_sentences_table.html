@@ -1,12 +1,12 @@
 {# params: sentences #}
 {% load timecode_tags %}
 
-<table class="table table-condensed">
+<table class="transcript table table-condensed">
   <tbody>
     {% for sentence in sentences %}
-      <tr>
-        <td class="text-right hidden-xs" style="width:6em"><small>{{ sentence.latest_start|timecode }}</small></td>
-        <td style="width:10em" class="text-right">{% if sentence.latest_speaker %}<strong>{{ sentence.latest_speaker }}</strong>{% else %}&nbsp;{% endif %}</td>
+      <tr id="s{{ sentence.id }}" class="sentence">
+        <td class="text-right hidden-xs timecode"><small><a href="#s{{ sentence.id }}">{{ sentence.latest_start|timecode }}</a></small></td>
+        <td class="text-right speaker">{% if sentence.latest_speaker %}<strong>{{ sentence.latest_speaker }}</strong>{% else %}&nbsp;{% endif %}</td>
         <td>{{ sentence.latest_text }}</td>
       </tr>
     {% endfor %}

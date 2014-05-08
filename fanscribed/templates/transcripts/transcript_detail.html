@@ -55,7 +55,51 @@
     <script type="text/javascript" src="{% static 'vendor/jquery.hotkeys/jquery.hotkeys.js' %}"></script>
   {% endif %}
 
-  <script>
+  <script type="text/javascript">
+
+    var completedSentences = {{ completed_sentences_json|safe }};
+
+    function highlightSentencesAtTime (time) {
+      var sentences = [];
+
+      // TODO: place sentences in bins so this becomes faster than O(n).
+      $.each(completedSentences, function (sentenceId, timecodes) {
+        var start = timecodes[0], end = timecodes[1];
+        if (start <= time && end >= time) {
+          sentences.push(sentenceId);
+        }
+      });
+
+      $('.sentence.active').each(function () {
+        var $tr = $(this);
+        $.each(sentences, function (index, sentenceId) {
+          if ($tr.attr('id') != '#s' + sentenceId) {
+            $tr.removeClass('active');
+          }
+        });
+      });
+      $.each(sentences, function (index, sentenceId) {
+        $('#s' + sentenceId).addClass('active');
+      });
+    }
+
+    function highlightCurrentlyPlayingSentences () {
+      highlightSentencesAtTime(taskSound.position / 1000);
+    }
+
+    function removeAllSentenceHighlights () {
+      $('.sentence.active').removeClass('active');
+    }
+
+    function prepareTaskSound (sound) {
+      window.taskSound = sound;
+      // Shim the callbacks onto the sound, so page-player calls them
+      // along with normal behavior.
+      {# TODO: clean this up #}
+      sound.whileplaying_shim = highlightCurrentlyPlayingSentences;
+      sound.onstop_shim = removeAllSentenceHighlights;
+      sound.onfinish_shim = removeAllSentenceHighlights;
+    }
 
     soundManager.setup({
       {% if DEBUG %}debugMode: true,{% endif %}
@@ -69,9 +113,8 @@
       url: '/static/vendor/soundmanagerv297a-20131201/swf/'
     });
 
-    // custom page player configuration
-
     var PP_CONFIG = {
+      onNewSound: prepareTaskSound,
       autoStart: false,      // begin playing first sound when page loads
       playNext: false,        // stop after one sound, or play through list until end
       useThrottling: false,  // try to rate-limit potentially-expensive calls (eg. dragging position around)</span>
@@ -82,6 +125,7 @@
     }
 
   </script>
+
   <script type="text/javascript" src="{% static 'vendor/soundmanagerv297a-20131201/script/page-player.js' %}"></script>
 
 {% endblock %}

@@ -692,8 +692,11 @@ function PagePlayer() {
           self.stopSound(self.lastSound);
         }
         self.resetGraph.apply(thisSound);
-        thisSound.play();
 
+        // Allow callback to further configure sound before playback starts.
+        self.config.onNewSound && self.config.onNewSound(thisSound);
+
+        thisSound.play();
       }
 
       self.lastSound = thisSound; // reference for next call
