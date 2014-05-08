@@ -459,6 +459,15 @@ class Transcript(TimeStampedModel):
         return self.sentences.filter(state='completed').order_by('latest_start')
 
     @property
+    def processed_media_url(self):
+        """Returns the URL for the transcript's full-length processed audio,
+        or None if no such audio exists for the transcript."""
+        try:
+            return self.media.get(is_processed=True, is_full_length=True).file.url
+        except TranscriptMedia.DoesNotExist:
+            return None
+
+    @property
     def stats(self):
         """Return a dictionary with a percentage of completion of each phase."""
         stats = {}
