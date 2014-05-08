@@ -59,27 +59,41 @@
 
     var completedSentences = {{ completed_sentences_json|safe }};
 
-    function highlightSentencesAtTime (time) {
-      var sentences = [];
+    // Place sentences into one-second bins so we can have
+    // lookup times close to O(1).
+    var sentencesBySecond = {};
+    $.each(completedSentences, function (sentenceId, timecodes) {
+      var start = timecodes[0], end = timecodes[1];
+      for (var bin = Math.floor(start); bin <= Math.floor(end); bin += 1) {
+        sentencesBySecond[bin] = sentencesBySecond[bin] || {};
+        sentencesBySecond[bin][sentenceId] = timecodes;
+      }
+    });
 
-      // TODO: place sentences in bins so this becomes faster than O(n).
-      $.each(completedSentences, function (sentenceId, timecodes) {
+    var SENTENCE_HIGHLIGHT_CLASS = 'info';
+
+    function highlightSentencesAtTime (time) {
+      var playingSentences = [];
+
+      var possibleSentences = sentencesBySecond[Math.floor(time)];
+
+      $.each(possibleSentences, function (sentenceId, timecodes) {
         var start = timecodes[0], end = timecodes[1];
         if (start <= time && end >= time) {
-          sentences.push(sentenceId);
+          playingSentences.push(sentenceId);
         }
       });
 
-      $('.sentence.active').each(function () {
+      $('.sentence.' + SENTENCE_HIGHLIGHT_CLASS).each(function () {
         var $tr = $(this);
-        $.each(sentences, function (index, sentenceId) {
+        $.each(playingSentences, function (index, sentenceId) {
           if ($tr.attr('id') != '#s' + sentenceId) {
-            $tr.removeClass('active');
+            $tr.removeClass(SENTENCE_HIGHLIGHT_CLASS);
           }
         });
       });
-      $.each(sentences, function (index, sentenceId) {
-        $('#s' + sentenceId).addClass('active');
+      $.each(playingSentences, function (index, sentenceId) {
+        $('#s' + sentenceId).addClass(SENTENCE_HIGHLIGHT_CLASS);
       });
     }
 
@@ -88,7 +102,7 @@
     }
 
     function removeAllSentenceHighlights () {
-      $('.sentence.active').removeClass('active');
+      $('.sentence.' + SENTENCE_HIGHLIGHT_CLASS).removeClass(SENTENCE_HIGHLIGHT_CLASS);
     }
 
     function prepareTaskSound (sound) {
@@ -223,9 +237,9 @@
       <h2>Transcript</h2>
 
       {% if transcript.state == 'finished' %}
-        {% cache 600 transcript_finished_sentences transcript.pk %}
+{#        {% cache 600 transcript_finished_sentences transcript.pk %}#}
           {% include "transcripts/_transcript_sentences_table.html" with sentences=transcript.completed_sentences %}
-        {% endcache %}
+{#        {% endcache %}#}
       {% else %}
         <p class="text-muted">
           Text will appear here when the transcript is finished.
