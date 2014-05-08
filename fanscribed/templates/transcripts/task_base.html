@@ -83,7 +83,7 @@
       };
 
       window.prepareTaskSound = function () {
-        var taskSound = window.taskSound = pagePlayer.sounds[pagePlayer.sounds.length - 1];
+        var taskSound = window.taskSound = pagePlayer.lastSound;
         // Shim the callbacks onto the sound, so page-player calls them
         // along with normal behavior.
         {# TODO: clean this up #}
