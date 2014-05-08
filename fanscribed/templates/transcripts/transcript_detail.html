@@ -107,15 +107,14 @@
     }
 
     function highlightCurrentlyPlayingSentences () {
-      highlightSentencesAtTime(taskSound.position / 1000);
+      highlightSentencesAtTime(pagePlayer.lastSound.position / 1000);
     }
 
     function removeAllSentenceHighlights () {
       $('.sentence.' + SENTENCE_HIGHLIGHT_CLASS).removeClass(SENTENCE_HIGHLIGHT_CLASS);
     }
 
-    function prepareTaskSound (sound) {
-      window.taskSound = sound;
+    function prepareSound (sound) {
       // Shim the callbacks onto the sound, so page-player calls them
       // along with normal behavior.
       {# TODO: clean this up #}
@@ -124,31 +123,57 @@
       sound.onfinish_shim = removeAllSentenceHighlights;
     }
 
-    var ENABLE_JUMP_TO_SENTENCE = false;
-    if (ENABLE_JUMP_TO_SENTENCE) {
+    var waitForDurationIntervalId;
+    function jumpToSentence (sentenceId) {
+      var start = completedSentences[sentenceId][0];
+      if (start !== undefined) {
+        if (pagePlayer.lastSound === null) {
+          //
+          pagePlayer.autoStart();
+        }
 
-      function jumpToSentence (sentenceId) {
-        // TODO: fix position jumping when using Flash
-        pagePlayer.autoStart();
-        var start = completedSentences[sentenceId][0];
-        if (start !== undefined) {
-          taskSound.setPosition(start * 1000);
+        // pagePlayer.lastSound is now set; create an alias.
+        var sound = pagePlayer.lastSound;
+
+        // Pause the sound before seeking, so we don't get the beginning of the
+        // sound if it wasn't yet playing when we jumped to this sentence.
+        sound.pause();
+
+        // Cancel any existing waiting for sound.duration to
+        // catch up with a previous jump.
+        if (waitForDurationIntervalId !== undefined) {
+          clearInterval(waitForDurationIntervalId);
+          waitForDurationIntervalId = undefined;
+        }
+
+        var startMs = start * 1000;
+        if (sound.duration >= startMs) {
+          // We already have enough audio loaded; play immediately.
+          sound.setPosition(startMs);
+          sound.play();
+        } else {
+          // Every 100 ms, check to see if we have enough audio loaded.
+          waitForDurationIntervalId = setInterval(function () {
+            if (sound.duration >= startMs) {
+              sound.setPosition(startMs);
+              sound.play();
+              clearInterval(waitForDurationIntervalId);
+            }
+          }, 100);
         }
       }
-
-      function onTimecodeClick (e) {
-        // TODO: fix position jumping when using Flash
-        var $a = $(e.target);
-        var sentenceId = $a.attr('href').substr(2);  // Strip #s from beginning.
-        jumpToSentence(sentenceId);
-        return false;
-      }
-
-      $(function () {
-        $('.timecode a').click(onTimecodeClick);
-      });
-
     }
+
+    function onTimecodeClick (e) {
+      var $a = $(e.target);
+      var sentenceId = $a.attr('href').substr(2);  // Strip #s from beginning.
+      jumpToSentence(sentenceId);
+      return false;
+    }
+
+    $(function () {
+      $('.timecode a').click(onTimecodeClick);
+    });
 
     soundManager.setup({
       {% if DEBUG %}debugMode: true,{% endif %}
@@ -163,7 +188,7 @@
     });
 
     var PP_CONFIG = {
-      onNewSound: prepareTaskSound,
+      onNewSound: prepareSound,
       updatePageTitle: false,
       autoStart: false,      // begin playing first sound when page loads
       playNext: false,        // stop after one sound, or play through list until end
