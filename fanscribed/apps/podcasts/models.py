@@ -222,7 +222,7 @@ def update_podcast_title_and_episodes_from_rssfetch(instance, target, **kwargs):
                 podcast=podcast, guid=entry.id)
             link_url = _fixed_url(entry.get('link'))
             image_url = entry.get('image', {}).get('href')
-            if not existing_episode.exists():
+            if not existing_episode.exists() and len(entry.enclosures) > 0:
                 published = datetime_from_feedparser(entry)
                 media_url = entry.enclosures[0]['href']
                 Episode.objects.create(
