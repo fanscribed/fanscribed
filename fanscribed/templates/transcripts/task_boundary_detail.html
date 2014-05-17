@@ -55,21 +55,17 @@
 
         // If start was modified, replay the audio from the new starting point.
         if (oldStart != start) {
-          console.log('start changed');
           taskSound.pause();
           taskSound.setPosition((start - mediaStart) * 1000);
           taskSound.play();
-          console.log('playing start');
         }
 
         // If end was modified, replay the audio from one second before the end,
         // or from start to end if less than one second.
         if (oldEnd != end) {
-          console.log('end changed');
           taskSound.pause();
           taskSound.setPosition((Math.max(start, end - 1) - mediaStart) * 1000);
           taskSound.play();
-          console.log('playing end');
         }
 
         // Ensure 'restart' button correctly positions audio.
@@ -98,7 +94,6 @@
 
       function pauseIfPastEnd () {
         if (taskSound.position >= endPosition) {
-          console.log('pausing at end');
           taskSound.pause();
         }
       }
