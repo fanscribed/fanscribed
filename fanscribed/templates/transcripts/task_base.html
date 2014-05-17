@@ -151,6 +151,8 @@
         taskSound.onstop_shim = showPaused;
         taskSound.onpause_shim = showPaused;
         taskSound.onfinish_shim = showPaused;
+        // We manually auto-play the sound, so just pause it for now.
+        taskSound.pause();
       };
 
       soundManager.onready(window.prepareTaskSound);
