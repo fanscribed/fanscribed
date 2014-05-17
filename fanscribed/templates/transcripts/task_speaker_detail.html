@@ -22,16 +22,19 @@
       radioToFocus.focus();
 
       // Assign keyboard shortcuts to first 9 speakers.
+      var $newName = $('#id_new_name');
       $('input[name="speaker"]').each(function () {
         var $input = $(this);
         var id = $input.attr('id');
         var sequence = parseInt(id.substr(11));
         if (1 <= sequence && sequence <= 9) {
-          $input.after('<kbd>^' + sequence + '</kbd>');
-          var hotkey = 'ctrl+' + sequence;
+          $input.after('<kbd>' + sequence + '</kbd>');
+          var hotkey = sequence.toString();
           function selectSpeaker () {
-            $input.prop('checked', true);
-            $input.focus();
+            if (!$newName.is(':focus')) {
+              $input.prop('checked', true);
+              $input.focus();
+            }
           }
           $('body').bind('keydown', hotkey, selectSpeaker);
           $('input').bind('keydown', hotkey, selectSpeaker);
@@ -45,7 +48,6 @@
         $('#id_speaker').find('input').prop('checked', false);
         $('#id_speaker_0').prop('checked', true);
       }
-      var $newName = $('#id_new_name');
       var oldNewNameValue = $newName.val();
       $newName.bind('propertychange keyup input paste', function () {
         var currentVal = $newName.val();
