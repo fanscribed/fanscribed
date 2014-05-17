@@ -34,13 +34,24 @@
             if (!$newName.is(':focus')) {
               $input.prop('checked', true);
               $input.focus();
+              $newName.val('');
             }
           }
           $('body').bind('keydown', hotkey, selectSpeaker);
           $('input').bind('keydown', hotkey, selectSpeaker);
-          $('textarea').bind('keydown', hotkey, selectSpeaker);
         }
       });
+
+      // Assign keyboard shortcut to new name.
+      function selectNewName () {
+        deselectSpeaker();
+        $newName.focus();
+        return false;
+      }
+      var hotkey = 'n';
+      $('body').bind('keydown', hotkey, selectNewName);
+      $('input').bind('keydown', hotkey, selectNewName);
+      $newName.siblings('label').append(' <kbd>n</kbd>');
 
       // Deselect any preselected speaker when a new name is given.
       function deselectSpeaker () {
