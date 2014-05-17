@@ -1,32 +1,32 @@
+{# params: #}
+{# details (optional) - True if playback details should be added #}
+
 <ul class="playlist">
-  {% if task.TASK_TYPE == 'boundary' %}
-    <li><a class="playable" href="{% url 'transcripts:task_audio' transcript_pk=task.transcript.id type=task.TASK_TYPE pk=task.id %}?start={{ task.start }}&end={{ task.end }}">Task Audio</a></li>
-  {% else %}
-    <li><a class="playable" href="{% url 'transcripts:task_audio' transcript_pk=task.transcript.id type=task.TASK_TYPE pk=task.id %}">Task Audio</a></li>
-  {% endif %}
+  <li><a class="playable" href="{% url 'transcripts:task_audio' transcript_pk=task.transcript.id type=task.TASK_TYPE pk=task.id %}">Task Audio</a></li>
 </ul>
 <div id="audio-controls">
   <div class="btn-group">
-    <button class="btn btn-default" id="audio-playpause">
+    <button class="btn btn-sm btn-default" id="audio-playpause">
       <span class="paused"><span class="glyphicon glyphicon-play"></span> <small>Play</small></span>
       <span class="playing"><span class="glyphicon glyphicon-pause"></span> <small>Pause</small></span>
       <br>
       <kbd>\</kbd>
     </button>
-    <button class="btn btn-default" id="audio-back"><span class="glyphicon glyphicon-step-backward"></span> <small>Back</small><br><kbd>^[</kbd> <kbd>`</kbd></button>
-    <button class="btn btn-default" id="audio-forward"><span class="glyphicon glyphicon-step-forward"></span> <small>Forward</small><br><kbd>^]</kbd></button>
-    <button class="btn btn-default" id="audio-restart"><span class="glyphicon glyphicon-fast-backward"></span> <small>Restart</small><br><kbd>~</kbd></button>
+    <button class="btn btn-sm btn-default" id="audio-back"><span class="glyphicon glyphicon-step-backward"></span> <small>Back</small><br><kbd>^[</kbd> <kbd>`</kbd></button>
+    <button class="btn btn-sm btn-default" id="audio-forward"><span class="glyphicon glyphicon-step-forward"></span> <small>Forward</small><br><kbd>^]</kbd></button>
+    <button class="btn btn-sm btn-default" id="audio-restart"><span class="glyphicon glyphicon-fast-backward"></span> <small>Restart</small><br><kbd>~</kbd></button>
   </div>
-  {% if reload %}
+  {% if details %}
     <div class="pull-right">
       <div class="pull-left" style="margin-right:1em">
         Playing <span id="playing-start">{{ task.start }}</span> &rarr; <span id="playing-end">{{ task.end }}</span>
         <br>
         Current: <span id="playing-current">{{ task.start }}</span>
-        <br>
-        <kbd>^B</kbd> <kbd>^E</kbd>
       </div>
-      <button class="btn btn-info" id="audio-reload"><span class="glyphicon glyphicon-refresh"></span> Reload<br><kbd>^R</kbd></button>
+      <div class="btn-group">
+        <button class="btn btn-sm btn-default" id="copy-start"><span class="glyphicon glyphicon-pencil"></span> Start<br><kbd>s</kbd></button>
+        <button class="btn btn-sm btn-default" id="copy-end"><span class="glyphicon glyphicon-pencil"></span> End<br><kbd>e</kbd></button>
+      </div>
     </div>
   {% endif %}
 </div>

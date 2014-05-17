@@ -1593,49 +1593,49 @@ class BoundaryTaskManager(TaskManager):
 
         if not is_review:
 
-            # First, look for the end of the most recently bounded sentence,
+            # Apply overlap.
+            start = sentence.latest_start - settings.TRANSCRIPT_FRAGMENT_OVERLAP
+            end = sentence.latest_end + settings.TRANSCRIPT_FRAGMENT_OVERLAP
+
+            # Correct for out of bounds.
+            start = max(Decimal('0.00'), start)
+            end = min(transcript.length, end)
+
+            # Find a suggested sentence start:
+            # Look for the end of the most recently bounded sentence,
             # to try to predict where this sentence will start.
             bounded_sentences = transcript.sentences.completed().filter(
                 boundary_state__in=['edited', 'reviewed'])
             if bounded_sentences.exists():
                 latest_bounded = bounded_sentences.order_by('-latest_end')[0]
 
-                # Apply overlap to end, and correct for out of bounds.
-                end = sentence.latest_end + settings.TRANSCRIPT_FRAGMENT_OVERLAP
-                end = min(transcript.length, end)
-
-                # Use the end of the last sentence as the start of this one...
-                start = latest_bounded.latest_end
+                # Suggest the end of the last sentence as the start of this one...
+                suggested_start = latest_bounded.latest_end
 
                 # ...but only if it comes after the default starting position...
-                default_start = sentence.latest_start - settings.TRANSCRIPT_FRAGMENT_OVERLAP
-                start = max(start, default_start)
+                suggested_start = max(suggested_start, start)
 
                 # ...and only if the calculated starting position comes before
                 # the default ending position.
-                if start > end:
-                    start = default_start
+                if suggested_start > end:
+                    suggested_start = start
 
-            # Fall back to applying the default start/end.
-            else:
-                # Apply overlap.
-                start = sentence.latest_start - settings.TRANSCRIPT_FRAGMENT_OVERLAP
-                end = sentence.latest_end + settings.TRANSCRIPT_FRAGMENT_OVERLAP
-
-                # Correct for out of bounds.
-                start = max(Decimal('0.00'), start)
-                end = min(transcript.length, end)
+                start = suggested_start
 
         else:
             # Reviews pass through.
             start = sentence.latest_start
             end = sentence.latest_end
 
+        media_start = sentence.fragments.first().revision.fragment.start - settings.TRANSCRIPT_FRAGMENT_OVERLAP
+        media_end = sentence.fragments.last().revision.fragment.end + settings.TRANSCRIPT_FRAGMENT_OVERLAP
+        media_start = max(Decimal(0), media_start)
+        media_end = min(transcript.length, media_end)
         media, created = transcript.media.get_or_create(
             is_processed=True,
             is_full_length=False,
-            start=start,
-            end=end,
+            start=media_start,
+            end=media_end,
         )
         task = transcript.boundarytask_set.create(
             is_review=is_review,

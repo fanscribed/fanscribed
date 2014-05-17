@@ -82,20 +82,6 @@
         $('.playing').hide();
       };
 
-      window.prepareTaskSound = function () {
-        var taskSound = window.taskSound = pagePlayer.lastSound;
-        // Shim the callbacks onto the sound, so page-player calls them
-        // along with normal behavior.
-        {# TODO: clean this up #}
-        taskSound.onplay_shim = showPlaying;
-        taskSound.onresume_shim = showPlaying;
-        taskSound.onstop_shim = showPaused;
-        taskSound.onpause_shim = showPaused;
-        taskSound.onfinish_shim = showPaused;
-      };
-
-      soundManager.onready(window.prepareTaskSound);
-
       var offsetAndPlayAudio = function (amount) {
         var newPosition = Math.max(0, taskSound.position + amount);
         taskSound.setPosition(newPosition);
@@ -128,7 +114,7 @@
       };
 
       var restartAudio = function () {
-        taskSound.setPosition(0);
+        taskSound.setPosition(window.restartPosition || 0);
 
         if (!isPlaying(taskSound)) {
           taskSound.play();
@@ -151,6 +137,23 @@
         $('button[name="cancel"]').click();
         return false;
       };
+
+      // Prepare sound.
+
+      window.prepareTaskSound = function () {
+        var taskSound = window.taskSound = pagePlayer.lastSound;
+        // Shim the callbacks onto the sound, so page-player calls them
+        // along with normal behavior.
+        {# TODO: clean this up #}
+        taskSound.onload_shim = restartAudio;
+        taskSound.onplay_shim = showPlaying;
+        taskSound.onresume_shim = showPlaying;
+        taskSound.onstop_shim = showPaused;
+        taskSound.onpause_shim = showPaused;
+        taskSound.onfinish_shim = showPaused;
+      };
+
+      soundManager.onready(window.prepareTaskSound);
 
       // Bind keys.
 

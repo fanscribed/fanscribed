@@ -416,6 +416,7 @@ function PagePlayer() {
         if (this._data.metadata) {
           this._data.metadata.refresh();
         }
+        if (this.onload_shim) { this.onload_shim() }
       }
     },
 

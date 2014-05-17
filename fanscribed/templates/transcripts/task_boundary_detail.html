@@ -16,83 +16,133 @@
 
       $('#id_start').focus();
 
-      var offset = {{ task.start }};
+      var mediaStart = {{ task.media.start }};
+      var mediaEnd = {{ task.media.end }};
+      var start = {{ task.start }};
+      var end = {{ task.end }};
 
-      function actualPosition () {
-        return taskSound.position / 1000 + offset;
+      // Used below to stop audio when it reaches the end.
+      var endPosition = (end - mediaStart) * 1000;
+
+      // Used by restartAudio() to start audio at the correct position;
+      window.restartPosition = (start - mediaStart) * 1000;
+
+
+      // Returns the audio position, in seconds, within the transcript.
+      function mediaPosition () {
+        return taskSound.position / 1000 + mediaStart;
       }
 
+
+      // When input fields are modified, update start/end vars.
+
+      var $inputs = $('input[type="number"]');
+      $inputs.change(function () {
+
+        var oldStart = start, oldEnd = end;
+
+        start = parseFloat($('#id_start').val());
+        end = parseFloat($('#id_end').val());
+
+        // Enforce boundaries.
+        start = Math.max(mediaStart, start);
+        end = Math.min(mediaEnd, end);
+
+        $('#playing-start').text(start.toFixed(2));
+        $('#playing-end').text(end.toFixed(2));
+
+        {# TODO: factor out extract this functionality using knockout.js or similar #}
+
+        // If start was modified, replay the audio from the new starting point.
+        if (oldStart != start) {
+          console.log('start changed');
+          taskSound.pause();
+          taskSound.setPosition((start - mediaStart) * 1000);
+          taskSound.play();
+          console.log('playing start');
+        }
+
+        // If end was modified, replay the audio from one second before the end,
+        // or from start to end if less than one second.
+        if (oldEnd != end) {
+          console.log('end changed');
+          taskSound.pause();
+          taskSound.setPosition((Math.max(start, end - 1) - mediaStart) * 1000);
+          taskSound.play();
+          console.log('playing end');
+        }
+
+        // Ensure 'restart' button correctly positions audio.
+        window.restartPosition = (start - mediaStart) * 1000;
+
+        // Ensure audio pauses at end.
+        endPosition = (end - mediaStart) * 1000;
+
+      });
+
+
+      // Alter stepping and boundary of input fields.
+
+      $inputs.attr('step', '0.05');
+      $inputs.attr('min', mediaStart);
+      $inputs.attr('max', mediaEnd);
+
+
+      // While playing, update displayed position, and stop when end is reached.
+
       function updatePosition () {
-        $('#playing-current').text(actualPosition().toFixed(2));
+        $('#playing-current').text(mediaPosition().toFixed(2));
+      }
+
+      function pauseIfPastEnd () {
+        if (taskSound.position >= endPosition) {
+          console.log('pausing at end');
+          taskSound.pause();
+        }
+      }
+
+      function whilePlaying () {
+        updatePosition();
+        pauseIfPastEnd();
       }
 
       function prepareTaskSoundPositionTracking () {
         // Shim the callbacks onto the sound, so page-player calls them
         // along with normal behavior.
         {# TODO: clean this up #}
-        taskSound.whileplaying_shim = updatePosition;
+        taskSound.whileplaying_shim = whilePlaying;
       }
 
       soundManager.onready(prepareTaskSoundPositionTracking);
 
 
-      // Bind Ctrl+R to reload the audio.
+      // Bind 's' and 'e' to update start/end fields.
 
-      function reloadAudio () {
-        var start = Math.max(0, parseFloat($('#id_start').val()));
-        var end = parseFloat($('#id_end').val());
-        var url = "{% url 'transcripts:task_audio' transcript_pk=task.transcript.id type=task.TASK_TYPE pk=task.id %}?start=" + start + '&end=' + end;
-
-        // Regenerate and reinitialize the pagePlayer system.
-        delete taskSound.onplay_shim;
-        delete taskSound.onresume_shim;
-        delete taskSound.onstop_shim;
-        delete taskSound.onpause_shim;
-        delete taskSound.onfinish_shim;
-        delete taskSound.whileplaying_shim;
-        offset = start;
-        var $playlist = $('ul.playlist');
-        $playlist.empty().append('<li><a/></li>');
-        $playlist.find('a').attr('href', url).addClass('playable').text('Task Audio');
-        pagePlayer.init(PP_CONFIG);
-        window.prepareTaskSound();
-        prepareTaskSoundPositionTracking();
-        showPlaying();
-
-        // Update the visible start/end next to the player.
-        $('#playing-start').text(start);
-        $('#playing-end').text(end);
-
-        return false;
-      }
-      
-      function bindReloadHotkeys (e) {
-        var $e = $(e);
-        $e.bind('keydown', 'ctrl+r', reloadAudio);
-      }
-      $.each(['body', 'input', 'textarea'], function (i, name) {
-        bindReloadHotkeys($(name));
-      });
-
-
-      // Bind Ctrl+B and Ctrl+E to update start/end fields.
       function updateField (name) {
-        $('#id_' + name).val(actualPosition().toFixed(2));
+        // Round to 1/20th of second.
+        var roundedPosition = Math.round(mediaPosition() * 20) / 20;
+        $('#id_' + name).val(roundedPosition.toFixed(2)).change();
       }
       function updateStart () {
         updateField('start');
+        $('#id_start').focus();
+        return false;
       }
       function updateEnd () {
         updateField('end');
+        $('#id_end').focus();
+        return false;
       }
       function bindUpdateFieldHotkeys (e) {
         var $e = $(e);
-        $e.bind('keydown', 'ctrl+b', updateStart);
-        $e.bind('keydown', 'ctrl+e', updateEnd);
+        $e.bind('keydown', 's', updateStart);
+        $e.bind('keydown', 'e', updateEnd);
       }
-      $.each(['body', 'input', 'textarea'], function (i, name) {
+      $.each(['body', 'input'], function (i, name) {
         bindUpdateFieldHotkeys($(name));
       });
+      $('#copy-start').click(updateStart);
+      $('#copy-end').click(updateEnd);
 
     });
 
@@ -116,7 +166,7 @@
 
 
 {% block task_audio %}
-  {% include "transcripts/_task_detail_audio.html" with reload=True %}
+  {% include "transcripts/_task_detail_audio.html" with details=True %}
 {% endblock %}
 
 
