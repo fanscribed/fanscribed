@@ -37,7 +37,7 @@
       // When input fields are modified, update start/end vars.
 
       var $inputs = $('input[type="number"]');
-      $inputs.change(function () {
+      function onInputChange () {
 
         var oldStart = start, oldEnd = end;
 
@@ -78,7 +78,9 @@
         // Ensure audio pauses at end.
         endPosition = (end - mediaStart) * 1000;
 
-      });
+      }
+      $inputs.change(onInputChange);
+      $inputs.keyup(onInputChange);
 
 
       // Alter stepping and boundary of input fields.
