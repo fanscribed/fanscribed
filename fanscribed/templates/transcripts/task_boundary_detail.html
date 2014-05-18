@@ -86,6 +86,15 @@
       $inputs.attr('max', mediaEnd);
 
 
+      // Round existing values, in case they don't fall on a 0.05 boundary.
+      // (This corrects for legacy boundaries that have a 0.01 resolution instead.)
+
+      $inputs.each(function () {
+        var $input = $(this);
+        $input.val((Math.floor(parseFloat($input.val()) * 20) / 20).toFixed(2));
+      });
+    
+
       // While playing, update displayed position, and stop when end is reached.
 
       function updatePosition () {
