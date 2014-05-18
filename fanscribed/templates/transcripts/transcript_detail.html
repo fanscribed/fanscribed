@@ -347,6 +347,12 @@
 
           <h4>Transcription Progress</h4>
 
+          {% with participants=transcript.contributors.count %}
+            {% if participants > 0 %}
+              <p><strong>{{ participants }} {{ participants|pluralize:"person,people" }}</strong> {{ participants|pluralize:"has,have" }} contributed to this transcript.</p>
+            {% endif %}
+          {% endwith %}
+
           <p>This transcript will go through five stages before completion:</p>
 
           {% cache 60 transcript_stats transcript.pk %}
