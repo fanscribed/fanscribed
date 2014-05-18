@@ -79,11 +79,14 @@
             <li class="{% block nav_class_transcribe %}{% endblock %}"><a href="{% url 'transcripts:index' %}">Transcribe</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li class="{% block nav_class_help %}{% endblock %}">
-              <a href="{% url 'help' %}">Help</a>
-            </li>
             <li class="{% block nav_class_about %}{% endblock %}">
               <a href="{% url 'transcription-engine' %}">About</a>
+            </li>
+            <li>
+              <a href="https://blog.fanscribed.com/">Blog</a>
+            </li>
+            <li class="{% block nav_class_help %}{% endblock %}">
+              <a href="{% url 'help' %}">Help</a>
             </li>
             {% if user.is_authenticated %}
 
