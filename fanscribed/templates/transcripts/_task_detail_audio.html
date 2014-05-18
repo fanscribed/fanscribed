@@ -19,14 +19,16 @@
   {% if details %}
     <div class="pull-right">
       <div class="pull-left" style="margin-right:1em">
+        <div class="btn-group">
+          <button class="btn btn-sm btn-default" id="copy-start"><span class="glyphicon glyphicon-pencil"></span> Start<br><kbd>s</kbd></button>
+          <button class="btn btn-sm btn-default" id="copy-end"><span class="glyphicon glyphicon-pencil"></span> End<br><kbd>e</kbd></button>
+        </div>
+        <br>
         Playing <span id="playing-start">{{ task.start }}</span> &rarr; <span id="playing-end">{{ task.end }}</span>
         <br>
         Current: <span id="playing-current">{{ task.start }}</span>
       </div>
-      <div class="btn-group">
-        <button class="btn btn-sm btn-default" id="copy-start"><span class="glyphicon glyphicon-pencil"></span> Start<br><kbd>s</kbd></button>
-        <button class="btn btn-sm btn-default" id="copy-end"><span class="glyphicon glyphicon-pencil"></span> End<br><kbd>e</kbd></button>
-      </div>
     </div>
   {% endif %}
 </div>
+<div class="clearfix"></div>
