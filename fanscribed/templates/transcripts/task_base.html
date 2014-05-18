@@ -168,14 +168,24 @@
         $e.bind('keydown', 'ctrl+[', rewindAudio);
         $e.bind('keydown', 'ctrl+]', ffwdAudio);
         $e.bind('keydown', 'shift+`', restartAudio);
-        $e.bind('keydown', 'ctrl+s', saveAndContinue);
-        $e.bind('keydown', 'ctrl+shift+s', saveAndExit);
+        $e.bind('keydown', 'ctrl+return', saveAndContinue);
+        $e.bind('keydown', 'ctrl+shift+return', saveAndExit);
         $e.bind('keydown', 'ctrl+esc', cancelAndExit);
       };
 
       bindTaskHotkeys($('body'));
       bindTaskHotkeys($('input'));
       bindTaskHotkeys($('textarea'));
+
+      var ignoreEnterKey = function () {
+        return false;
+      };
+      var bindEnterKey = function (e) {
+        $(e).bind('keydown', 'return', ignoreEnterKey);
+      };
+
+      bindEnterKey($('body'));
+      bindEnterKey($('input'));
 
       // Bind audio control buttons.
 
