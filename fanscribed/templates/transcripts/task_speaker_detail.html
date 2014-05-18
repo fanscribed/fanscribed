@@ -50,7 +50,7 @@
       }
       var hotkey = 'n';
       $('body').bind('keydown', hotkey, selectNewName);
-      $('input').bind('keydown', hotkey, selectNewName);
+      $('input[type="radio"]').bind('keydown', hotkey, selectNewName);
       $newName.siblings('label').append(' <kbd>n</kbd>');
 
       // Deselect any preselected speaker when a new name is given.
