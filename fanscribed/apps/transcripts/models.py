@@ -1026,8 +1026,9 @@ def assign_next_transcript_task(transcript, user, requested_task_type, request=N
                     # Try again.
                     continue
                 else:
-                    task.present()
-                    return task
+                    if task is not None:
+                        task.present()
+                        return task
 
 
 def request_bypasses_teamwork(request):
