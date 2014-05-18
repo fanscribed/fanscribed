@@ -265,6 +265,8 @@ THIRD_PARTY_APPS += (
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.google',
 )
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
@@ -274,6 +276,21 @@ ACCOUNT_USERNAME_REQUIRED = False
 AUTH_PROFILE_MODEL = 'profiles.Profile'
 LOGIN_REDIRECT_URL = 'home'
 ACCOUNT_ALLOW_SIGNUPS = (getenv('ACCOUNT_ALLOW_SIGNUPS', '0') == '1')
+
+SOCIALACCOUNT_PROVIDERS = {
+    'facebook': {
+        'SCOPE': ['email'],
+        'METHOD': 'oauth2',
+        'VERIFIED_EMAIL': False,
+    },
+    'google': {
+        'SCOPE': ['https://www.googleapis.com/auth/userinfo.profile',
+                  'https://www.googleapis.com/auth/userinfo.email'],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+    },
+}
 
 
 # CELERY

@@ -23,12 +23,12 @@
       <a href="{% url 'account_change_password' %}">{% trans 'Change Password' %}</a>
     </li>
 
-  {#  {% url 'socialaccount_connections' as connections_url %}#}
-  {#  {% if connections_url %}#}
-  {#  <li class="{% block account_nav_socialaccount_connections %}{% endblock %}">#}
-  {#    <a href="{{ connections_url}}">{% trans 'Connected Accounts' %}</a>#}
-  {#  </li>#}
-  {#  {% endif %}#}
+    {% url 'socialaccount_connections' as connections_url %}
+    {% if connections_url %}
+    <li class="{% block account_nav_socialaccount_connections %}{% endblock %}">
+      <a href="{{ connections_url}}">{% trans 'Connected Accounts' %}</a>
+    </li>
+    {% endif %}
 
   </ul>
 
