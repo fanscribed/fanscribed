@@ -278,32 +278,21 @@ def process_speaker_task(pk):
 
     task = _get_task(SpeakerTask, pk)
 
-    # Require speaker XOR speaker name
     has_new_name = (task.new_name is not None and task.new_name.strip() != u'')
-    if ((task.speaker is None and not has_new_name)
-        or (task.speaker is not None and has_new_name)
-        ):
-        print 'speaker XOR speaker name not given'
+    has_speaker = task.speaker is None
+    if has_speaker ^ has_new_name:
+        print 'speaker or speaker name required, but not both'
         task.invalidate()
         return
 
     # Update sentence.
-    if not task.is_review:
-        sequence = 1
-    else:
-        sequence = task.sentence.speakers.latest().sequence + 1
-
     if has_new_name:
         task.speaker = Speaker.objects.create(
             transcript=task.transcript,
             name=task.new_name,
         )
-
-    task.sentence.speakers.create(
-        sequence=sequence,
-        editor=task.assignee,
-        speaker=task.speaker,
-    )
+    task.sentence.latest_speaker = task.speaker
+    task.sentence.save()
 
     task.validate()
 

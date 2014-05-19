@@ -307,33 +307,6 @@ def update_sentence_latest_boundary(instance, created, raw, **kwargs):
 # ---------------------
 
 
-class SentenceSpeaker(models.Model):
-    """An assignment of a speaker to a sentence."""
-
-    sentence = models.ForeignKey('Sentence', related_name='speakers')
-    sequence = models.PositiveIntegerField()
-    editor = models.ForeignKey('auth.User')
-    speaker = models.ForeignKey('Speaker')
-
-    class Meta:
-        ordering = ('sequence',)
-        get_latest_by = 'sequence'
-        unique_together = [
-            ('sentence', 'sequence'),
-        ]
-
-
-@receiver(post_save, sender=SentenceSpeaker)
-def update_sentence_latest_speaker(instance, created, raw, **kwargs):
-    if created and not raw:
-        sentence = instance.sentence
-        sentence.latest_speaker = instance.speaker
-        sentence.save()
-
-
-# ---------------------
-
-
 class Speaker(models.Model):
     """A unique speaker in the transcript."""
 
@@ -1813,10 +1786,12 @@ class SpeakerTask(Task):
         if not self.is_review:
             self.sentence.speaker_state = 'edited'
         else:
-            latest, previous = self.sentence.speakers.order_by('-sequence')[:2]
-            if latest.speaker == previous.speaker:
+            prior_task = self.sentence.speakertask_set.order_by('-created')[1]
+            if self.speaker == prior_task.speaker:
+                # No more changes; finished reviewing.
                 self.sentence.speaker_state = 'reviewed'
             else:
+                # Speaker changed; need to review again.
                 self.sentence.speaker_state = 'edited'
         self.sentence.speaker_last_editor = self.assignee
         self.sentence.unlock_speaker()
