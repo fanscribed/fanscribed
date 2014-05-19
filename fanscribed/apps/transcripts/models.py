@@ -1566,6 +1566,11 @@ class BoundaryTaskManager(TaskManager):
         if sentence is None:
             return None
 
+        media_start = sentence.fragments.first().revision.fragment.start - settings.TRANSCRIPT_FRAGMENT_OVERLAP
+        media_end = sentence.fragments.last().revision.fragment.end + settings.TRANSCRIPT_FRAGMENT_OVERLAP
+        media_start = max(Decimal(0), media_start)
+        media_end = min(transcript.length, media_end)
+
         if not is_review:
 
             # Apply overlap.
@@ -1577,10 +1582,14 @@ class BoundaryTaskManager(TaskManager):
             end = min(transcript.length, end)
 
             # Find a suggested sentence start:
-            # Look for the end of the most recently bounded sentence,
+            # Look for the end of the most recently bounded sentence
+            # (ending within the maximum region of this sentence)
             # to try to predict where this sentence will start.
             bounded_sentences = transcript.sentences.completed().filter(
-                boundary_state__in=['edited', 'reviewed'])
+                boundary_state__in=['edited', 'reviewed'],
+                latest_end__gt=media_start,
+                latest_end__lt=media_end,
+            )
             if bounded_sentences.exists():
                 latest_bounded = bounded_sentences.order_by('-latest_end')[0]
 
@@ -1602,10 +1611,6 @@ class BoundaryTaskManager(TaskManager):
             start = sentence.latest_start
             end = sentence.latest_end
 
-        media_start = sentence.fragments.first().revision.fragment.start - settings.TRANSCRIPT_FRAGMENT_OVERLAP
-        media_end = sentence.fragments.last().revision.fragment.end + settings.TRANSCRIPT_FRAGMENT_OVERLAP
-        media_start = max(Decimal(0), media_start)
-        media_end = min(transcript.length, media_end)
         media, created = transcript.media.get_or_create(
             is_processed=True,
             is_full_length=False,
