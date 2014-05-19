@@ -469,18 +469,19 @@ class Transcript(TimeStampedModel):
         if sentence_count == 0:
             stats.update(clean=0, boundary=0, speaker=0)
         else:
+            stitch_factor = stats['stitch'] * 0.01
             stats['clean'] = (
-                (self.sentences.clean_edited().count() + self.sentences.clean_reviewed().count() * 2) * 100
+                (self.sentences.clean_edited().count() + self.sentences.clean_reviewed().count() * 2) * 100 * stitch_factor
                 /
                 (sentence_count * 2)
             )
             stats['boundary'] = (
-                (self.sentences.boundary_edited().count() + self.sentences.boundary_reviewed().count() * 2) * 100
+                (self.sentences.boundary_edited().count() + self.sentences.boundary_reviewed().count() * 2) * 100 * stitch_factor
                 /
                 (sentence_count * 2)
             )
             stats['speaker'] = (
-                (self.sentences.speaker_edited().count() + self.sentences.speaker_reviewed().count() * 2) * 100
+                (self.sentences.speaker_edited().count() + self.sentences.speaker_reviewed().count() * 2) * 100 * stitch_factor
                 /
                 (sentence_count * 2)
             )
