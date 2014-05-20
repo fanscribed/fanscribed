@@ -28,6 +28,10 @@ class Profile(models.Model):
     task_types = models.ManyToManyField(
         'TaskType',
         verbose_name='Which tasks would you like to help with?')
+    wants_reviews = models.BooleanField(
+        verbose_name="Help review other's tasks.",
+        help_text="Reviewing other's tasks helps finish transcripts faster.",
+        default=False)
     task_order = models.CharField(
         choices=TASK_ORDER_CHOICES,
         verbose_name='Which order would you like to receive tasks?',

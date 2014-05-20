@@ -22,6 +22,9 @@ class RequireTeamworkTestCase(TestCase):
                 username, '{}@user.user'.format(username), 'password')
             user.groups.add(all)
             self.users.append(user)
+            profile = user.profile
+            profile.wants_reviews = True
+            profile.save()
 
         t = self.transcript = m.Transcript.objects.create(title='test transcript')
         t.set_length(Decimal('20.00'))

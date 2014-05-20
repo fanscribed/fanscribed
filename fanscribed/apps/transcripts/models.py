@@ -979,6 +979,8 @@ def assign_next_transcript_task(transcript, user, requested_task_type, request=N
         # Does the user want to perform this kind of task?
         if task_type not in preferred_task_types:
             continue
+        if is_review and not user.profile.wants_reviews:
+            continue
 
         # Does the user have permission to perform the task?
         perm_name = 'transcripts.add_{}task{}'.format(

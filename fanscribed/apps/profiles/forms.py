@@ -7,7 +7,7 @@ class ProfileUpdateForm(forms.ModelForm):
 
     class Meta:
         model = m.Profile
-        fields = ('task_types', 'task_order',)
+        fields = ('task_types', 'wants_reviews', 'task_order')
         widgets = {
             'task_types': forms.CheckboxSelectMultiple,
             'task_order': forms.RadioSelect,
