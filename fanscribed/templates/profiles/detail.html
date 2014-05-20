@@ -8,6 +8,14 @@
 
   <h1>{{ profile }}</h1>
 
+  <dl>
+    <dt>Email</dt>
+    <dd><a href="mailto:{{ profile.user.email }}">{{ profile.user.email }}</a></dd>
+
+    <dt>Joined</dt>
+    <dd>{{ profile.user.date_joined }}</dd>
+  </dl>
+
   {% with user=profile.user %}
 
     <h2>Transcribe</h2>
