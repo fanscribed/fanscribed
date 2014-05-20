@@ -7,7 +7,21 @@
 
 
 {% block profile_content %}
-  {% with profile=user.profile  %}
+  {% with profile=user.profile %}
+
+    {% if perms.transcripts.add_transcribetask_review %}
+      <div class="well">
+        {% if not profile.wants_reviews %}
+          <h3>Please consider reviewing.</h3>
+          <p>You've been chosen to help review others' work.</p>
+          <p>By reviewing, you will help the community build higher-quality transcripts!</p>
+          <p>Just turn on the <strong>"Help review other's tasks"</strong> option below, then Save.</p>
+        {% else %}
+          <h3>Thank you for reviewing</h3>
+          <p>By reviewing, you will help the community build higher-quality transcripts.</p>
+        {% endif %}
+      </div>
+    {% endif %}
 
     <form action="" method="post" class="form">
       {% csrf_token %}

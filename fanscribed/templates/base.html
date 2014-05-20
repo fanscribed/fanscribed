@@ -78,6 +78,11 @@
             <li class="{% block nav_class_read %}{% endblock %}"><a href="{% url 'podcasts:index' %}">Read Podcasts</a></li>
             <li class="{% block nav_class_transcribe %}{% endblock %}"><a href="{% url 'transcripts:index' %}">Transcribe</a></li>
           </ul>
+          {% if perms.transcripts.add_transcribetask_review and not user.profile.wants_reviews %}
+            <form class="navbar-form navbar-left" method="get" action="{% url 'profiles:edit' %}">
+              <button type="submit" class="btn btn-success">Turn on reviewing</button>
+            </form>
+          {% endif %}
           <ul class="nav navbar-nav navbar-right">
             <li class="{% block nav_class_about %}{% endblock %}">
               <a href="{% url 'transcription-engine' %}">About</a>
