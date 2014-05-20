@@ -1241,6 +1241,7 @@ class TranscribeTask(Task):
     objects = TranscribeTaskManager()
 
     class Meta:
+        ordering = ('-created',)
         permissions = (
             ('add_transcribetask_review', 'Can add review transcribe task'),
         )
@@ -1339,6 +1340,7 @@ class StitchTask(Task):
 
     class Meta:
         get_latest_by = 'created'
+        ordering = ('-created',)
         permissions = (
             ('add_stitchtask_review', 'Can add review stitch task'),
         )
@@ -1495,6 +1497,7 @@ class CleanTask(Task):
     objects = CleanTaskManager()
 
     class Meta:
+        ordering = ('-created',)
         permissions = (
             ('add_cleantask_review', 'Can add review clean task'),
         )
@@ -1649,6 +1652,7 @@ class BoundaryTask(Task):
     objects = BoundaryTaskManager()
 
     class Meta:
+        ordering = ('-created',)
         permissions = (
             ('add_boundarytask_review', 'Can add review boundary task'),
         )
@@ -1772,6 +1776,7 @@ class SpeakerTask(Task):
     objects = SpeakerTaskManager()
 
     class Meta:
+        ordering = ('-created',)
         permissions = (
             ('add_speakertask_review', 'Can add review speaker task'),
         )

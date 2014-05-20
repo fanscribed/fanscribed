@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+
+{% block account_nav_profile %}active{% endblock %}
+
+
+{% block content %}
+
+  <h1>{{ profile }}</h1>
+
+  {% with user=profile.user %}
+
+    <h2>Transcribe</h2>
+    <table class="table table-condensed table-striped">
+      <thead>
+        <tr>
+          <th>Link</th>
+          <th style="min-width:12em">Date</th>
+          <th style="min-width:12em">Transcript</th>
+          <th>Review?</th>
+          <th>Text</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in user.transcribetask_set.all|slice:":25" %}
+          <tr>
+            <td><a href="{{ task.get_absolute_url }}">[link]</a></td>
+            <td>{{ task.modified|timesince }}</td>
+            <td><a href="{{ task.transcript.get_absolute_url }}">{{ task.transcript }}</a></td>
+            <td>{% if task.is_review %}Yes{% else %}--{% endif %}</td>
+            <td>
+              <ul>
+                {% for sentence_fragment in task.revision.sentence_fragments.all %}
+                  <li>{{ sentence_fragment.text }}</li>
+                {% endfor %}
+              </ul>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Stitch</h2>
+    <table class="table table-condensed table-striped">
+      <thead>
+        <tr>
+          <th>Link</th>
+          <th style="min-width:12em">Date</th>
+          <th style="min-width:12em">Transcript</th>
+          <th>Review?</th>
+          <th>Pairs</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in user.stitchtask_set.all|slice:":25" %}
+          <tr>
+            <td><a href="{{ task.get_absolute_url }}">[link]</a></td>
+            <td>{{ task.modified|timesince }}</td>
+            <td><a href="{{ task.transcript.get_absolute_url }}">{{ task.transcript }}</a></td>
+            <td>{% if task.is_review %}Yes{% else %}--{% endif %}</td>
+            <td>
+              <ul>
+                {% for pairing in task.pairings.all %}
+                  <li>
+                    {{ pairing.left.text }} / {{ pairing.right.text }}
+                  </li>
+                {% endfor %}
+              </ul>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Boundary</h2>
+    <table class="table table-condensed table-striped">
+      <thead>
+        <tr>
+          <th>Link</th>
+          <th style="min-width:12em">Date</th>
+          <th style="min-width:12em">Transcript</th>
+          <th>Review?</th>
+          <th>Text</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in user.boundarytask_set.all|slice:":25" %}
+          <tr>
+            <td><a href="{{ task.get_absolute_url }}">[link]</a></td>
+            <td>{{ task.modified|timesince }}</td>
+            <td><a href="{{ task.transcript.get_absolute_url }}">{{ task.transcript }}</a></td>
+            <td>{% if task.is_rview %}Yes{% else %}--{% endif %}</td>
+            <td>{{ task.start }} / {{ task.end }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Clean</h2>
+    <table class="table table-condensed table-striped">
+      <thead>
+        <tr>
+          <th>Link</th>
+          <th style="min-width:12em">Date</th>
+          <th style="min-width:12em">Transcript</th>
+          <th>Review?</th>
+          <th>Text</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in user.cleantask_set.all|slice:":25" %}
+          <tr>
+            <td><a href="{{ task.get_absolute_url }}">[link]</a></td>
+            <td>{{ task.modified|timesince }}</td>
+            <td><a href="{{ task.transcript.get_absolute_url }}">{{ task.transcript }}</a></td>
+            <td>{% if task.is_rview %}Yes{% else %}--{% endif %}</td>
+            <td>{{ task.text }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Speaker</h2>
+    <table class="table table-condensed table-striped">
+      <thead>
+        <tr>
+          <th>Link</th>
+          <th style="min-width:12em">Date</th>
+          <th style="min-width:12em">Transcript</th>
+          <th>Review?</th>
+          <th style="min-width:10em">Speaker</th>
+          <th>New name?</th>
+          <th>Text</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in user.speakertask_set.all|slice:":25" %}
+          <tr>
+            <td><a href="{{ task.get_absolute_url }}">[link]</a></td>
+            <td>{{ task.modified|timesince }}</td>
+            <td><a href="{{ task.transcript.get_absolute_url }}">{{ task.transcript }}</a></td>
+            <td>{% if task.is_rview %}Yes{% else %}--{% endif %}</td>
+            <td>{{ task.speaker.name }}</td>
+            <td>{% if task.new_name %}Yes{% else %}--{% endif %}</td>
+            <td>{{ task.sentence.latest_text }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  {% endwith %}
+
+{% endblock %}

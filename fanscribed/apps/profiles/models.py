@@ -4,6 +4,7 @@ Inspired by http://www.turnkeylinux.org/blog/django-profile
 """
 
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.dispatch import receiver
 from django.utils.text import slugify
@@ -44,6 +45,10 @@ class Profile(models.Model):
         else:
             fmt = '{self.user.username}'
         return fmt.format(**locals())
+
+    def get_absolute_url(self):
+        pk = self.user.pk  # Line up URL with User pk, not Profile.
+        return reverse('profiles:detail', kwargs=dict(pk=pk))
 
     @property
     def preferred_task_names(self):

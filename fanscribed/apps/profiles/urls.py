@@ -1,11 +1,14 @@
 from django.conf.urls import patterns, url
-from django.views.generic.base import TemplateView
 
 from . import views as v
 
 
 urlpatterns = patterns(
     '',
+
+    url(r'^(?P<pk>\d+)/$',
+        name='detail',
+        view=v.ProfileDetailView.as_view()),
 
     url(r'^edit/$',
         name='edit',
