@@ -8,7 +8,7 @@
 
   <h1>
     {% if user.is_staff %}
-      <span class="pull-right"><a class="btn btn-default" href="{% url 'admin:auth_user_change' user.pk %}">Admin: User</a></span>
+      <span class="pull-right"><a class="btn btn-default" href="{% url 'admin:auth_user_change' profile.user.pk %}">Admin: User</a></span>
     {% endif %}
     {{ profile }}
   </h1>
@@ -21,7 +21,7 @@
     <dd>{{ profile.user.date_joined }}</dd>
   </dl>
 
-  {% with user=profile.user %}
+  {% with u=profile.user %}
 
     <h2>Transcribe</h2>
     <table class="table table-condensed table-striped">
@@ -35,7 +35,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for task in user.transcribetask_set.all|slice:":25" %}
+        {% for task in u.transcribetask_set.all|slice:":25" %}
           <tr>
             <td><a href="{{ task.get_absolute_url }}">[link]</a></td>
             <td>{{ task.modified|timesince }}</td>
@@ -65,7 +65,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for task in user.stitchtask_set.all|slice:":25" %}
+        {% for task in u.stitchtask_set.all|slice:":25" %}
           <tr>
             <td><a href="{{ task.get_absolute_url }}">[link]</a></td>
             <td>{{ task.modified|timesince }}</td>
@@ -97,7 +97,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for task in user.boundarytask_set.all|slice:":25" %}
+        {% for task in u.boundarytask_set.all|slice:":25" %}
           <tr>
             <td><a href="{{ task.get_absolute_url }}">[link]</a></td>
             <td>{{ task.modified|timesince }}</td>
@@ -121,7 +121,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for task in user.cleantask_set.all|slice:":25" %}
+        {% for task in u.cleantask_set.all|slice:":25" %}
           <tr>
             <td><a href="{{ task.get_absolute_url }}">[link]</a></td>
             <td>{{ task.modified|timesince }}</td>
@@ -147,7 +147,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for task in user.speakertask_set.all|slice:":25" %}
+        {% for task in u.speakertask_set.all|slice:":25" %}
           <tr>
             <td><a href="{{ task.get_absolute_url }}">[link]</a></td>
             <td>{{ task.modified|timesince }}</td>
