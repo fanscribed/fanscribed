@@ -6,7 +6,12 @@
 
 {% block content %}
 
-  <h1>{{ profile }}</h1>
+  <h1>
+    {% if user.is_staff %}
+      <span class="pull-right"><a class="btn btn-default" href="{% url 'admin:auth_user_change' user.pk %}">Admin: User</a></span>
+    {% endif %}
+    {{ profile }}
+  </h1>
 
   <dl>
     <dt>Email</dt>
