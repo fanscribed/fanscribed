@@ -84,20 +84,17 @@ SUPERVISOR_AUTORELOAD_POLL_ONLY = True
 SUPERVISOR_AUTORELOAD_TIMEOUT = 5
 
 
-# TODO: reinstall the toolbar after figuring out how to avoid conflict with waffle
+# TOOLBAR
+# -------
 
-# # TOOLBAR
-# # -------
-#
-# # See: https://github.com/django-debug-toolbar/django-debug-toolbar#installation
-# INSTALLED_APPS += (
-#     'debug_toolbar',
-# )
-#
-# # See: https://github.com/django-debug-toolbar/django-debug-toolbar#installation
-# INTERNAL_IPS = ('127.0.0.1',)
-#
-# # See: https://github.com/django-debug-toolbar/django-debug-toolbar#installation
-# MIDDLEWARE_CLASSES += (
-#     'debug_toolbar.middleware.DebugToolbarMiddleware',
-# )
+def debug_toolbar_any_host(request):
+    from django.conf import settings
+    return settings.DEBUG and not request.is_ajax()
+
+INSTALLED_APPS += (
+    'debug_toolbar',
+)
+
+DEBUG_TOOLBAR_CONFIG = dict(
+    SHOW_TOOLBAR_CALLBACK='fanscribed.settings.local.debug_toolbar_any_host',
+)
