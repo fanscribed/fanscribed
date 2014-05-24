@@ -174,17 +174,14 @@ def process_stitch_task(pk):
 
     elif task.is_review and old_pairings == new_pairings:
         # No changes; commit sentence candidates.
-        # TODO: review if-statement conditions
-        if True or fragment_left.stitched_left:
-            for sf in left_fragment_revision.sentence_fragments.all():
-                if sf.revision.fragment == fragment_left:
-                    for sentence in sf.candidate_sentences.all():
-                        sentence.commit_candidates(sf)
-        if True or fragment_right.stitched_right:
-            for sf in right_fragment_revision.sentence_fragments.all():
-                if sf.revision.fragment == fragment_right:
-                    for sentence in sf.candidate_sentences.all():
-                        sentence.commit_candidates(sf)
+        for sf in left_fragment_revision.sentence_fragments.all():
+            if sf.revision.fragment == fragment_left:
+                for sentence in sf.candidate_sentences.all():
+                    sentence.commit_candidates(sf)
+        for sf in right_fragment_revision.sentence_fragments.all():
+            if sf.revision.fragment == fragment_right:
+                for sentence in sf.candidate_sentences.all():
+                    sentence.commit_candidates(sf)
 
         task.stitch.review()
 
