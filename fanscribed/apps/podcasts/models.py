@@ -21,16 +21,16 @@ class Episode(models.Model):
     """An episode of a podcast."""
 
     podcast = models.ForeignKey('Podcast', related_name='episodes')
-    guid = models.TextField()
-    title = models.TextField()
+    guid = models.CharField(max_length=512)
+    title = models.CharField(max_length=512)
     published = models.DateTimeField()
-    media_url = models.URLField()
-    link_url = models.URLField(blank=True, null=True)
-    image_url = models.URLField(blank=True, null=True)
+    media_url = models.URLField(max_length=512)
+    link_url = models.URLField(max_length=512, blank=True, null=True)
+    image_url = models.URLField(max_length=512, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     transcript = models.OneToOneField('transcripts.Transcript', blank=True, null=True,
                                       related_name='episode', on_delete=models.SET_NULL)
-    external_transcript = models.URLField(blank=True, null=True)
+    external_transcript = models.URLField(max_length=512, blank=True, null=True)
 
     class Meta:
         ordering = ('-published',)
@@ -68,11 +68,11 @@ class Podcast(models.Model):
     @enduml
     """
 
-    rss_url = models.URLField(unique=True)
+    rss_url = models.URLField(max_length=512, unique=True)
     approval_state = FSMField(default='not_approved', protected=True)
-    title = models.TextField(blank=True, null=True)
-    link_url = models.URLField(blank=True, null=True)
-    image_url = models.URLField(blank=True, null=True)
+    title = models.CharField(max_length=512, blank=True, null=True)
+    link_url = models.URLField(max_length=512, blank=True, null=True)
+    image_url = models.URLField(max_length=512, blank=True, null=True)
     provides_own_transcripts = models.BooleanField(default=False, help_text="If True, episodes have external transcript set to the episode's link URL")
 
     class Meta:
