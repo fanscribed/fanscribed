@@ -21,8 +21,8 @@ class Episode(models.Model):
     """An episode of a podcast."""
 
     podcast = models.ForeignKey('Podcast', related_name='episodes')
-    guid = models.CharField(max_length=200)
-    title = models.CharField(max_length=200)
+    guid = models.TextField()
+    title = models.TextField()
     published = models.DateTimeField()
     media_url = models.URLField()
     link_url = models.URLField(blank=True, null=True)
@@ -70,7 +70,7 @@ class Podcast(models.Model):
 
     rss_url = models.URLField(unique=True)
     approval_state = FSMField(default='not_approved', protected=True)
-    title = models.CharField(max_length=200, blank=True, null=True)
+    title = models.TextField(blank=True, null=True)
     link_url = models.URLField(blank=True, null=True)
     image_url = models.URLField(blank=True, null=True)
     provides_own_transcripts = models.BooleanField(default=False, help_text="If True, episodes have external transcript set to the episode's link URL")
