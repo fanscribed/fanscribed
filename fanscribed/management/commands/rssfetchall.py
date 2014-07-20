@@ -11,6 +11,6 @@ class Command(BaseCommand):
         if verbose:
             self.stdout.write('Fetching all RSS feeds.\n\n')
         for podcast in Podcast.objects.all():
-            self.stdout.write('- {}\n  {}\n\n'.format(
+            self.stdout.write(u'- {}\n  {}\n\n'.format(
                 podcast.title, podcast.rss_url))
             podcast.fetches.create().start()
