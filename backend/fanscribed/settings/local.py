@@ -1,5 +1,7 @@
 """Development settings and globals."""
 
+import os
+
 import dj_database_url
 
 from .base import *
@@ -30,7 +32,12 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # --------
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#databases
-DATABASE_URL = getenv('DATABASE_URL', 'postgres://fanscribed:fanscribed@localhost:5432/fanscribed')
+DEFAULT_DATABASE_URL = (
+    'postgres://postgres@'
+    '{DB_PORT_5432_TCP_ADDR}:{DB_PORT_5432_TCP_PORT}/postgres'
+    .format(**os.environ)
+)
+DATABASE_URL = getenv('DATABASE_URL', DEFAULT_DATABASE_URL)
 DATABASES = {
     'default': dj_database_url.parse(DATABASE_URL),
 }
@@ -40,10 +47,14 @@ DATABASES = {
 # -----
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#caches
+DEFAULT_REDIS_CACHE_LOCATION = (
+    '{REDIS_PORT_6379_TCP_ADDR}:{REDIS_PORT_6379_TCP_PORT}:1'
+    .format(**os.environ)
+)
 CACHES = {
     'default': {
         'BACKEND': 'redis_cache.cache.RedisCache',
-        'LOCATION': getenv('REDIS_CACHE_LOCATION', 'localhost:6379:1'),
+        'LOCATION': getenv('REDIS_CACHE_LOCATION', DEFAULT_REDIS_CACHE_LOCATION),
         'OPTIONS': {
             'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
             'PASSWORD': getenv('REDIS_CACHE_PASSWORD', None),

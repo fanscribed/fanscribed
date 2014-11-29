@@ -1,0 +1,38 @@
+db:
+  image: postgres:9.3
+
+redis:
+  image: dockerfile/redis
+
+# Allows tools like PyCharm to SSH in and introspect the environment.
+sshd:
+  build: backend/
+  command: scripts/sshd.sh
+  ports:
+    - "14220:22"
+  volumes:
+    - backend:/usr/src/app
+
+web:
+  build: backend/
+  command: python fanscribed/manage.py runserver_plus 0.0.0.0:8000
+  # environment:
+  #   DJANGO_COMPRESS_ENABLED: False
+  #   DJANGO_CONFIGURATION: DockerDev
+  #   SECRET_KEY: dev
+  links:
+    - db
+    - redis
+  ports:
+    - "8000:8000"
+  volumes:
+    - backend:/usr/src/app
+
+worker:
+  build: backend/
+  command: python fanscribed/manage.py celery worker -l INFO
+  links:
+    - db
+    - redis
+  volumes:
+    - backend:/usr/src/app
