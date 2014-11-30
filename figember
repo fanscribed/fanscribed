@@ -1,0 +1,36 @@
+#!/bin/bash
+#
+# Runs a ember command in the container's filesystem.
+# Depends on having `fig up frontend` running for file syncing.
+#
+# Example:
+#
+#   $ ./figember generate template foo
+#
+
+DOCKER_EXEC="docker exec -it fanscribed_frontend_1 bash -c"
+
+COMMAND="ember $@"
+
+STOP_SYNCING="touch /tmp/pause.syncing && killall -q -9 rsync"
+
+START_SYNCING="rm /tmp/pause.syncing"
+
+SYNC_TO_CONTAINER="rsync \
+  --quiet \
+  --archive \
+  --delete \
+  --exclude-from=/usr/src/app.host/.dockerignore \
+  /usr/src/app.host/ /usr/src/app/"
+
+SYNC_TO_HOST="rsync \
+  --quiet \
+  --archive \
+  --exclude-from=/usr/src/app.host/.dockerignore \
+  /usr/src/app/ /usr/src/app.host/"
+
+$DOCKER_EXEC "${STOP_SYNCING}"
+$DOCKER_EXEC "${SYNC_TO_CONTAINER}"
+$DOCKER_EXEC "${COMMAND}"
+$DOCKER_EXEC "${SYNC_TO_HOST}"
+$DOCKER_EXEC "${START_SYNCING}"

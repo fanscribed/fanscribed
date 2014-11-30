@@ -23,13 +23,15 @@
 
 (
   while true; do
-    rsync \
-      --quiet \
-      --archive \
-      --delete \
-      --exclude-from=/usr/src/app.host/.dockerignore \
-      /usr/src/app.host/ /usr/src/app/
     sleep 2
+    if [ ! -f /tmp/pause.syncing ]; then
+      rsync \
+        --quiet \
+        --archive \
+        --delete \
+        --exclude-from=/usr/src/app.host/.dockerignore \
+        /usr/src/app.host/ /usr/src/app/
+    fi
   done
 ) &
 

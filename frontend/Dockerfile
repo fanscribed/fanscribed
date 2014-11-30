@@ -12,7 +12,7 @@ RUN bower --verbose --allow-root install
 
 # TODO: Move this up to top.
 RUN apt-get update
-RUN apt-get -y install python-watchdog
+RUN apt-get -y install psmisc
 
 ADD . /usr/src/app/
 
