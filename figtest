@@ -1,0 +1,8 @@
+#!/bin/bash
+#
+# Runs a Django management command from within the web container.
+#
+# A faster alternative to `fig run web python manage.py`
+
+COMMAND="DJANGO_SETTINGS_MODULE=fanscribed.settings.test python manage.py test $@"
+docker exec -it fanscribed_web_1 bash -c "${COMMAND}"
