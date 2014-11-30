@@ -85,6 +85,16 @@ DEFAULT_FILE_STORAGE = 'storages.backends.overwrite.OverwriteStorage'
 ACCOUNT_ALLOW_SIGNUPS = True
 
 
+# CELERY
+# ------
+
+DEFAULT_BROKER_URL = (
+    'redis://{REDIS_PORT_6379_TCP_ADDR}:{REDIS_PORT_6379_TCP_PORT}/0'
+    .format(**os.environ)
+)
+BROKER_URL = getenv('BROKER_URL', DEFAULT_BROKER_URL)
+
+
 # SUPERVISOR
 # ----------
 
