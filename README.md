@@ -6,6 +6,10 @@ Install boot2docker.
 
 Install fig.
 
+Start services:
+
     $ fig up
 
-Browse to [localhost:8000](http://localhost:8000/).
+Browse to [localhost:8000](http://localhost:8000/) for the backend.
+
+Browse to [localhost:4200](http://localhost:4200/) for the frontend.

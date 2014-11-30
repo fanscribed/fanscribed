@@ -15,11 +15,7 @@ sshd:
 
 web:
   build: backend/
-  command: python fanscribed/manage.py runserver_plus 0.0.0.0:8000
-  # environment:
-  #   DJANGO_COMPRESS_ENABLED: False
-  #   DJANGO_CONFIGURATION: DockerDev
-  #   SECRET_KEY: dev
+  command: python manage.py runserver_plus 0.0.0.0:8000
   links:
     - db
     - redis
@@ -30,9 +26,18 @@ web:
 
 worker:
   build: backend/
-  command: python fanscribed/manage.py celery worker -l INFO
+  command: python manage.py celery worker -l INFO --autoreload
   links:
     - db
     - redis
   volumes:
     - backend:/usr/src/app
+
+frontend:
+  build: frontend/
+  command: serve 0.0.0.0:4200
+  entrypoint: /usr/src/app/scripts/ember-watchdog.sh
+  ports:
+    - "4200:4200"
+  volumes:
+    - frontend:/usr/src/app.host
