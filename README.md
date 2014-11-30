@@ -1,6 +1,6 @@
 # Fanscribed
 
-## Developer setup
+## Developer quickstart
 
 Install boot2docker.
 
@@ -9,6 +9,11 @@ Install fig.
 Start services:
 
     $ fig up
+
+In another terminal, sync database and create a superuser:
+
+    $ ./figmanage syncdb --migrate --noinput
+    $ ./figmanage createsuperuser
 
 Browse to [localhost:8000](http://localhost:8000/) for the backend.
 
