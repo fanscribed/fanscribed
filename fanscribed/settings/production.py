@@ -19,6 +19,33 @@ def get_env_setting(setting):
         raise ImproperlyConfigured(error_msg)
 
 
+# AUTH
+# ----
+
+THIRD_PARTY_APPS += (
+    'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.twitter',
+)
+
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+SOCIALACCOUNT_PROVIDERS = {
+    'facebook': {
+        'SCOPE': ['email'],
+        'METHOD': 'oauth2',
+        'VERIFIED_EMAIL': False,
+    },
+    'google': {
+        'SCOPE': ['https://www.googleapis.com/auth/userinfo.profile',
+                  'https://www.googleapis.com/auth/userinfo.email'],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+    },
+}
+
+
 # ALLOWED HOSTS
 # -------------
 
