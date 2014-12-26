@@ -3,6 +3,16 @@ Fanscribed Developer Setup
 ==========================
 
 
+Helpful shell aliases
+=====================
+
+``da`` -> ``django-admin.py``
+
+``s`` -> ``da shell_plus``
+
+``sup`` -> ``da supervisor``
+
+
 One-time preparation
 ====================
 
