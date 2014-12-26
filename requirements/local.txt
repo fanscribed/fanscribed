@@ -3,7 +3,6 @@
 
 beautifulsoup4 == 4.3.2
 coverage == 3.7.1
-django-debug-toolbar==1.0.1
 django-discover-runner==1.0
 django-werkzeug-debugger-runserver == 0.2
 flake8 == 2.1.0
