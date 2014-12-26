@@ -51,4 +51,4 @@ Unipath == 1.0
 watchdog == 0.7.1
 
 # django-supervisor == 0.3.2
--e git+ssh://git@github.com/fanscribed/django-supervisor@7c6d0d0b48#egg=django-supervisor
+-e git+https://github.com/fanscribed/django-supervisor@7c6d0d0b48#egg=django-supervisor
