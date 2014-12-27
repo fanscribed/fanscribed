@@ -5,6 +5,7 @@ from django.contrib import admin
 from django.views.generic import TemplateView
 
 from .sitemaps import SITEMAPS
+from .views import EmberIndexView
 
 
 admin.autodiscover()
@@ -53,6 +54,10 @@ urlpatterns = patterns(
     url(r'^transcription-engine/',
         name='transcription-engine',
         view=TemplateView.as_view(template_name='transcription-engine.html')),
+
+    url(r'^editor/',
+        name='editor',
+        view=EmberIndexView.as_view(base_url='/editor/')),
 
     url(r'^$',
         name='home',
