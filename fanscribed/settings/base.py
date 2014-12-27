@@ -306,44 +306,6 @@ MIDDLEWARE_CLASSES += (
 )
 
 
-# APPS
-# ----
-
-DJANGO_APPS = (
-    # Django apps:
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.humanize',
-    'django.contrib.messages',
-    'django.contrib.sessions',
-    'django.contrib.sitemaps',
-    'django.contrib.sites',
-    'django.contrib.staticfiles',
-
-    # Admin:
-    'suit',  # (Must be included before django.contrib.admin)
-    'django.contrib.admin',
-)
-THIRD_PARTY_APPS += (
-    'bootstrap3',
-    'django_extensions',
-    'django_object_actions',
-    'djsupervisor',
-    'storages',
-)
-# Apps specific for this project go here.
-LOCAL_APPS += (
-    'fanscribed',                   # Templates and static files.
-    'fanscribed.apps.mailinglist',  # Mailing list subscriptions.
-    'fanscribed.apps.media',        # Media file handling.
-    'fanscribed.apps.podcasts',     # Podcasts and episodes.
-    'fanscribed.apps.profiles',     # Accounts and profiles.
-    'fanscribed.apps.robots',       # robots.txt management.
-    'fanscribed.apps.transcripts',  # The transcription engine.
-)
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
-
-
 # MAILCHIMP
 # ---------
 
@@ -395,3 +357,41 @@ GOOGLE_ANALYTICS_ID = getenv('GOOGLE_ANALYTICS_ID')
 TEMPLATE_CONTEXT_PROCESSORS += (
     'fanscribed.context_processors.analytics',
 )
+
+
+# APPS
+# ----
+
+DJANGO_APPS = (
+    # Django apps:
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.humanize',
+    'django.contrib.messages',
+    'django.contrib.sessions',
+    'django.contrib.sitemaps',
+    'django.contrib.sites',
+    'django.contrib.staticfiles',
+
+    # Admin:
+    'suit',  # (Must be included before django.contrib.admin)
+    'django.contrib.admin',
+)
+THIRD_PARTY_APPS += (
+    'bootstrap3',
+    'django_extensions',
+    'django_object_actions',
+    'djsupervisor',
+    'storages',
+)
+# Apps specific for this project go here.
+LOCAL_APPS += (
+    'fanscribed',                   # Templates and static files.
+    'fanscribed.apps.mailinglist',  # Mailing list subscriptions.
+    'fanscribed.apps.media',        # Media file handling.
+    'fanscribed.apps.podcasts',     # Podcasts and episodes.
+    'fanscribed.apps.profiles',     # Accounts and profiles.
+    'fanscribed.apps.robots',       # robots.txt management.
+    'fanscribed.apps.transcripts',  # The transcription engine.
+)
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
