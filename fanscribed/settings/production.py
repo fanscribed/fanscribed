@@ -106,19 +106,6 @@ SESSION_CACHE_ALIAS = 'default'
 SECRET_KEY = get_env_setting('SECRET_KEY')
 
 
-# RAVEN/SENTRY
-# ------------
-
-_DSN = environ.get('RAVEN_DSN')
-if _DSN:
-    RAVEN_CONFIG = {
-        'dsn': _DSN,
-    }
-    INSTALLED_APPS += (
-        'raven.contrib.django.raven_compat',
-    )
-
-
 # MAILCHIMP
 # ---------
 
