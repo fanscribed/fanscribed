@@ -38,7 +38,7 @@ include:
   file.managed:
     - contents: |
         export DJANGO_SETTINGS_MODULE=fanscribed.settings.local
-        alias da='django-admin.py'
+        alias da='envdir /vagrant/env django-admin.py'
         alias s='da shell_plus'
         alias sup='da supervisor'
     - require:
