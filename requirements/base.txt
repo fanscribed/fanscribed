@@ -42,6 +42,7 @@ pyzmq == 14.1.1
 redis == 2.9.1
 requests == 2.2.1
 requests-oauthlib == 0.4.0
+rollbar == 0.9.4
 setuptools == 3.4.3
 South == 0.8.4
 supervisor == 3.0

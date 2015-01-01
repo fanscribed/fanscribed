@@ -31,3 +31,5 @@ CACHES = {
         },
     },
 }
+
+del ROLLBAR  # Don't report test errors

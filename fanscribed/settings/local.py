@@ -98,3 +98,9 @@ INSTALLED_APPS += (
 DEBUG_TOOLBAR_CONFIG = dict(
     SHOW_TOOLBAR_CALLBACK='fanscribed.settings.local.debug_toolbar_any_host',
 )
+
+
+# ROLLBAR
+# -------
+
+ROLLBAR['environment'] = 'development'

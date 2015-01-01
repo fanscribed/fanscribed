@@ -1,10 +1,20 @@
 """Common settings and globals."""
 
 from decimal import Decimal
-from os import getenv
+from os import environ, getenv
 from os.path import abspath, basename, dirname, join, normpath
 
 import fanscribed
+
+
+def get_env_setting(setting):
+    """ Get the environment setting or return exception """
+    try:
+        return environ[setting]
+    except KeyError:
+        error_msg = "Set the %s env variable" % setting
+        from django.core.exceptions import ImproperlyConfigured
+        raise ImproperlyConfigured(error_msg)
 
 
 LOCAL_APPS = ()
@@ -356,6 +366,27 @@ GOOGLE_ANALYTICS_ID = getenv('GOOGLE_ANALYTICS_ID')
 
 TEMPLATE_CONTEXT_PROCESSORS += (
     'fanscribed.context_processors.analytics',
+)
+
+
+# ROLLBAR
+# -------
+
+MIDDLEWARE_CLASSES += (
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
+)
+
+ROLLBAR = {
+    'access_token': getenv('ROLLBAR_SERVER_ACCESS_TOKEN'),
+    'environment': None, # set in local.py and production.py
+    'branch': 'master',
+    'root': PACKAGE_ROOT,
+}
+
+ROLLBAR_CLIENT_ACCESS_TOKEN = getenv('ROLLBAR_CLIENT_ACCESS_TOKEN')
+
+TEMPLATE_CONTEXT_PROCESSORS += (
+    'fanscribed.context_processors.rollbar',
 )
 
 

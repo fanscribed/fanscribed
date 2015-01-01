@@ -27,5 +27,12 @@ def analytics(request):
         return {}
 
 
+def rollbar(request):
+    return {
+        'ROLLBAR_CLIENT_ACCESS_TOKEN': settings.ROLLBAR_CLIENT_ACCESS_TOKEN,
+        'ROLLBAR_ENVIRONMENT': settings.ROLLBAR['environment'],
+    }
+
+
 def site(request):
     return {'site': Site.objects.get_current()}
