@@ -18,7 +18,7 @@ django-model-utils == 2.0.2
 django-object-actions == 0.4.0
 django-redis == 3.6.1
 django-storages == 1.1.8
-django-suit == 0.2.7
+django-suit == 0.2.12
 django-vanilla-views == 1.0.2
 django-waffle == 0.10
 docopt == 0.4.0
