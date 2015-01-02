@@ -27,17 +27,16 @@ class EmberIndexView(View):
             # Ember scripts start in body, so place rollbar at end of head.
             index_content = index_content.replace('</head>', rollbar_script + '</head>')
             # Rewrite references to assets so they point to /static
-            if settings.DEBUG:
-                index_content = index_content.replace(
-                    'href="assets/',
-                    'href="{}{}assets/'.format(settings.STATIC_URL,
-                                               self.base_url[1:]),
-                )
-                index_content = index_content.replace(
-                    'src="assets/',
-                    'src="{}{}assets/'.format(settings.STATIC_URL,
-                                              self.base_url[1:]),
-                )
+            index_content = index_content.replace(
+                'href="assets/',
+                'href="{}{}assets/'.format(settings.STATIC_URL,
+                                           self.base_url[1:]),
+            )
+            index_content = index_content.replace(
+                'src="assets/',
+                'src="{}{}assets/'.format(settings.STATIC_URL,
+                                          self.base_url[1:]),
+            )
             return HttpResponse(index_content)
         else:
             return HttpResponseServerError('index not found')
