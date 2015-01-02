@@ -1,5 +1,7 @@
 """Development settings and globals."""
 
+import re
+
 import dj_database_url
 
 from .base import *
@@ -9,7 +11,7 @@ from .base import *
 # -----
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#debug
-DEBUG = True
+DEBUG = not getenv('NODEBUG')
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#template-debug
 TEMPLATE_DEBUG = DEBUG
@@ -87,16 +89,23 @@ SUPERVISOR_AUTORELOAD_TIMEOUT = 5
 # TOOLBAR
 # -------
 
-def debug_toolbar_any_host(request):
+def show_toolbar(request):
     from django.conf import settings
-    return settings.DEBUG and not request.is_ajax()
+    if not settings.DEBUG or request.is_ajax():
+        return False
+    uri = request.get_full_path()
+    # Don't show debug toolbar in admin or editor.
+    if re.match(r'/(admin|editor)/', uri):
+        return False
+    return True
+
 
 INSTALLED_APPS += (
     'debug_toolbar',
 )
 
 DEBUG_TOOLBAR_CONFIG = dict(
-    SHOW_TOOLBAR_CALLBACK='fanscribed.settings.local.debug_toolbar_any_host',
+    SHOW_TOOLBAR_CALLBACK='fanscribed.settings.local.show_toolbar',
 )
 
 
