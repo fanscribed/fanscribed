@@ -3,8 +3,8 @@ from rest_framework import serializers
 from ..apps.transcripts.models import Transcript
 
 
-class TranscriptSerializer(serializers.ModelSerializer):
+class TranscriptSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Transcript
-        fields = ('id', 'title', 'state', 'length', 'length_state')
+        fields = ('url', 'id', 'title', 'state', 'length', 'length_state')
