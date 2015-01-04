@@ -380,7 +380,7 @@ ROLLBAR = {
     'access_token': getenv('ROLLBAR_SERVER_ACCESS_TOKEN'),
     'environment': None, # set in local.py and production.py
     'branch': 'master',
-    'root': PACKAGE_ROOT,
+    'root': abspath(join(PACKAGE_ROOT, '..')),
 }
 
 ROLLBAR_CLIENT_ACCESS_TOKEN = getenv('ROLLBAR_CLIENT_ACCESS_TOKEN')
