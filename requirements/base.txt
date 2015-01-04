@@ -7,12 +7,14 @@ boto == 2.27.0
 celery == 3.1.9
 dj-database-url == 0.3.0
 Django == 1.6.5
+djangorestframework == 3.0.2
 django-allauth == 0.18.0
 django-bootstrap3 == 3.0.0
 django-braces == 1.3.1
 django-celery == 3.1.9
 django-debug-toolbar == 1.2.1
 django-extensions == 1.3.3
+django-filter == 0.9.1
 django-fsm == 1.5.1
 django-model-utils == 2.0.2
 django-object-actions == 0.4.0
@@ -30,6 +32,7 @@ Jinja2 == 2.7.2
 kombu == 3.0.13
 logutils == 0.3.3
 mailchimp == 2.0.7
+Markdown == 2.5.2
 meld3 == 0.6.10
 oauthlib == 0.6.1
 pathtools == 0.1.2

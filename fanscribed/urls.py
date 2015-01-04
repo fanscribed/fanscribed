@@ -34,6 +34,9 @@ urlpatterns = patterns(
     url(r'^admin/',
         include(admin.site.urls)),
 
+    url(r'api/',
+        include('fanscribed.api.urls')),
+
     url(r'^help/',
         name='help',
         view=TemplateView.as_view(template_name='help.html')),
