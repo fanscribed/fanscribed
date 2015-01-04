@@ -58,6 +58,8 @@ One-time preparation
 7.  Synchronize the database::
 
       $ da syncdb --migrate --noinput
+      $ da loaddata task_types
+      $ da waffle_update waffle.yaml
 
 8.  Create some demo data::
 
