@@ -263,6 +263,9 @@
                   <button class="btn btn-primary" type="submit" name="type" value="any_{{ user.profile.task_order }}">
                     Help Transcribe
                   </button>
+                  {% if user.is_staff %}
+                    <a class="btn btn-default" href="{% url 'editor-edit-transcript' transcript.pk %}">Edit Transcript</a>
+                  {% endif %}
                 {% endif %}
               </form>
             {% endif %}

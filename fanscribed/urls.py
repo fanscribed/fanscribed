@@ -59,7 +59,10 @@ urlpatterns = patterns(
         view=TemplateView.as_view(template_name='transcription-engine.html')),
 
     url(r'^editor/',
-        name='editor',
+        view=EmberIndexView.as_view(base_url='/editor/')),
+
+    url(r'^editor/(?P<pk>\d+)$',
+        name='editor-edit-transcript',
         view=EmberIndexView.as_view(base_url='/editor/')),
 
     url(r'^$',
