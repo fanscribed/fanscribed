@@ -19,10 +19,17 @@ class SentenceSerializer(serializers.ModelSerializer):
         fields = ('id', 'latest_text', 'latest_start', 'latest_speaker')
 
 
-class TranscriptSerializer(serializers.HyperlinkedModelSerializer):
+class TranscriptSerializer(serializers.ModelSerializer):
 
     sentences = SentenceSerializer(many=True, read_only=True)
 
     class Meta:
         model = Transcript
-        fields = ('url', 'id', 'title', 'state', 'length', 'length_state', 'sentences')
+        fields = ('id', 'title', 'state', 'length', 'length_state', 'sentences')
+
+
+class TranscriptListSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = Transcript
+        fields = ('url', 'id', 'title', 'state', 'length', 'length_state')
