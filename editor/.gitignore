@@ -15,3 +15,6 @@
 /libpeerconnection.log
 npm-debug.log
 testem.log
+
+# You can symlink app/index.html to app/index.hbs to make PyCharm play nice.
+app/index.hbs
