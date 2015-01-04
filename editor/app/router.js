@@ -6,7 +6,7 @@ var Router = Ember.Router.extend({
 });
 
 Router.map(function() {
-  this.resource('transcript', {path: '/transcripts/:transcript_id'});
+  this.resource('transcript', {path: '/:transcript_id'});
 });
 
 export default Router;
