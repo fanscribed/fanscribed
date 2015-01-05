@@ -9,7 +9,7 @@
   <tbody>
     {{#each sentence in transcript.sentences}}
       <tr>
-        <td>{{sentence.latest_start}}</td>
+        <td>{{time-code time=sentence.latest_start}}</td>
         <td>{{sentence.latest_speaker.name}}</td>
         <td>{{sentence.latest_text}}</td>
       </tr>
