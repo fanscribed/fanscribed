@@ -5,14 +5,7 @@ Vagrant.configure("2") do |config|
 
     config.ssh.forward_agent = true
 
-    # Using Ubuntu 12.04 LTS
-    config.vm.box = "precise64"
-
-    # If using VMware, choose this URL:
-    # config.vm.box_url = "http://files.vagrantup.com/precise64_vmware.box"
-
-    # If using Virtualbox, choose this URL:
-    # config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+    config.vm.box = "chef/ubuntu-14.04"
 
     config.vm.hostname = "fanscribed-dev"
 
