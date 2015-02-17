@@ -28,4 +28,4 @@ before_script:
   - psql -c 'create database fanscribed;' -U postgres
 
 script:
-  - DJANGO_SETTINGS_MODULE=fanscribed.settings.travis python runtests.py
+  - DJANGO_TEST_SETTINGS_MODULE=fanscribed.settings.travis python runtests.py
