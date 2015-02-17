@@ -3,6 +3,7 @@
 from decimal import Decimal
 from os import environ, getenv
 from os.path import abspath, basename, dirname, join, normpath
+import sys
 
 import fanscribed
 
@@ -350,9 +351,18 @@ TESTING = False
 # MEDIA CONVERSION
 # ----------------
 
-MP3SPLT_PATH = getenv('MP3SPLT_PATH', '/usr/bin/mp3splt')
-AVPROBE_PATH = getenv('AVPROBE_PATH', '/usr/bin/avprobe')
-AVCONV_PATH = getenv('AVCONV_PATH', '/usr/bin/avconv')
+if sys.platform == 'linux2':
+
+    MP3SPLT_PATH = getenv('MP3SPLT_PATH', '/usr/bin/mp3splt')
+    AVPROBE_PATH = getenv('AVPROBE_PATH', '/usr/bin/avprobe')
+    AVCONV_PATH = getenv('AVCONV_PATH', '/usr/bin/avconv')
+
+elif sys.platform == 'darwin':
+
+    # $ brew install mp3splt ffmpeg
+    MP3SPLT_PATH = getenv('MP3SPLT_PATH', '/usr/local/bin/mp3splt')
+    AVPROBE_PATH = getenv('AVPROBE_PATH', '/usr/local/bin/ffprobe')
+    AVCONV_PATH = getenv('AVCONV_PATH', '/usr/local/bin/ffmpeg')
 
 
 # ANALYTICS
