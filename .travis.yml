@@ -8,10 +8,16 @@ env:
   - DJANGO_VERSION=1.7.4
   - DJANGO_VERSION=1.8a1
 
+addons:
+  postgresql: "9.3"
+
+services:
+  - redis-server
+
 install:
   - "npm install -g npm"
   - "pip install -r requirements/test.txt"
   - "pip install -U Django==$DJANGO_VERSION"
   - "pip install -e ."
 
-script: python runtests.py
+script: DJANGO_SETTINGS_MODULE=fanscribed.settings.travis python runtests.py
