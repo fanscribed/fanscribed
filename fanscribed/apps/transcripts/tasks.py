@@ -386,7 +386,7 @@ def create_processed_transcript_media(transcript_media_pk):
     )
     processed_media.create_file()
 
-    temp_dir = getattr(settings, 'TRANSCRIPT_PROCESSING_TEMP_DIR')
+    temp_dir = getattr(settings, 'TRANSCRIPT_PROCESSING_TEMP_DIR', None)
     processed_path = os.tempnam(temp_dir)
     open(processed_path, 'wb').close()
     os.chmod(processed_path, 0600)
