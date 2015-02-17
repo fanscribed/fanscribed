@@ -29,3 +29,11 @@ before_script:
 
 script:
   - "DJANGO_TEST_SETTINGS_MODULE=fanscribed.settings.travis python runtests.py"
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/d3c55578d730b28d751e
+    on_success: change
+    on_failure: change
+    on_start: false
