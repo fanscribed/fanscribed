@@ -68,10 +68,11 @@ class Command(BaseCommand):
     def perform_any_task(self):
         self.verbose_write('')
 
-        response = self.session.get(self.transcript_url)
-        soup = BeautifulSoup(response.content)
-        csrf_input = soup.find('input', dict(name='csrfmiddlewaretoken'))
-        csrf_token = csrf_input.attrs['value']
+        if not hasattr(self, 'csrf_token'):
+            response = self.session.get(self.transcript_url)
+            soup = BeautifulSoup(response.content)
+            csrf_input = soup.find('input', dict(name='csrfmiddlewaretoken'))
+            self.csrf_token = csrf_input.attrs['value']
 
         task_type = random.choice(['any_sequential', 'any_eager'])
 
@@ -81,8 +82,9 @@ class Command(BaseCommand):
         assign_url = urljoin(self.transcript_url, assign_path)
         data = dict(
             type=task_type,
-            csrfmiddlewaretoken=csrf_token,
+            csrfmiddlewaretoken=self.csrf_token,
         )
+        self.session.redirect_cache.clear()
         response = self.session.post(assign_url, data, allow_redirects=True)
         task_url = response.url
         self.verbose_write('  assigned: {}'.format(task_url))
@@ -103,10 +105,8 @@ class Command(BaseCommand):
         perform_method_name = 'perform_{assigned_task_type}'.format(**locals())
         perform = getattr(self, perform_method_name)
         soup = BeautifulSoup(response.content)
-        csrf_input = soup.find('input', dict(name='csrfmiddlewaretoken'))
-        csrf_token = csrf_input.attrs['value']
         data = dict(
-            csrfmiddlewaretoken=csrf_token,
+            csrfmiddlewaretoken=self.csrf_token,
         )
 
         self.verbose_write('  performing:')

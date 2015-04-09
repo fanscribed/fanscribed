@@ -28,10 +28,13 @@ def analytics(request):
 
 
 def rollbar(request):
-    return {
-        'ROLLBAR_CLIENT_ACCESS_TOKEN': settings.ROLLBAR_CLIENT_ACCESS_TOKEN,
-        'ROLLBAR_ENVIRONMENT': settings.ROLLBAR['environment'],
-    }
+    if hasattr(settings, 'ROLLBAR'):
+        return {
+            'ROLLBAR_CLIENT_ACCESS_TOKEN': settings.ROLLBAR_CLIENT_ACCESS_TOKEN,
+            'ROLLBAR_ENVIRONMENT': settings.ROLLBAR['environment'],
+        }
+    else:
+        return {}
 
 
 def site(request):

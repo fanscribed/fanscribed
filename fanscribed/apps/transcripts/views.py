@@ -131,6 +131,7 @@ class TaskPerformView(vanilla.UpdateView, AssignsTasks):
 
     def get_success_url(self):
         exiting = (self.request.POST.get('exit') == '1')
+        continuing = (self.request.POST.get('continue') == '1')
         if exiting:
             # Go back to the transcript detail page.
             messages.success(self.request,
@@ -139,7 +140,7 @@ class TaskPerformView(vanilla.UpdateView, AssignsTasks):
                 'transcripts:detail_slug',
                 kwargs=dict(pk=self.object.transcript.id,
                             slug=slugify(self.object.transcript.title)))
-        else:
+        elif continuing:
             # Give them the next task for the given task type.
             messages.success(self.request,
                              "Thank you for your work! Here's another task.")
@@ -148,6 +149,9 @@ class TaskPerformView(vanilla.UpdateView, AssignsTasks):
             requested_task_type = self.request.GET.get('t', default_task_type)
             return self.assigned_task_url(
                 self.object.transcript, requested_task_type)
+        else:
+            # Do nothing; useful for test cases and benchmarking tools.
+            return ''
 
 
 class TaskAudioView(vanilla.DetailView):

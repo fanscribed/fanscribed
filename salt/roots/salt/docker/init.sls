@@ -12,6 +12,7 @@ include:
 
 lxc-docker:
   pkg:
-    - latest
+    - installed
+    - version: 1.5.0
     - require:
       - pkgrepo: "Docker apt repository"

@@ -1,0 +1,39 @@
+language: python
+
+python:
+  - "2.7"
+
+env:
+  - "DJANGO_VERSION=1.6.10"
+
+## Enable when we are ready to upgrade to 1.7.4
+#  - "DJANGO_VERSION=1.7.4"
+#  - "DJANGO_VERSION=1.8a1"
+
+addons:
+  postgresql: "9.3"
+
+services:
+  - "redis-server"
+
+install:
+  - "sudo apt-get update -qq"
+  - "sudo apt-get -y install mp3splt libav-tools libavcodec-extra-53"
+  - "npm install -g npm"
+  - "pip install -r requirements/test.txt"
+  - "pip install -U Django==$DJANGO_VERSION"
+  - "pip install -e ."
+
+before_script:
+  - "psql -c 'create database fanscribed;' -U postgres"
+
+script:
+  - "DJANGO_TEST_SETTINGS_MODULE=fanscribed.settings.travis python runtests.py"
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/d3c55578d730b28d751e
+    on_success: change
+    on_failure: change
+    on_start: false

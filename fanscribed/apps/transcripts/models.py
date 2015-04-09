@@ -41,22 +41,22 @@ class SentenceManager(models.Manager):
 
     def completed(self):
         return self.filter(state='completed')
-    
+
     def clean_edited(self):
         return self.filter(clean_state='edited')
-    
+
     def clean_reviewed(self):
         return self.filter(clean_state='reviewed')
 
     def boundary_edited(self):
         return self.filter(boundary_state='edited')
-    
+
     def boundary_reviewed(self):
         return self.filter(boundary_state='reviewed')
 
     def speaker_edited(self):
         return self.filter(speaker_state='edited')
-    
+
     def speaker_reviewed(self):
         return self.filter(speaker_state='reviewed')
 
