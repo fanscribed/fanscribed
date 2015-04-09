@@ -3,3 +3,4 @@ include:
   - app.packages
   - app.user
   - app.virtualenv
+  - app.nodejs

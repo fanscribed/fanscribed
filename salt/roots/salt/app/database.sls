@@ -6,14 +6,14 @@ postgresql:
     - require:
       - pkg: postgresql
 
-/etc/postgresql/9.1/main/postgresql.conf:
+/etc/postgresql/9.3/main/postgresql.conf:
   file.append:
     - text: |
         listen_addresses = '*'
     - watch_in:
       - service: postgresql
 
-/etc/postgresql/9.1/main/pg_hba.conf:
+/etc/postgresql/9.3/main/pg_hba.conf:
   file.append:
     - text: |
         host all all 0.0.0.0/0 md5

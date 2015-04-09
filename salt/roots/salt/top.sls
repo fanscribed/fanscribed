@@ -1,8 +1,10 @@
 base:
   '*':
+    - vmware
     - docker
+    - node
     - python.virtualenvwrapper
-    - app
     - redis
     - tools
     - tools.vagrant
+    - app

@@ -7,4 +7,3 @@ app packages:
       - python-virtualenv
       - mp3splt
       - libav-tools
-      - libavcodec-extra-53
