@@ -82,8 +82,12 @@ class Podcast(models.Model):
         return self.title or self.rss_url
 
     def get_absolute_url(self):
-        return reverse('podcasts:detail_slug',
-                       kwargs=dict(pk=self.pk, slug=slugify(self.title)))
+        if self.title:
+            return reverse('podcasts:detail_slug',
+                           kwargs=dict(pk=self.pk, slug=slugify(self.title)))
+        else:
+            return reverse('podcasts:detail',
+                           kwargs=dict(pk=self.pk))
 
     # approval_state
     # --------------
