@@ -43,7 +43,7 @@ pytz == 2013.9
 PyYAML == 3.10
 pyzmq == 14.1.1
 redis == 2.9.1
-requests == 2.2.1
+requests == 2.5.1
 requests-oauthlib == 0.4.0
 rollbar == 0.9.4
 setuptools == 3.4.3
