@@ -3,4 +3,4 @@ install latest nodejs:
     - source: salt://node/nodesource-setup.sh
 
 nodejs: pkg.installed
-npm@~2.5.1: npm.installed
+npm@~2.12.1: npm.installed
