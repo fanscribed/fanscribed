@@ -25,7 +25,6 @@ build
 
 # Vagrant:
 .vagrant
-Vagrantfile
 
 # Media:
 .mediafile-cache/

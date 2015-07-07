@@ -1,23 +1,17 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-$fix_vmware_tools_script = <<SCRIPT
-sed -i.bak 's/answer AUTO_KMODS_ENABLED_ANSWER no/answer AUTO_KMODS_ENABLED_ANSWER yes/g' /etc/vmware-tools/locations
-sed -i.bak 's/answer AUTO_KMODS_ENABLED no/answer AUTO_KMODS_ENABLED yes/g' /etc/vmware-tools/locations
-SCRIPT
-
 Vagrant.configure("2") do |config|
 
     config.ssh.forward_agent = true
 
-    config.vm.box = "chef/ubuntu-14.04"
+    config.vm.box = "ubuntu/trusty64"
 
     config.vm.hostname = "fanscribed-dev"
 
     config.vm.synced_folder "salt/roots", "/srv"
     config.vm.synced_folder "..", "/vagrant"
 
-    config.vm.provision 'shell', inline: $fix_vmware_tools_script
     config.vm.provision 'shell', path: 'vagrant/set-apt-mirrors.sh'
     config.vm.provision 'shell', path: 'vagrant/install-upgrades.sh'
 

@@ -31,21 +31,9 @@ Vagrant: One-time preparation
       $ git clone git@github.com:fanscribed/fanscribed
       $ cd fanscribed
 
-3.  Make a ``Vagrantfile``, then edit it
-    to choose between Virtualbox or VMware::
-
-      $ cp Vagrantfile.example Vagrantfile
-      $ $EDITOR Vagrantfile
-
-4.  Bring up the VM for the first time::
+3.  Bring up the VM for the first time::
 
       $ vagrant up
-
-    If you're using the `VMware provider for Vagrant <http://www.vagrantup.com/vmware>`__,
-    pass the ``provider`` name appropriate to your environment::
-
-      $ vagrant up --provider=vmware_fusion
-      $ vagrant up --provider=vmware_workstation
 
     If you run into problems during provisioning::
 
@@ -54,21 +42,21 @@ Vagrant: One-time preparation
 
     If some states fail, run ``state.highstate`` again.
 
-5.  Connect to the VM via SSH::
+4.  Connect to the VM via SSH::
 
       $ vagrant ssh
 
-6.  Activate the ``app`` virtualenv::
+5.  Activate the ``app`` virtualenv::
 
       $ workon app
 
-7.  Synchronize the database::
+6.  Synchronize the database::
 
       $ da syncdb --migrate --noinput
       $ da loaddata task_types
       $ da waffle_update waffle.yaml
 
-8.  Create some demo data::
+7.  Create some demo data::
 
       $ da fix demo
 
