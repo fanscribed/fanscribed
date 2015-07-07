@@ -98,10 +98,10 @@ DATABASES = {
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#caches
 CACHES = {
     'default': {
-        'BACKEND': 'redis_cache.cache.RedisCache',
+        'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': get_env_setting('REDIS_CACHE_LOCATION'),
         'OPTIONS': {
-            'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'PASSWORD': get_env_setting('REDIS_CACHE_PASSWORD')
         },
     },

@@ -18,7 +18,7 @@ from django.utils.timezone import utc
 from django_fsm.db.fields import FSMField, transition
 from django_fsm.signals import pre_transition, post_transition
 from model_utils.models import TimeStampedModel
-from redis_cache import get_redis_connection
+from django_redis import get_redis_connection
 from waffle import flag_is_active
 
 from ... import locks

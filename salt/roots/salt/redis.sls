@@ -5,7 +5,6 @@ redis-server:
 # Listen on all interfaces
 /etc/redis/redis.conf:
   file.comment:
-    - regex: |
-        ^bind 127.0.0.1
+    - regex: '^bind 127.0.0.1'
     - watch_in:
       - service: redis-server

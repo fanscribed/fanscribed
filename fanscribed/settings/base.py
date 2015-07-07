@@ -70,14 +70,6 @@ DATABASES = {
 }
 
 
-# DB MIGRATIONS
-# -------------
-
-THIRD_PARTY_APPS += (
-    'south',
-)
-
-
 # GENERAL
 # -------
 
@@ -156,15 +148,6 @@ SECRET_KEY = r"%w=+!*&s5d#gk4nd4^sc6_(5wc5-6kk9*$hx&g)*_s2k60v1ve"
 # Hosts/domain names that are valid for this site
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
-
-
-# FIXTURE
-# -------
-
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-FIXTURE_DIRS
-FIXTURE_DIRS = (
-    normpath(join(PACKAGE_ROOT, 'fixtures')),
-)
 
 
 # TEMPLATE

@@ -46,6 +46,7 @@ class EpisodeDetail(vanilla.DetailView):
 class EpisodeCreateTranscript(vanilla.RedirectView):
 
     http_method_names = ['post']
+    permanent = False
 
     def get_redirect_url(self, podcast_pk, pk):
         episode = get_object_or_404(

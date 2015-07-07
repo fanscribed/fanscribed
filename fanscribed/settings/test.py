@@ -23,10 +23,10 @@ TRANSCRIPTS_REQUIRE_TEAMWORK = False
 
 CACHES = {
     'default': {
-        'BACKEND': 'redis_cache.cache.RedisCache',
-        'LOCATION': getenv('TEST_REDIS_CACHE_LOCATION', 'localhost:6379:2'),
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': getenv('TEST_REDIS_CACHE_LOCATION', 'redis://localhost:6379/2'),
         'OPTIONS': {
-            'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'PASSWORD': getenv('TEST_REDIS_CACHE_PASSWORD', None),
         },
     },

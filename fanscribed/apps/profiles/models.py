@@ -20,7 +20,7 @@ TASK_ORDER_CHOICES = [
 
 class Profile(models.Model):
 
-    user = models.ForeignKey(User, unique=True)
+    user = models.OneToOneField(User)
 
     nickname = models.CharField(max_length=100, blank=True, null=True)
     nickname_slug = models.CharField(max_length=100, blank=True, null=True, db_index=True)

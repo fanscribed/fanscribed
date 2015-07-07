@@ -44,10 +44,10 @@ DATABASES = {
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#caches
 CACHES = {
     'default': {
-        'BACKEND': 'redis_cache.cache.RedisCache',
-        'LOCATION': getenv('REDIS_CACHE_LOCATION', 'localhost:6379:1'),
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': getenv('REDIS_CACHE_LOCATION', 'redis://localhost:6379/1'),
         'OPTIONS': {
-            'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'PASSWORD': getenv('REDIS_CACHE_PASSWORD', None),
         },
     },

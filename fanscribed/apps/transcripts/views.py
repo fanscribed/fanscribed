@@ -81,6 +81,7 @@ class AssignsTasks(object):
 class TaskAssignView(vanilla.RedirectView, AssignsTasks):
 
     http_method_names = ['post']
+    permanent = False
 
     def get_redirect_url(self, pk, *args, **kwargs):
         transcript = get_object_or_404(m.Transcript, pk=pk)

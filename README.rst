@@ -111,8 +111,8 @@ and run your development environment on your OS X host.
       export DJANGO_SETTINGS_MODULE=fanscribed.settings.local
       export DATABASE_URL=postgres://fanscribed:fanscribed@fanscribed-dev.local:5432/fanscribed
       export BROKER_URL=redis://fanscribed-dev.local:6379/0
-      export REDIS_CACHE_LOCATION=fanscribed-dev.local:6379:1
-      export TEST_REDIS_CACHE_LOCATION=fanscribed-dev.local:6379:2
+      export REDIS_CACHE_LOCATION=redis://fanscribed-dev.local:6379/1
+      export TEST_REDIS_CACHE_LOCATION=redis://fanscribed-dev.local:6379/2
       alias da='django-admin.py'
       alias s='da shell_plus'
       alias sup='da supervisor'
