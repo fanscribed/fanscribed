@@ -1,6 +1,7 @@
 """Common settings and globals."""
 
 from decimal import Decimal
+import os
 from os import environ, getenv
 from os.path import abspath, basename, dirname, join, normpath
 import sys
@@ -401,6 +402,51 @@ ROLLBAR_CLIENT_ACCESS_TOKEN = getenv('ROLLBAR_CLIENT_ACCESS_TOKEN')
 TEMPLATE_CONTEXT_PROCESSORS += (
     'fanscribed.context_processors.rollbar',
 )
+
+
+# JS_HOST
+# -------
+
+if 'NO_JSHOST' not in os.environ:
+    THIRD_PARTY_APPS += (
+        'js_host',
+    )
+
+JS_HOST = {
+    'SOURCE_ROOT': abspath(join(PACKAGE_ROOT, '..')),
+    'USE_MANAGER': False,
+}
+
+
+# WEBPACK
+# -------
+
+THIRD_PARTY_APPS += (
+    'webpack',
+)
+
+STATICFILES_FINDERS += (
+    'webpack.django_integration.WebpackFinder',
+)
+
+WEBPACK = {
+    'BUNDLE_ROOT': STATIC_ROOT,
+    'BUNDLE_URL': STATIC_URL,
+    'WATCH_CONFIG_FILES': False,
+    'WATCH_SOURCE_FILES': False,
+}
+
+
+# REACT
+# -----
+
+THIRD_PARTY_APPS += (
+    'react',
+)
+
+REACT = {
+    'DEVTOOL': None,
+}
 
 
 # APPS

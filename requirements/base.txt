@@ -29,6 +29,7 @@ feedparser == 5.1.3
 html5lib == 0.999
 ipython == 2.0.0
 Jinja2 == 2.7.2
+js-host == 0.2.0
 kombu == 3.0.26
 logutils == 0.3.3
 mailchimp == 2.0.7
@@ -36,6 +37,7 @@ Markdown == 2.5.2
 meld3 == 0.6.10
 msgpack-python == 0.4.6
 oauthlib == 0.7.2
+optional-django == 0.3.0
 pathtools == 0.1.2
 psycopg2 == 2.5.2
 Pygments == 1.6
@@ -53,6 +55,10 @@ supervisor == 3.0
 tornado == 3.2
 Unipath == 1.0
 watchdog == 0.7.1
+webpack == 4.1.1
 
 # django-supervisor == 0.3.2
 -e git+https://github.com/fanscribed/django-supervisor@7c6d0d0b48#egg=django-supervisor
+
+# react == 0.13.1
+-e git+https://github.com/markfinger/python-react@917cd1f#egg=python-react

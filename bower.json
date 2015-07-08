@@ -1,0 +1,6 @@
+{
+  "name": "fanscribed",
+  "dependencies": {
+    "react": "~0.13.3"
+  }
+}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block extra_head %}
+  {% if DEBUG %}
+    <script type="text/javascript" src="{% static 'bower_components/react/react.js' %}"></script>
+  {% else %}
+    <script type="text/javascript" src="{% static 'bower_components/react/react.min.js' %}"></script>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {{ component.render_markup }}
+  {{ component.render_js }}
+
+  <p>This is great.</p>
+{% endblock %}

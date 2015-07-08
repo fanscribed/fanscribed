@@ -35,5 +35,10 @@ media/
 Untitled*.ipynb
 
 # Supervisor:
-supervisord.log
 supervisord.pid
+
+# Bower:
+bower_components/
+
+# Node:
+node_modules/

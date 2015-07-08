@@ -1,0 +1,33 @@
+{
+  "name": "fanscribed",
+  "version": "3.0.0",
+  "description": "Podcast transcription service",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fanscribed/fanscribed.git"
+  },
+  "author": "Elevencraft Inc.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fanscribed/fanscribed/issues"
+  },
+  "homepage": "https://github.com/fanscribed/fanscribed#readme",
+  "private": true,
+  "dependencies": {
+    "babel-core": "^5.6.15",
+    "babel-loader": "^5.3.1",
+    "js-host": "^0.12.0",
+    "node-libs-browser": "^0.5.2",
+    "react": "^0.13.3",
+    "react-render": "^0.3.0",
+    "webpack": "^1.10.1",
+    "webpack-wrapper": "^0.2.2"
+  }
+}

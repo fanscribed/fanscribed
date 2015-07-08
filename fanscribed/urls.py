@@ -3,6 +3,7 @@ from django.conf.urls import patterns, include, url
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.views.generic import TemplateView
+from react.render import render_component
 
 from .sitemaps import SITEMAPS
 
@@ -14,6 +15,22 @@ admin.autodiscover()
 LOGGED_IN_USER = {
     'login_required': True,
 }
+
+
+class TestView(TemplateView):
+
+    template_name = 'test.html'
+
+    def get_context_data(self, **kwargs):
+        data = super(TestView, self).get_context_data(**kwargs)
+        data['component'] = render_component(
+            'js/HelloWorld.jsx',
+            translate=True,
+            props={
+                'name': self.request.GET.get('name', 'world'),
+            },
+        )
+        return data
 
 
 # URL patterns used by all projects based on fanscribed core.
@@ -56,6 +73,9 @@ urlpatterns = patterns(
     url(r'^transcription-engine/',
         name='transcription-engine',
         view=TemplateView.as_view(template_name='transcription-engine.html')),
+
+    url(r'^test/$',
+        view=TestView.as_view()),
 
     url(r'^$',
         name='home',

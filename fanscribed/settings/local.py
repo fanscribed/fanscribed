@@ -113,3 +113,22 @@ DEBUG_TOOLBAR_CONFIG = dict(
 # -------
 
 ROLLBAR['environment'] = 'development'
+
+
+# JS-HOST
+# -------
+
+JS_HOST['USE_MANAGER'] = True
+
+
+# WEBPACK
+# -------
+
+WEBPACK['WATCH_CONFIG_FILES'] = True
+WEBPACK['WATCH_SOURCE_FILES'] = True
+
+
+# REACT
+# -----
+
+REACT['DEVTOOL'] = 'eval'
