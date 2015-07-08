@@ -4,11 +4,7 @@ python:
   - "2.7"
 
 env:
-  - "DJANGO_VERSION=1.6.10"
-
-## Enable when we are ready to upgrade to 1.7.4
-#  - "DJANGO_VERSION=1.7.4"
-#  - "DJANGO_VERSION=1.8a1"
+  - "DJANGO_VERSION=1.8.2"
 
 addons:
   postgresql: "9.3"
