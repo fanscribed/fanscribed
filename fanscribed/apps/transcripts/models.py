@@ -61,7 +61,7 @@ class SentenceManager(models.Manager):
         return self.filter(speaker_state='reviewed')
 
 
-class Sentence(models.Model):
+class Sentence(TimeStampedModel):
     """A sentence made from sentence fragments.
 
     state
@@ -251,7 +251,7 @@ class SentenceFragment(models.Model):
 # ---------------------
 
 
-class SentenceRevision(models.Model):
+class SentenceRevision(TimeStampedModel):
     """A full-text revision of a sentence."""
 
     sentence = models.ForeignKey('Sentence', related_name='revisions')
@@ -278,7 +278,7 @@ def update_sentence_latest_text(instance, created, raw, **kwargs):
 # ---------------------
 
 
-class SentenceBoundary(models.Model):
+class SentenceBoundary(TimeStampedModel):
     """A precise start/end boundary of a sentence."""
 
     sentence = models.ForeignKey('Sentence', related_name='boundaries')
@@ -307,7 +307,7 @@ def update_sentence_latest_boundary(instance, created, raw, **kwargs):
 # ---------------------
 
 
-class Speaker(models.Model):
+class Speaker(TimeStampedModel):
     """A unique speaker in the transcript."""
 
     transcript = models.ForeignKey('Transcript', related_name='speakers')
@@ -512,7 +512,7 @@ class TranscriptFragmentManager(models.Manager):
         return self.filter(lock_state='unlocked')
 
 
-class TranscriptFragment(models.Model):
+class TranscriptFragment(TimeStampedModel):
     """A fragment of a transcript defined by its time span.
 
     state
@@ -553,6 +553,13 @@ class TranscriptFragment(models.Model):
 
     def stitched_both_sides(self):
         return self.stitched_left and self.stitched_right
+
+    def latest_sentence_fragments(self):
+        # TODO: fix terrible performance here!
+        if self.revisions.count():
+            return self.revisions.latest().sentence_fragments.all()
+        else:
+            return []
 
     @property
     def _lockname(self):
@@ -617,7 +624,7 @@ class TranscriptStitchManager(models.Manager):
         return self.filter(lock_state='unlocked')
 
 
-class TranscriptStitch(models.Model):
+class TranscriptStitch(TimeStampedModel):
     """A stitch between two fragments of a transcript.
 
     state
