@@ -37,7 +37,7 @@ SITE_NAME = basename(PACKAGE_ROOT)
 # -----
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#debug
-DEBUG = False
+DEBUG = bool(getenv('DEBUG', False))
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#template-debug
 TEMPLATE_DEBUG = DEBUG
@@ -407,15 +407,15 @@ TEMPLATE_CONTEXT_PROCESSORS += (
 # JS_HOST
 # -------
 
-if 'NO_JSHOST' not in os.environ:
-    THIRD_PARTY_APPS += (
-        'js_host',
-    )
-
-JS_HOST = {
-    'SOURCE_ROOT': abspath(join(PACKAGE_ROOT, '..')),
-    'USE_MANAGER': False,
-}
+# if 'NO_JSHOST' not in os.environ:
+#     THIRD_PARTY_APPS += (
+#         'js_host',
+#     )
+#
+# JS_HOST = {
+#     'SOURCE_ROOT': abspath(join(PACKAGE_ROOT, '..')),
+#     'USE_MANAGER': False,
+# }
 
 
 # WEBPACK
@@ -430,11 +430,18 @@ STATICFILES_FINDERS += (
 )
 
 WEBPACK = {
-    'BUNDLE_ROOT': STATIC_ROOT,
-    'BUNDLE_URL': STATIC_URL,
-    'WATCH_CONFIG_FILES': False,
-    'WATCH_SOURCE_FILES': False,
+    'BUILD_URL': getenv('WEBPACK_BUILD_URL', 'http://localhost:7779/build'),
+    'STATIC_ROOT': STATIC_ROOT,
+    'STATIC_URL': STATIC_URL,
+    'WATCH': DEBUG,
+    'HMR': DEBUG,
+    'CONFIG_DIRS': PACKAGE_ROOT,
+    'CONTEXT': {
+        'DEBUG': DEBUG,
+    },
 }
+
+WEBPACK_CONFIG_FILE = os.path.join(PACKAGE_ROOT, '..', 'fanscribed.webpack.js')
 
 
 # REACT
@@ -445,7 +452,8 @@ THIRD_PARTY_APPS += (
 )
 
 REACT = {
-    'DEVTOOL': None,
+    'RENDER': True,
+    'RENDER_URL': getenv('REACT_RENDER_URL', 'http://localhost:7778/render'),
 }
 
 
@@ -464,7 +472,6 @@ DJANGO_APPS = (
     'django.contrib.staticfiles',
 
     # Admin:
-    'suit',  # (Must be included before django.contrib.admin)
     'django.contrib.admin',
 )
 THIRD_PARTY_APPS += (

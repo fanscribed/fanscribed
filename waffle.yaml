@@ -5,3 +5,8 @@ flags:
   meta: "Only effective when used by a superuser"
   initial_testing: true
   initial_superuser: false
+
+- name: react_editor
+  note: "Use react-based transcript editor"
+  initial_testing: true
+  initial_superuser: false

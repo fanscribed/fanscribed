@@ -19,6 +19,10 @@ urlpatterns = patterns(
         name='detail_slug',
         view=views.TranscriptDetailView.as_view()),
 
+    url(r'^(?P<pk>\d+)-(?P<slug>[\w-]+)/edit/$',
+        name='edit_slug',
+        view=views.TranscriptEditView.as_view()),
+
     url(r'^(?P<transcript_pk>\d+)/tasks/(?P<type>\w+)/(?P<pk>\d+)/$',
         name='task_perform',
         view=views.TaskPerformView.as_view(),

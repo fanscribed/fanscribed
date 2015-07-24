@@ -1,15 +1,21 @@
 from decimal import Decimal
 import json
+from django.conf import settings
 
 from django.contrib import messages
+from django.contrib.staticfiles import finders
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
+from react.render import render_component
 import vanilla
 from waffle import flag_is_active
+from webpack.compiler import webpack
 
-from ...utils import refresh
+from fanscribed.api.serializers import TranscriptSerializer
+from fanscribed.utils import refresh
+
 from . import forms as f
 from . import models as m
 
@@ -40,7 +46,6 @@ class TranscriptDetailView(vanilla.DetailView):
         )
         return data
 
-
     def render_to_response(self, context):
 
         # Allow superusers to set ?dwft_bypass_teamwork=1
@@ -48,6 +53,33 @@ class TranscriptDetailView(vanilla.DetailView):
         flag_is_active(self.request, 'bypass_teamwork')
 
         return super(TranscriptDetailView, self).render_to_response(context)
+
+
+class TranscriptEditView(vanilla.DetailView):
+
+    model = m.Transcript
+    template_name_suffix = '_edit'
+
+    def get_context_data(self, **kwargs):
+        data = super(TranscriptEditView, self).get_context_data(**kwargs)
+        transcript = self.get_object()
+        serializer = TranscriptSerializer()
+        rep = serializer.to_representation(transcript)
+        component_path = finders.find('editor/Editor.jsx')
+        props = {
+            'transcript': rep,
+        }
+        rendered = render_component(component_path, props)
+        webpack_context = {
+            'component': component_path,
+            'props_var': 'window.mountProps',
+            'container': 'mount-container',
+        }
+        bundle = webpack(settings.WEBPACK_CONFIG_FILE, context=webpack_context)
+        data['bundle'] = bundle
+        data['webpack_context'] = webpack_context
+        data['rendered'] = rendered
+        return data
 
 
 # -----------------------------

@@ -1,17 +1,16 @@
 """Development settings and globals."""
 
 import re
+import os
 
 import dj_database_url
 
+# Set DEBUG before importing rest of config.
+if not os.environ.get('NODEBUG', False):
+    os.environ['DEBUG'] = '1'
+
 from .base import *
 
-
-# DEBUG
-# -----
-
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#debug
-DEBUG = not getenv('NODEBUG')
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#template-debug
 TEMPLATE_DEBUG = DEBUG
@@ -113,22 +112,3 @@ DEBUG_TOOLBAR_CONFIG = dict(
 # -------
 
 ROLLBAR['environment'] = 'development'
-
-
-# JS-HOST
-# -------
-
-JS_HOST['USE_MANAGER'] = True
-
-
-# WEBPACK
-# -------
-
-WEBPACK['WATCH_CONFIG_FILES'] = True
-WEBPACK['WATCH_SOURCE_FILES'] = True
-
-
-# REACT
-# -----
-
-REACT['DEVTOOL'] = 'eval'

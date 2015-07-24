@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load cache %}
+{% load staticfiles %}
+{% load utility_tags %}
+{% load waffle_tags %}
+
+
+{% block title %}
+  {% with episode=transcript.episode %}
+    {% if episode %}
+      Transcript of
+      "{{ episode.title }}"
+      (from {{ episode.podcast.title }})
+    {% else %}
+      {{ transcript.title }}
+    {% endif %}
+  {% endwith %}
+{% endblock %}
+
+
+{% block meta_description %}{% with episode=transcript.episode %}{% if episode %}{% if transcript.state == 'finished' %}Complete{% else %}Work-in-progress{% endif %} transcript of the &ldquo;{{ episode.title|html_escape }}&rdquo; episode of the &ldquo;{{ episode.podcast.title|html_escape }}&rdquo; podcast.{% else %}{% if transcript.state == 'finished' %}Complete{% else %}Work-in-progress{% endif %} transcript entitled &ldquo;{{ transcript.title|html_escape }}&rdquo;.{% endif %}{% endwith %}{% endblock %}
+
+
+{% block extra_head %}
+  {% if DEBUG %}
+    <script type="text/javascript" src="{% static 'bower_components/react/react.js' %}"></script>
+  {% else %}
+    <script type="text/javascript" src="{% static 'bower_components/react/react.min.js' %}"></script>
+  {% endif %}
+  {{ bundle.render_css|safe }}
+{% endblock %}
+
+
+{% block nav_class_transcribe %}
+  {% if transcript.state != 'finished' %}
+    active
+  {% endif %}
+{% endblock %}
+
+
+{% block nav_class_read %}
+  {% if transcript.state == 'finished' %}
+    active
+  {% endif %}
+{% endblock %}
+
+
+{% block content %}
+
+  {% url 'transcripts:detail_slug' pk=transcript.pk slug=transcript.title|slugify as detail_url %}
+
+  <div class="row">
+    <div class="col-md-12">
+
+      <div id="{{ webpack_context.container }}">
+        {{ rendered|safe }}
+      </div>
+      <script type="text/javascript">
+        {{ webpack_context.props_var }} = {{ rendered.props|safe }};
+      </script>
+      {{ bundle.render_js|safe }}
+
+    </div>
+  </div>
+
+{% endblock %}

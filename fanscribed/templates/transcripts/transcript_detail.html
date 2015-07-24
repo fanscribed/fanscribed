@@ -2,6 +2,7 @@
 {% load cache %}
 {% load staticfiles %}
 {% load utility_tags %}
+{% load waffle_tags %}
 
 
 {% block title %}
@@ -214,6 +215,7 @@
 
   {% url 'transcripts:task_assign' pk=transcript.pk as task_assign_url %}
   {% url 'transcripts:detail_slug' pk=transcript.pk slug=transcript.title|slugify as detail_url %}
+  {% url 'transcripts:edit_slug' pk=transcript.pk slug=transcript.title|slugify as edit_url %}
 
   {% include "transcripts/_transcript_title_heading.html" %}
 
@@ -257,14 +259,22 @@
                 <small>(We are still processing the audio for this transcript. Please reload the page periodically to update this status.)</small>
               </p>
             {% else %}
-              <form action="{{ task_assign_url }}" method="post">
-                {% csrf_token %}
-                {% if perms.transcripts.add_transcribetask %}
-                  <button class="btn btn-primary" type="submit" name="type" value="any_{{ user.profile.task_order }}">
-                    Help Transcribe
-                  </button>
-                {% endif %}
-              </form>
+
+              {% flag react_editor %}
+                <a href="{{ edit_url }}" class="btn btn-primary">
+                  Help Transcribe
+                </a>
+              {% else %}
+                <form action="{{ task_assign_url }}" method="post">
+                  {% csrf_token %}
+                  {% if perms.transcripts.add_transcribetask %}
+                    <button class="btn btn-primary" type="submit" name="type" value="any_{{ user.profile.task_order }}">
+                      Help Transcribe
+                    </button>
+                  {% endif %}
+                </form>
+              {% endflag %}
+
             {% endif %}
           {% else %}
             <p>
