@@ -41,7 +41,7 @@ psycopg2 == 2.5.2
 Pygments == 1.6
 python-openid == 2.2.5
 pytz == 2015.4
-PyYAML == 3.10
+PyYAML == 5.1
 pyzmq == 14.1.1
 redis == 2.10.3
 requests == 2.7.0
