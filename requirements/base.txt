@@ -2,7 +2,7 @@ amqp == 1.4.6
 anyjson == 0.3.3
 argh == 0.24.1
 billiard == 3.3.0.20
-bleach == 1.4
+bleach == 3.3.0
 boto == 2.27.0
 celery == 3.1.18
 dj-database-url == 0.3.0
