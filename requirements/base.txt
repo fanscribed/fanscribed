@@ -28,7 +28,7 @@ envdir == 0.6.1
 feedparser == 5.1.3
 html5lib == 0.999
 ipython == 2.0.0
-Jinja2 == 2.7.2
+Jinja2 == 2.11.3
 kombu == 3.0.26
 logutils == 0.3.3
 mailchimp == 2.0.7
