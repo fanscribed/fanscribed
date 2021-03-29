@@ -38,7 +38,7 @@ msgpack-python == 0.4.6
 oauthlib == 0.7.2
 pathtools == 0.1.2
 psycopg2 == 2.5.2
-Pygments == 1.6
+Pygments == 2.7.4
 python-openid == 2.2.5
 pytz == 2015.4
 PyYAML == 3.10
